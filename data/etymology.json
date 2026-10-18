@@ -1,0 +1,6117 @@
+{
+ "elements": {
+  "aceus": {
+   "en": "of the nature of",
+   "he": "בעל אופי",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "aceus",
+   "forms": [
+    "aceus"
+   ]
+  },
+  "acrido": {
+   "en": "locust",
+   "he": "חגב",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "acrido",
+   "forms": [
+    "acrido"
+   ]
+  },
+  "acro": {
+   "en": "summit, peak",
+   "he": "פסגה",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "acro",
+   "forms": [
+    "acro"
+   ]
+  },
+  "acumin": {
+   "en": "point",
+   "he": "קצה",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "acumin",
+   "forms": [
+    "acumin"
+   ]
+  },
+  "acuti": {
+   "en": "sharp",
+   "he": "חד",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "acuti",
+   "forms": [
+    "acuti"
+   ]
+  },
+  "aerugin": {
+   "en": "verdigris",
+   "he": "חלודה ירוקה",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "aerugin",
+   "forms": [
+    "aerugin"
+   ]
+  },
+  "aetus": {
+   "en": "eagle",
+   "he": "עיט",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "aetus",
+   "forms": [
+    "aetus",
+    "aetos",
+    "eetus"
+   ]
+  },
+  "agri": {
+   "en": "field",
+   "he": "שדה",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "agri",
+   "forms": [
+    "agri"
+   ]
+  },
+  "ago": {
+   "en": "resembling",
+   "he": "דומה ל",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ago",
+   "forms": [
+    "ago"
+   ]
+  },
+  "alauda": {
+   "en": "lark",
+   "he": "עפרוני",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "alauda",
+   "forms": [
+    "alauda",
+    "alaudi"
+   ]
+  },
+  "alb": {
+   "en": "white",
+   "he": "לבן",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "alb",
+   "forms": [
+    "alb",
+    "albi",
+    "alba"
+   ]
+  },
+  "alopo": {
+   "en": "fox",
+   "he": "שועל",
+   "origin": "Greek",
+   "theme": "Mammals",
+   "display": "alopo",
+   "forms": [
+    "alopo"
+   ]
+  },
+  "ammo": {
+   "en": "sand",
+   "he": "חול",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "ammo",
+   "forms": [
+    "ammo"
+   ]
+  },
+  "angusti": {
+   "en": "narrow",
+   "he": "צר",
+   "origin": "Latin",
+   "theme": "Size",
+   "display": "angusti",
+   "forms": [
+    "angusti"
+   ]
+  },
+  "anser": {
+   "en": "goose",
+   "he": "אווז",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "anser",
+   "forms": [
+    "anser"
+   ]
+  },
+  "anthropo": {
+   "en": "human",
+   "he": "אדם",
+   "origin": "Greek",
+   "theme": "Other animals",
+   "display": "anthropo",
+   "forms": [
+    "anthropo"
+   ]
+  },
+  "api": {
+   "en": "bee",
+   "he": "דבורה",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "api",
+   "forms": [
+    "api"
+   ]
+  },
+  "arche": {
+   "en": "rule",
+   "he": "שלטון",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "arche",
+   "forms": [
+    "arche"
+   ]
+  },
+  "arde": {
+   "en": "heron",
+   "he": "אנפה",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "arde",
+   "forms": [
+    "arde"
+   ]
+  },
+  "aren": {
+   "en": "sand",
+   "he": "חול",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "aren",
+   "forms": [
+    "aren"
+   ]
+  },
+  "argent": {
+   "en": "silver",
+   "he": "כסף",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "argent",
+   "forms": [
+    "argent"
+   ]
+  },
+  "argus": {
+   "en": "white",
+   "he": "לבן",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "argus",
+   "forms": [
+    "argus"
+   ]
+  },
+  "aria": {
+   "en": "pertaining to",
+   "he": "שייך ל",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "aria",
+   "forms": [
+    "aria"
+   ]
+  },
+  "arundin": {
+   "en": "reed",
+   "he": "קנה",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "arundin",
+   "forms": [
+    "arundin"
+   ]
+  },
+  "arv": {
+   "en": "field",
+   "he": "שדה",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "arv",
+   "forms": [
+    "arv"
+   ]
+  },
+  "aster": {
+   "en": "resembling",
+   "he": "דמוי",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "aster",
+   "forms": [
+    "aster"
+   ]
+  },
+  "ater": {
+   "en": "black",
+   "he": "שחור",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "ater",
+   "forms": [
+    "ater",
+    "atri",
+    "atro",
+    "atra"
+   ]
+  },
+  "atilis": {
+   "en": "living among",
+   "he": "חי ב",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "atilis",
+   "forms": [
+    "atilis"
+   ]
+  },
+  "atus": {
+   "en": "provided with",
+   "he": "בעל",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "atus",
+   "forms": [
+    "atus",
+    "ata"
+   ]
+  },
+  "baenus": {
+   "en": "walker",
+   "he": "מהלך",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "baenus",
+   "forms": [
+    "baenus"
+   ]
+  },
+  "baptus": {
+   "en": "diving",
+   "he": "צולל",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "baptus",
+   "forms": [
+    "baptus"
+   ]
+  },
+  "bates": {
+   "en": "walker",
+   "he": "מהלך",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "bates",
+   "forms": [
+    "bates"
+   ]
+  },
+  "bi": {
+   "en": "two",
+   "he": "שניים",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "bi",
+   "forms": [
+    "bi"
+   ]
+  },
+  "bomby": {
+   "en": "silk",
+   "he": "משי",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "bomby",
+   "forms": [
+    "bomby"
+   ]
+  },
+  "boreus": {
+   "en": "north",
+   "he": "צפון",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "boreus",
+   "forms": [
+    "boreus"
+   ]
+  },
+  "buce": {
+   "en": "ox",
+   "he": "שור",
+   "origin": "Greek",
+   "theme": "Mammals",
+   "display": "buce",
+   "forms": [
+    "buce",
+    "bur"
+   ]
+  },
+  "brachy": {
+   "en": "short",
+   "he": "קצר",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "brachy",
+   "forms": [
+    "brachy"
+   ]
+  },
+  "brevi": {
+   "en": "short",
+   "he": "קצר",
+   "origin": "Latin",
+   "theme": "Size",
+   "display": "brevi",
+   "forms": [
+    "brevi"
+   ]
+  },
+  "brunni": {
+   "en": "brown",
+   "he": "חום",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "brunni",
+   "forms": [
+    "brunni",
+    "bruni"
+   ]
+  },
+  "buteo": {
+   "en": "buzzard",
+   "he": "עקב",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "buteo",
+   "forms": [
+    "buteo"
+   ]
+  },
+  "butor": {
+   "en": "bittern",
+   "he": "אנפה",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "butor",
+   "forms": [
+    "butor"
+   ]
+  },
+  "calandr": {
+   "en": "lark",
+   "he": "עפרוני",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "calandr",
+   "forms": [
+    "calandr"
+   ]
+  },
+  "capilla": {
+   "en": "hair",
+   "he": "שיער",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "capilla",
+   "forms": [
+    "capilla"
+   ]
+  },
+  "capa": {
+   "en": "catching",
+   "he": "תופס",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "capa",
+   "forms": [
+    "capa"
+   ]
+  },
+  "capri": {
+   "en": "goat",
+   "he": "עז",
+   "origin": "Latin",
+   "theme": "Mammals",
+   "display": "capri",
+   "forms": [
+    "capri"
+   ]
+  },
+  "carbo": {
+   "en": "cormorant",
+   "he": "קורמורן",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "carbo",
+   "forms": [
+    "carbo"
+   ]
+  },
+  "carnei": {
+   "en": "flesh",
+   "he": "בשר",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "carnei",
+   "forms": [
+    "carnei"
+   ]
+  },
+  "carpo": {
+   "en": "fruit",
+   "he": "פרי",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "carpo",
+   "forms": [
+    "carpo"
+   ]
+  },
+  "caudatus": {
+   "en": "tail",
+   "he": "זנב",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "caudatus",
+   "forms": [
+    "caudatus",
+    "caudus"
+   ]
+  },
+  "cephalus": {
+   "en": "head",
+   "he": "ראש",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "cephalus",
+   "forms": [
+    "cephalus",
+    "cephala",
+    "cephalos",
+    "phalus",
+    "phala"
+   ]
+  },
+  "ceps": {
+   "en": "head",
+   "he": "ראש",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "ceps",
+   "forms": [
+    "ceps"
+   ]
+  },
+  "cerca": {
+   "en": "tail",
+   "he": "זנב",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "cerca",
+   "forms": [
+    "cerca",
+    "cerco"
+   ]
+  },
+  "chelidon": {
+   "en": "swallow",
+   "he": "סנונית",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "chelidon",
+   "forms": [
+    "chelidon",
+    "chlidon"
+   ]
+  },
+  "chen": {
+   "en": "goose",
+   "he": "אווז",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "chen",
+   "forms": [
+    "chen"
+   ]
+  },
+  "chlamyd": {
+   "en": "cloak",
+   "he": "גלימה",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "chlamyd",
+   "forms": [
+    "chlamyd"
+   ]
+  },
+  "chloro": {
+   "en": "green",
+   "he": "ירוק",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "chloro",
+   "forms": [
+    "chloro"
+   ]
+  },
+  "chroico": {
+   "en": "colour",
+   "he": "צבע",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "chroico",
+   "forms": [
+    "chroico"
+   ]
+  },
+  "chryso": {
+   "en": "golden",
+   "he": "זהוב",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "chryso",
+   "forms": [
+    "chryso",
+    "chrys"
+   ]
+  },
+  "cilla": {
+   "en": "tail",
+   "he": "זנב",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "cilla",
+   "forms": [
+    "cilla"
+   ]
+  },
+  "cinct": {
+   "en": "banded",
+   "he": "מפוספס",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "cinct",
+   "forms": [
+    "cinct"
+   ]
+  },
+  "circ": {
+   "en": "hawk",
+   "he": "נץ",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "circ",
+   "forms": [
+    "circ"
+   ]
+  },
+  "cirro": {
+   "en": "curl",
+   "he": "תלתל",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "cirro",
+   "forms": [
+    "cirro"
+   ]
+  },
+  "cles": {
+   "en": "notable",
+   "he": "מפואר",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "cles",
+   "forms": [
+    "cles"
+   ]
+  },
+  "cnemus": {
+   "en": "shin",
+   "he": "שוק",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "cnemus",
+   "forms": [
+    "cnemus"
+   ]
+  },
+  "cocco": {
+   "en": "berry",
+   "he": "גרגר",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "cocco",
+   "forms": [
+    "cocco"
+   ]
+  },
+  "coccyx": {
+   "en": "cuckoo",
+   "he": "קוקייה",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "coccyx",
+   "forms": [
+    "coccyx"
+   ]
+  },
+  "cola": {
+   "en": "dweller",
+   "he": "שוכן",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "cola",
+   "forms": [
+    "cola",
+    "cula"
+   ]
+  },
+  "colius": {
+   "en": "coly (mousebird)",
+   "he": "קוליו",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "colius",
+   "forms": [
+    "colius"
+   ]
+  },
+  "collaris": {
+   "en": "collar",
+   "he": "צווארון",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "collaris",
+   "forms": [
+    "collaris"
+   ]
+  },
+  "collis": {
+   "en": "neck",
+   "he": "צוואר",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "collis",
+   "forms": [
+    "collis"
+   ]
+  },
+  "coloeus": {
+   "en": "jackdaw",
+   "he": "קאק",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "coloeus",
+   "forms": [
+    "coloeus"
+   ]
+  },
+  "color": {
+   "en": "colour",
+   "he": "צבע",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "color",
+   "forms": [
+    "color"
+   ]
+  },
+  "con": {
+   "en": "with",
+   "he": "עם",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "con",
+   "forms": [
+    "con"
+   ]
+  },
+  "copos": {
+   "en": "striker",
+   "he": "מכה",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "copos",
+   "forms": [
+    "copos"
+   ]
+  },
+  "corax": {
+   "en": "raven",
+   "he": "עורב",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "corax",
+   "forms": [
+    "corax",
+    "corac"
+   ]
+  },
+  "coris": {
+   "en": "bug",
+   "he": "פשפש",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "coris",
+   "forms": [
+    "coris"
+   ]
+  },
+  "corypha": {
+   "en": "lark",
+   "he": "עפרוני",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "corypha",
+   "forms": [
+    "corypha"
+   ]
+  },
+  "crassi": {
+   "en": "thick",
+   "he": "עבה",
+   "origin": "Latin",
+   "theme": "Size",
+   "display": "crassi",
+   "forms": [
+    "crassi"
+   ]
+  },
+  "crumeni": {
+   "en": "purse",
+   "he": "כיס",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "crumeni",
+   "forms": [
+    "crumeni"
+   ]
+  },
+  "cursor": {
+   "en": "runner",
+   "he": "רץ",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "cursor",
+   "forms": [
+    "cursor"
+   ]
+  },
+  "curvi": {
+   "en": "curved",
+   "he": "כפוף",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "curvi",
+   "forms": [
+    "curvi"
+   ]
+  },
+  "cyano": {
+   "en": "blue",
+   "he": "כחול",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "cyano",
+   "forms": [
+    "cyano",
+    "cyan"
+   ]
+  },
+  "cygna": {
+   "en": "swan",
+   "he": "ברבור",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "cygna",
+   "forms": [
+    "cygna"
+   ]
+  },
+  "dacus": {
+   "en": "biting",
+   "he": "נושך",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "dacus",
+   "forms": [
+    "dacus"
+   ]
+  },
+  "dactyl": {
+   "en": "finger",
+   "he": "אצבע",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "dactyl",
+   "forms": [
+    "dactyl",
+    "dactyla"
+   ]
+  },
+  "dasy": {
+   "en": "hairy",
+   "he": "שעיר",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "dasy",
+   "forms": [
+    "dasy"
+   ]
+  },
+  "dendro": {
+   "en": "tree",
+   "he": "עץ",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "dendro",
+   "forms": [
+    "dendro"
+   ]
+  },
+  "dicr": {
+   "en": "forked",
+   "he": "מסתעף",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "dicr",
+   "forms": [
+    "dicr"
+   ]
+  },
+  "droma": {
+   "en": "runner",
+   "he": "רץ",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "droma",
+   "forms": [
+    "droma",
+    "dromus"
+   ]
+  },
+  "odytes": {
+   "en": "diver",
+   "he": "צוללן",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "odytes",
+   "forms": [
+    "odytes"
+   ]
+  },
+  "e": {
+   "en": "without",
+   "he": "בלי",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "e",
+   "forms": [
+    "e"
+   ]
+  },
+  "edula": {
+   "en": "eating",
+   "he": "אוכל",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "edula",
+   "forms": [
+    "edula"
+   ]
+  },
+  "ella": {
+   "en": "little",
+   "he": "הקטנה",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ella",
+   "forms": [
+    "ella"
+   ]
+  },
+  "ellus": {
+   "en": "little",
+   "he": "הקטנה",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ellus",
+   "forms": [
+    "ellus"
+   ]
+  },
+  "ensis": {
+   "en": "of, from (a place)",
+   "he": "של מקום",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ensis",
+   "forms": [
+    "ensis"
+   ]
+  },
+  "eremo": {
+   "en": "desert",
+   "he": "מדבר",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "eremo",
+   "forms": [
+    "eremo",
+    "erem"
+   ]
+  },
+  "erythro": {
+   "en": "red",
+   "he": "אדום",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "erythro",
+   "forms": [
+    "erythro"
+   ]
+  },
+  "eu": {
+   "en": "good, true",
+   "he": "טוב",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "eu",
+   "forms": [
+    "eu"
+   ]
+  },
+  "eury": {
+   "en": "broad",
+   "he": "רחב",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "eury",
+   "forms": [
+    "eury"
+   ]
+  },
+  "fer": {
+   "en": "bearing",
+   "he": "נושא",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "fer",
+   "forms": [
+    "fer"
+   ]
+  },
+  "fic": {
+   "en": "fig",
+   "he": "תאנה",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "fic",
+   "forms": [
+    "fic"
+   ]
+  },
+  "flavi": {
+   "en": "yellow",
+   "he": "צהוב",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "flavi",
+   "forms": [
+    "flavi"
+   ]
+  },
+  "fraterc": {
+   "en": "friar",
+   "he": "נזיר",
+   "origin": "Latin",
+   "theme": "Other animals",
+   "display": "fraterc",
+   "forms": [
+    "fraterc"
+   ]
+  },
+  "fringilla": {
+   "en": "finch",
+   "he": "פרושית",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "fringilla",
+   "forms": [
+    "fringilla"
+   ]
+  },
+  "frons": {
+   "en": "forehead",
+   "he": "מצח",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "frons",
+   "forms": [
+    "frons"
+   ]
+  },
+  "frugi": {
+   "en": "fruit",
+   "he": "פרי",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "frugi",
+   "forms": [
+    "frugi"
+   ]
+  },
+  "fuli": {
+   "en": "soot",
+   "he": "פיח",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "fuli",
+   "forms": [
+    "fuli"
+   ]
+  },
+  "fusc": {
+   "en": "dark",
+   "he": "כהה",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "fusc",
+   "forms": [
+    "fusc",
+    "fusci",
+    "fusca"
+   ]
+  },
+  "gallin": {
+   "en": "hen",
+   "he": "תרנגולת",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "gallin",
+   "forms": [
+    "gallin"
+   ]
+  },
+  "gaster": {
+   "en": "belly",
+   "he": "בטן",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "gaster",
+   "forms": [
+    "gaster"
+   ]
+  },
+  "gelo": {
+   "en": "laugh",
+   "he": "צחוק",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "gelo",
+   "forms": [
+    "gelo"
+   ]
+  },
+  "gena": {
+   "en": "cheek",
+   "he": "לחי",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "gena",
+   "forms": [
+    "gena"
+   ]
+  },
+  "ger": {
+   "en": "bearing",
+   "he": "נושא",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ger",
+   "forms": [
+    "ger"
+   ]
+  },
+  "glare": {
+   "en": "gravel",
+   "he": "חצץ",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "glare",
+   "forms": [
+    "glare"
+   ]
+  },
+  "glauc": {
+   "en": "grey-blue",
+   "he": "אפור-כחול",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "glauc",
+   "forms": [
+    "glauc"
+   ]
+  },
+  "gnathus": {
+   "en": "jaw",
+   "he": "לסת",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "gnathus",
+   "forms": [
+    "gnathus"
+   ]
+  },
+  "grisea": {
+   "en": "grey",
+   "he": "אפור",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "grisea",
+   "forms": [
+    "grisea",
+    "grise"
+   ]
+  },
+  "gul": {
+   "en": "throat",
+   "he": "גרון",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "gul",
+   "forms": [
+    "gul",
+    "gularis",
+    "gula"
+   ]
+  },
+  "gyp": {
+   "en": "vulture",
+   "he": "נשר",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "gyp",
+   "forms": [
+    "gyp"
+   ]
+  },
+  "haemat": {
+   "en": "blood",
+   "he": "דם",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "haemat",
+   "forms": [
+    "haemat"
+   ]
+  },
+  "halia": {
+   "en": "sea",
+   "he": "ים",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "halia",
+   "forms": [
+    "halia",
+    "hali"
+   ]
+  },
+  "helo": {
+   "en": "marsh",
+   "he": "ביצה",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "helo",
+   "forms": [
+    "helo"
+   ]
+  },
+  "hiera": {
+   "en": "hawk",
+   "he": "נץ",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "hiera",
+   "forms": [
+    "hiera",
+    "erax"
+   ]
+  },
+  "himant": {
+   "en": "strap",
+   "he": "רצועה",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "himant",
+   "forms": [
+    "himant"
+   ]
+  },
+  "hiati": {
+   "en": "to gape",
+   "he": "פער",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "hiati",
+   "forms": [
+    "hiati"
+   ]
+  },
+  "hydro": {
+   "en": "water",
+   "he": "מים",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "hydro",
+   "forms": [
+    "hydro"
+   ]
+  },
+  "hyper": {
+   "en": "above",
+   "he": "מעל",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "hyper",
+   "forms": [
+    "hyper"
+   ]
+  },
+  "hypo": {
+   "en": "under",
+   "he": "מתחת",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "hypo",
+   "forms": [
+    "hypo"
+   ]
+  },
+  "ias": {
+   "en": "pertaining to",
+   "he": "שייך ל",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "ias",
+   "forms": [
+    "ias"
+   ]
+  },
+  "ichthy": {
+   "en": "fish",
+   "he": "דג",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "ichthy",
+   "forms": [
+    "ichthy"
+   ]
+  },
+  "ides": {
+   "en": "resembling",
+   "he": "דומה ל",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "ides",
+   "forms": [
+    "ides"
+   ]
+  },
+  "igni": {
+   "en": "fire",
+   "he": "אש",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "igni",
+   "forms": [
+    "igni"
+   ]
+  },
+  "ites": {
+   "en": "belonging to",
+   "he": "שייך ל",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "ites",
+   "forms": [
+    "ites"
+   ]
+  },
+  "ius": {
+   "en": "pertaining to",
+   "he": "שייך ל",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ius",
+   "forms": [
+    "ius"
+   ]
+  },
+  "calo": {
+   "en": "beautiful",
+   "he": "יפה",
+   "origin": "Greek",
+   "theme": "Qualities",
+   "display": "calo",
+   "forms": [
+    "calo"
+   ]
+  },
+  "cryptes": {
+   "en": "hidden",
+   "he": "נסתר",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "cryptes",
+   "forms": [
+    "cryptes"
+   ]
+  },
+  "lago": {
+   "en": "hare",
+   "he": "ארנבת",
+   "origin": "Greek",
+   "theme": "Mammals",
+   "display": "lago",
+   "forms": [
+    "lago"
+   ]
+  },
+  "legus": {
+   "en": "gathering",
+   "he": "לקט",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "legus",
+   "forms": [
+    "legus"
+   ]
+  },
+  "lepto": {
+   "en": "slender",
+   "he": "דק",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "lepto",
+   "forms": [
+    "lepto"
+   ]
+  },
+  "leuca": {
+   "en": "white",
+   "he": "לבן",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "leuca",
+   "forms": [
+    "leuca",
+    "leuc",
+    "leucos",
+    "leuco"
+   ]
+  },
+  "limno": {
+   "en": "marsh",
+   "he": "ביצה",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "limno",
+   "forms": [
+    "limno",
+    "lymno"
+   ]
+  },
+  "locust": {
+   "en": "grasshopper",
+   "he": "חגב",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "locust",
+   "forms": [
+    "locust"
+   ]
+  },
+  "longi": {
+   "en": "long",
+   "he": "ארוך",
+   "origin": "Latin",
+   "theme": "Size",
+   "display": "longi",
+   "forms": [
+    "longi"
+   ]
+  },
+  "lopha": {
+   "en": "crest",
+   "he": "ציצית",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "lopha",
+   "forms": [
+    "lopha"
+   ]
+  },
+  "luscini": {
+   "en": "nightingale",
+   "he": "זמיר",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "luscini",
+   "forms": [
+    "luscini"
+   ]
+  },
+  "macro": {
+   "en": "long",
+   "he": "ארוך",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "macro",
+   "forms": [
+    "macro"
+   ]
+  },
+  "macul": {
+   "en": "spot",
+   "he": "כתם",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "macul",
+   "forms": [
+    "macul",
+    "maculata"
+   ]
+  },
+  "manes": {
+   "en": "fond of",
+   "he": "חובב",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "manes",
+   "forms": [
+    "manes"
+   ]
+  },
+  "marmaro": {
+   "en": "marble",
+   "he": "שיש",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "marmaro",
+   "forms": [
+    "marmaro"
+   ]
+  },
+  "mega": {
+   "en": "great",
+   "he": "גדול",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "mega",
+   "forms": [
+    "mega"
+   ]
+  },
+  "melaena": {
+   "en": "black",
+   "he": "שחור",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "melaena",
+   "forms": [
+    "melaena",
+    "melano",
+    "melan",
+    "melas"
+   ]
+  },
+  "meli": {
+   "en": "honey",
+   "he": "דבש",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "meli",
+   "forms": [
+    "meli"
+   ]
+  },
+  "melos": {
+   "en": "song",
+   "he": "שיר",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "melos",
+   "forms": [
+    "melos"
+   ]
+  },
+  "modul": {
+   "en": "melody",
+   "he": "מלודיה",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "modul",
+   "forms": [
+    "modul"
+   ]
+  },
+  "merg": {
+   "en": "diver",
+   "he": "צוללן",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "merg",
+   "forms": [
+    "merg"
+   ]
+  },
+  "micro": {
+   "en": "small",
+   "he": "קטן",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "micro",
+   "forms": [
+    "micro"
+   ]
+  },
+  "minuta": {
+   "en": "small",
+   "he": "קטן",
+   "origin": "Latin",
+   "theme": "Size",
+   "display": "minuta",
+   "forms": [
+    "minuta"
+   ]
+  },
+  "mono": {
+   "en": "one",
+   "he": "אחד",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "mono",
+   "forms": [
+    "mono"
+   ]
+  },
+  "monti": {
+   "en": "mountain",
+   "he": "הר",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "monti",
+   "forms": [
+    "monti"
+   ]
+  },
+  "mota": {
+   "en": "movement",
+   "he": "תנועה",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "mota",
+   "forms": [
+    "mota"
+   ]
+  },
+  "mulgus": {
+   "en": "milking",
+   "he": "חולב",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "mulgus",
+   "forms": [
+    "mulgus"
+   ]
+  },
+  "musci": {
+   "en": "fly",
+   "he": "זבוב",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "musci",
+   "forms": [
+    "musci"
+   ]
+  },
+  "myio": {
+   "en": "fly",
+   "he": "זבוב",
+   "origin": "Greek",
+   "theme": "Food",
+   "display": "myio",
+   "forms": [
+    "myio"
+   ]
+  },
+  "naias": {
+   "en": "water nymph",
+   "he": "נימפת מים",
+   "origin": "Greek",
+   "theme": "Other animals",
+   "display": "naias",
+   "forms": [
+    "naias"
+   ]
+  },
+  "nectris": {
+   "en": "swimmer",
+   "he": "שחיין",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "nectris",
+   "forms": [
+    "nectris"
+   ]
+  },
+  "netta": {
+   "en": "duck",
+   "he": "ברווז",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "netta",
+   "forms": [
+    "netta",
+    "itta"
+   ]
+  },
+  "nigri": {
+   "en": "black",
+   "he": "שחור",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "nigri",
+   "forms": [
+    "nigri"
+   ]
+  },
+  "nomus": {
+   "en": "law",
+   "he": "חוק",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "nomus",
+   "forms": [
+    "nomus"
+   ]
+  },
+  "nota": {
+   "en": "back",
+   "he": "גב",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "nota",
+   "forms": [
+    "nota"
+   ]
+  },
+  "notus": {
+   "en": "back",
+   "he": "גב",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "notus",
+   "forms": [
+    "notus"
+   ]
+  },
+  "nycti": {
+   "en": "night",
+   "he": "לילה",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "nycti",
+   "forms": [
+    "nycti"
+   ]
+  },
+  "ocean": {
+   "en": "ocean",
+   "he": "אוקיינוס",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "ocean",
+   "forms": [
+    "ocean"
+   ]
+  },
+  "ochro": {
+   "en": "ochre",
+   "he": "אוכרה",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "ochro",
+   "forms": [
+    "ochro",
+    "ochr"
+   ]
+  },
+  "oedi": {
+   "en": "swollen",
+   "he": "נפוח",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "oedi",
+   "forms": [
+    "oedi"
+   ]
+  },
+  "oides": {
+   "en": "resembling",
+   "he": "דומה ל",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "oides",
+   "forms": [
+    "oides"
+   ]
+  },
+  "ola": {
+   "en": "little",
+   "he": "הקטנה",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ola",
+   "forms": [
+    "ola"
+   ]
+  },
+  "onycho": {
+   "en": "claw",
+   "he": "טופר",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "onycho",
+   "forms": [
+    "onycho"
+   ]
+  },
+  "phthalmus": {
+   "en": "eye",
+   "he": "עין",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "phthalmus",
+   "forms": [
+    "phthalmus"
+   ]
+  },
+  "ops": {
+   "en": "face",
+   "he": "פנים",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "ops",
+   "forms": [
+    "ops"
+   ]
+  },
+  "opsis": {
+   "en": "appearance",
+   "he": "מראה",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "opsis",
+   "forms": [
+    "opsis"
+   ]
+  },
+  "ostra": {
+   "en": "oyster",
+   "he": "צדפה",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "ostra",
+   "forms": [
+    "ostra"
+   ]
+  },
+  "osus": {
+   "en": "full of",
+   "he": "מלא",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "osus",
+   "forms": [
+    "osus"
+   ]
+  },
+  "otis": {
+   "en": "bustard",
+   "he": "חובה",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "otis",
+   "forms": [
+    "otis"
+   ]
+  },
+  "tis": {
+   "en": "ear",
+   "he": "אוזן",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "tis",
+   "forms": [
+    "tis"
+   ]
+  },
+  "oxy": {
+   "en": "sharp",
+   "he": "חד",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "oxy",
+   "forms": [
+    "oxy"
+   ]
+  },
+  "pan": {
+   "en": "exceedingly",
+   "he": "מאוד",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "pan",
+   "forms": [
+    "pan"
+   ]
+  },
+  "parus": {
+   "en": "tit",
+   "he": "ירגזי",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "parus",
+   "forms": [
+    "parus"
+   ]
+  },
+  "patria": {
+   "en": "fatherland",
+   "he": "מולדת",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "patria",
+   "forms": [
+    "patria"
+   ]
+  },
+  "pechys": {
+   "en": "arm",
+   "he": "זרוע",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "pechys",
+   "forms": [
+    "pechys"
+   ]
+  },
+  "pelia": {
+   "en": "dove",
+   "he": "יונה",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "pelia",
+   "forms": [
+    "pelia"
+   ]
+  },
+  "percn": {
+   "en": "dark",
+   "he": "כהה",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "percn",
+   "forms": [
+    "percn"
+   ]
+  },
+  "perdix": {
+   "en": "partridge",
+   "he": "חוגלה",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "perdix",
+   "forms": [
+    "perdix"
+   ]
+  },
+  "peri": {
+   "en": "around, very",
+   "he": "סביב מאוד",
+   "origin": "Greek",
+   "theme": "Word-building",
+   "display": "peri",
+   "forms": [
+    "peri"
+   ]
+  },
+  "phaeus": {
+   "en": "dusky",
+   "he": "כהה",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "phaeus",
+   "forms": [
+    "phaeus",
+    "phaeo",
+    "poice"
+   ]
+  },
+  "phalacro": {
+   "en": "bald",
+   "he": "קירח",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "phalacro",
+   "forms": [
+    "phalacro"
+   ]
+  },
+  "phalar": {
+   "en": "coot",
+   "he": "אגמייה",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "phalar",
+   "forms": [
+    "phalar"
+   ]
+  },
+  "phila": {
+   "en": "loving",
+   "he": "אוהב",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "phila",
+   "forms": [
+    "phila",
+    "philo"
+   ]
+  },
+  "phoenico": {
+   "en": "crimson",
+   "he": "ארגמן",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "phoenico",
+   "forms": [
+    "phoenico",
+    "phoenic"
+   ]
+  },
+  "phrys": {
+   "en": "eyebrow",
+   "he": "גבות",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "phrys",
+   "forms": [
+    "phrys"
+   ]
+  },
+  "phthalma": {
+   "en": "eye",
+   "he": "עין",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "phthalma",
+   "forms": [
+    "phthalma"
+   ]
+  },
+  "phyllo": {
+   "en": "leaf",
+   "he": "עלה",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "phyllo",
+   "forms": [
+    "phyllo"
+   ]
+  },
+  "platy": {
+   "en": "broad",
+   "he": "רחב",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "platy",
+   "forms": [
+    "platy"
+   ]
+  },
+  "pogon": {
+   "en": "beard",
+   "he": "זקן",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "pogon",
+   "forms": [
+    "pogon"
+   ]
+  },
+  "polio": {
+   "en": "grey",
+   "he": "אפור",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "polio",
+   "forms": [
+    "polio"
+   ]
+  },
+  "pus": {
+   "en": "foot",
+   "he": "רגל",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "pus",
+   "forms": [
+    "pus",
+    "opus",
+    "pes"
+   ]
+  },
+  "prat": {
+   "en": "meadow",
+   "he": "אחו",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "prat",
+   "forms": [
+    "prat",
+    "pratin"
+   ]
+  },
+  "prion": {
+   "en": "saw",
+   "he": "מסור",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "prion",
+   "forms": [
+    "prion"
+   ]
+  },
+  "progne": {
+   "en": "swallow",
+   "he": "סנונית",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "progne",
+   "forms": [
+    "progne"
+   ]
+  },
+  "prymna": {
+   "en": "rump",
+   "he": "שת",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "prymna",
+   "forms": [
+    "prymna"
+   ]
+  },
+  "psaltes": {
+   "en": "singer",
+   "he": "זמר",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "psaltes",
+   "forms": [
+    "psaltes"
+   ]
+  },
+  "psittac": {
+   "en": "parrot",
+   "he": "תוכי",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "psittac",
+   "forms": [
+    "psittac",
+    "psitta"
+   ]
+  },
+  "pterus": {
+   "en": "wing",
+   "he": "כנף",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "pterus",
+   "forms": [
+    "pterus",
+    "ptero",
+    "opterus",
+    "pterix"
+   ]
+  },
+  "ptilos": {
+   "en": "feather",
+   "he": "נוצה",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "ptilos",
+   "forms": [
+    "ptilos",
+    "ptilo"
+   ]
+  },
+  "ptyono": {
+   "en": "fan",
+   "he": "מניפה",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "ptyono",
+   "forms": [
+    "ptyono"
+   ]
+  },
+  "pycno": {
+   "en": "thick",
+   "he": "עבה",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "pycno",
+   "forms": [
+    "pycno"
+   ]
+  },
+  "pygia": {
+   "en": "rump",
+   "he": "שת",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "pygia",
+   "forms": [
+    "pygia",
+    "pygos",
+    "pyga",
+    "pyg"
+   ]
+  },
+  "pyrrho": {
+   "en": "red",
+   "he": "אדום",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "pyrrho",
+   "forms": [
+    "pyrrho"
+   ]
+  },
+  "rampho": {
+   "en": "bill",
+   "he": "מקור",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "rampho",
+   "forms": [
+    "rampho"
+   ]
+  },
+  "recurvi": {
+   "en": "curved back",
+   "he": "כפוף לאחור",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "recurvi",
+   "forms": [
+    "recurvi"
+   ]
+  },
+  "rhipid": {
+   "en": "fan",
+   "he": "מניפה",
+   "origin": "Greek",
+   "theme": "Shape",
+   "display": "rhipid",
+   "forms": [
+    "rhipid"
+   ]
+  },
+  "hinus": {
+   "en": "nose",
+   "he": "אף",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "hinus",
+   "forms": [
+    "hinus",
+    "rhis"
+   ]
+  },
+  "rhodo": {
+   "en": "rose",
+   "he": "ורד",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "rhodo",
+   "forms": [
+    "rhodo"
+   ]
+  },
+  "rhynchos": {
+   "en": "bill",
+   "he": "מקור",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "rhynchos",
+   "forms": [
+    "rhynchos",
+    "rhynchus",
+    "rhyncha",
+    "rynch"
+   ]
+  },
+  "rodia": {
+   "en": "heron",
+   "he": "אנפה",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "rodia",
+   "forms": [
+    "rodia"
+   ]
+  },
+  "roseo": {
+   "en": "pink",
+   "he": "ורוד",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "roseo",
+   "forms": [
+    "roseo"
+   ]
+  },
+  "rostris": {
+   "en": "bill",
+   "he": "מקור",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "rostris",
+   "forms": [
+    "rostris",
+    "rostra",
+    "rostrat"
+   ]
+  },
+  "rubec": {
+   "en": "red",
+   "he": "אדום",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "rubec",
+   "forms": [
+    "rubec"
+   ]
+  },
+  "rubi": {
+   "en": "bramble",
+   "he": "פטל",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "rubi",
+   "forms": [
+    "rubi"
+   ]
+  },
+  "ruf": {
+   "en": "reddish",
+   "he": "אדמדם",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "ruf",
+   "forms": [
+    "ruf",
+    "rufi",
+    "rufa"
+   ]
+  },
+  "rusti": {
+   "en": "countryside",
+   "he": "כפר",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "rusti",
+   "forms": [
+    "rusti"
+   ]
+  },
+  "saxi": {
+   "en": "rock",
+   "he": "סלע",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "saxi",
+   "forms": [
+    "saxi",
+    "sax"
+   ]
+  },
+  "schoeno": {
+   "en": "reed",
+   "he": "קנה",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "schoeno",
+   "forms": [
+    "schoeno"
+   ]
+  },
+  "scopus": {
+   "en": "watcher",
+   "he": "צופה",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "scopus",
+   "forms": [
+    "scopus"
+   ]
+  },
+  "scoto": {
+   "en": "darkness",
+   "he": "חושך",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "scoto",
+   "forms": [
+    "scoto"
+   ]
+  },
+  "semi": {
+   "en": "half",
+   "he": "חצי",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "semi",
+   "forms": [
+    "semi"
+   ]
+  },
+  "serri": {
+   "en": "saw",
+   "he": "מסור",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "serri",
+   "forms": [
+    "serri"
+   ]
+  },
+  "spilo": {
+   "en": "spot",
+   "he": "כתם",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "spilo",
+   "forms": [
+    "spilo"
+   ]
+  },
+  "spiza": {
+   "en": "finch",
+   "he": "פרושית",
+   "origin": "Greek",
+   "theme": "Birds",
+   "display": "spiza",
+   "forms": [
+    "spiza"
+   ]
+  },
+  "spodo": {
+   "en": "ash",
+   "he": "אפר",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "spodo",
+   "forms": [
+    "spodo"
+   ]
+  },
+  "squam": {
+   "en": "scale",
+   "he": "קשקש",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "squam",
+   "forms": [
+    "squam",
+    "squami"
+   ]
+  },
+  "sten": {
+   "en": "narrow",
+   "he": "צר",
+   "origin": "Greek",
+   "theme": "Size",
+   "display": "sten",
+   "forms": [
+    "sten"
+   ]
+  },
+  "stern": {
+   "en": "tern",
+   "he": "שחפית",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "stern",
+   "forms": [
+    "stern"
+   ]
+  },
+  "stomus": {
+   "en": "mouth",
+   "he": "פה",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "stomus",
+   "forms": [
+    "stomus"
+   ]
+  },
+  "strepto": {
+   "en": "collar",
+   "he": "צווארון",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "strepto",
+   "forms": [
+    "strepto"
+   ]
+  },
+  "sub": {
+   "en": "near, under",
+   "he": "קרוב מתחת",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "sub",
+   "forms": [
+    "sub"
+   ]
+  },
+  "tachy": {
+   "en": "fast",
+   "he": "מהיר",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "tachy",
+   "forms": [
+    "tachy"
+   ]
+  },
+  "tarsi": {
+   "en": "tarsus, foot",
+   "he": "כף רגל",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "tarsi",
+   "forms": [
+    "tarsi"
+   ]
+  },
+  "ticho": {
+   "en": "wall",
+   "he": "חומה",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "ticho",
+   "forms": [
+    "ticho"
+   ]
+  },
+  "tenui": {
+   "en": "slender",
+   "he": "דק",
+   "origin": "Latin",
+   "theme": "Size",
+   "display": "tenui",
+   "forms": [
+    "tenui"
+   ]
+  },
+  "thalass": {
+   "en": "sea",
+   "he": "ים",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "thalass",
+   "forms": [
+    "thalass"
+   ]
+  },
+  "theres": {
+   "en": "hunter",
+   "he": "צייד",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "theres",
+   "forms": [
+    "theres"
+   ]
+  },
+  "thorax": {
+   "en": "chest",
+   "he": "חזה",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "thorax",
+   "forms": [
+    "thorax"
+   ]
+  },
+  "thraustes": {
+   "en": "breaker",
+   "he": "שובר",
+   "origin": "Greek",
+   "theme": "Behaviour",
+   "display": "thraustes",
+   "forms": [
+    "thraustes"
+   ]
+  },
+  "clang": {
+   "en": "to sound",
+   "he": "לצלצל",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "clang",
+   "forms": [
+    "clang"
+   ]
+  },
+  "trichas": {
+   "en": "hair",
+   "he": "שיער",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "trichas",
+   "forms": [
+    "trichas"
+   ]
+  },
+  "torquata": {
+   "en": "collared",
+   "he": "בעל צווארון",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "torquata",
+   "forms": [
+    "torquata"
+   ]
+  },
+  "tri": {
+   "en": "three",
+   "he": "שלושה",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "tri",
+   "forms": [
+    "tri"
+   ]
+  },
+  "trogl": {
+   "en": "hole",
+   "he": "חור",
+   "origin": "Greek",
+   "theme": "Where it lives",
+   "display": "trogl",
+   "forms": [
+    "trogl"
+   ]
+  },
+  "ula": {
+   "en": "little",
+   "he": "הקטנה",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "ula",
+   "forms": [
+    "ula"
+   ]
+  },
+  "aris": {
+   "en": "pertaining to",
+   "he": "שייך ל",
+   "origin": "Latin",
+   "theme": "Word-building",
+   "display": "aris",
+   "forms": [
+    "aris"
+   ]
+  },
+  "urus": {
+   "en": "tail",
+   "he": "זנב",
+   "origin": "Greek",
+   "theme": "Body",
+   "display": "urus",
+   "forms": [
+    "urus",
+    "ura",
+    "uros"
+   ]
+  },
+  "vorus": {
+   "en": "eating",
+   "he": "אוכל",
+   "origin": "Latin",
+   "theme": "Behaviour",
+   "display": "vorus",
+   "forms": [
+    "vorus"
+   ]
+  },
+  "xantho": {
+   "en": "yellow",
+   "he": "צהוב",
+   "origin": "Greek",
+   "theme": "Colour",
+   "display": "xantho",
+   "forms": [
+    "xantho"
+   ]
+  },
+  "bengal": {
+   "en": "Bengal",
+   "he": "בנגל",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "bengal",
+   "forms": [
+    "bengal",
+    "benghal"
+   ]
+  },
+  "cap": {
+   "en": "the Cape",
+   "he": "כף התקווה הטובה",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "cap",
+   "forms": [
+    "cap"
+   ]
+  },
+  "chin": {
+   "en": "China",
+   "he": "סין",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "chin",
+   "forms": [
+    "chin"
+   ]
+  },
+  "hispaniol": {
+   "en": "Hispaniola",
+   "he": "היספניולה",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "hispaniol",
+   "forms": [
+    "hispaniol"
+   ]
+  },
+  "madagascar": {
+   "en": "Madagascar",
+   "he": "מדגסקר",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "madagascar",
+   "forms": [
+    "madagascar",
+    "madagascari"
+   ]
+  },
+  "nipal": {
+   "en": "Nepal",
+   "he": "נפאל",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "nipal",
+   "forms": [
+    "nipal"
+   ]
+  },
+  "sandvic": {
+   "en": "the Sandwich Islands",
+   "he": "איי סנדוויץ",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "sandvic",
+   "forms": [
+    "sandvic"
+   ]
+  },
+  "senegal": {
+   "en": "Senegal",
+   "he": "סנגל",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "senegal",
+   "forms": [
+    "senegal"
+   ]
+  },
+  "smyrn": {
+   "en": "Smyrna",
+   "he": "סמירנה",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "smyrn",
+   "forms": [
+    "smyrn"
+   ]
+  },
+  "zeylon": {
+   "en": "Ceylon",
+   "he": "ציילון",
+   "origin": "place name",
+   "theme": "Places",
+   "display": "zeylon",
+   "forms": [
+    "zeylon"
+   ]
+  },
+  "aure": {
+   "en": "golden",
+   "he": "זהוב",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "aure",
+   "forms": [
+    "aure"
+   ]
+  },
+  "citre": {
+   "en": "citron-yellow",
+   "he": "צהוב אתרוג",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "citre",
+   "forms": [
+    "citre"
+   ]
+  },
+  "citrin": {
+   "en": "lemon-yellow",
+   "he": "צהוב לימון",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "citrin",
+   "forms": [
+    "citrin"
+   ]
+  },
+  "fasci": {
+   "en": "band",
+   "he": "פס",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "fasci",
+   "forms": [
+    "fasci"
+   ]
+  },
+  "inorn": {
+   "en": "unadorned",
+   "he": "חסר קישוט",
+   "origin": "Latin",
+   "theme": "Qualities",
+   "display": "inorn",
+   "forms": [
+    "inorn"
+   ]
+  },
+  "sign": {
+   "en": "mark",
+   "he": "סימן",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "sign",
+   "forms": [
+    "sign"
+   ]
+  },
+  "stell": {
+   "en": "star",
+   "he": "כוכב",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "stell",
+   "forms": [
+    "stell"
+   ]
+  },
+  "stri": {
+   "en": "stripe",
+   "he": "פס",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "stri",
+   "forms": [
+    "stri"
+   ]
+  },
+  "striol": {
+   "en": "small stripe",
+   "he": "פס קטן",
+   "origin": "Latin",
+   "theme": "Colour",
+   "display": "striol",
+   "forms": [
+    "striol"
+   ]
+  },
+  "barb": {
+   "en": "beard",
+   "he": "זקן",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "barb",
+   "forms": [
+    "barb"
+   ]
+  },
+  "conspicill": {
+   "en": "spectacles",
+   "he": "משקפיים",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "conspicill",
+   "forms": [
+    "conspicill"
+   ]
+  },
+  "coron": {
+   "en": "crown",
+   "he": "כתר",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "coron",
+   "forms": [
+    "coron"
+   ]
+  },
+  "crist": {
+   "en": "crest",
+   "he": "ציצית",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "crist",
+   "forms": [
+    "crist"
+   ]
+  },
+  "lob": {
+   "en": "lobe",
+   "he": "אונה",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "lob",
+   "forms": [
+    "lob"
+   ]
+  },
+  "penn": {
+   "en": "feather",
+   "he": "נוצה",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "penn",
+   "forms": [
+    "penn"
+   ]
+  },
+  "spin": {
+   "en": "thorn",
+   "he": "קוץ",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "spin",
+   "forms": [
+    "spin"
+   ]
+  },
+  "torqu": {
+   "en": "collar",
+   "he": "צווארון",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "torqu",
+   "forms": [
+    "torqu"
+   ]
+  },
+  "calig": {
+   "en": "boot",
+   "he": "מגף",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "calig",
+   "forms": [
+    "calig"
+   ]
+  },
+  "aprica": {
+   "en": "sunny",
+   "he": "שטוף שמש",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "aprica",
+   "forms": [
+    "aprica",
+    "apric"
+   ]
+  },
+  "fluvi": {
+   "en": "river",
+   "he": "נהר",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "fluvi",
+   "forms": [
+    "fluvi"
+   ]
+  },
+  "lin": {
+   "en": "flax",
+   "he": "פשתן",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "lin",
+   "forms": [
+    "lin"
+   ]
+  },
+  "mur": {
+   "en": "wall",
+   "he": "חומה",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "mur",
+   "forms": [
+    "mur"
+   ]
+  },
+  "nebul": {
+   "en": "mist",
+   "he": "ערפל",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "nebul",
+   "forms": [
+    "nebul"
+   ]
+  },
+  "rip": {
+   "en": "bank",
+   "he": "גדה",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "rip",
+   "forms": [
+    "rip"
+   ]
+  },
+  "scirp": {
+   "en": "rush",
+   "he": "אגמון",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "scirp",
+   "forms": [
+    "scirp"
+   ]
+  },
+  "stagn": {
+   "en": "pool",
+   "he": "שלולית",
+   "origin": "Latin",
+   "theme": "Where it lives",
+   "display": "stagn",
+   "forms": [
+    "stagn"
+   ]
+  },
+  "visci": {
+   "en": "mistletoe",
+   "he": "דבקון",
+   "origin": "Latin",
+   "theme": "Food",
+   "display": "visci",
+   "forms": [
+    "visci"
+   ]
+  },
+  "rall": {
+   "en": "rail",
+   "he": "רלית",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "rall",
+   "forms": [
+    "rall"
+   ]
+  },
+  "scolop": {
+   "en": "snipe",
+   "he": "חרטומן",
+   "origin": "Latin",
+   "theme": "Birds",
+   "display": "scolop",
+   "forms": [
+    "scolop"
+   ]
+  },
+  "opt": {
+   "en": "wished-for",
+   "he": "רצוי",
+   "origin": "Latin",
+   "theme": "Qualities",
+   "display": "opt",
+   "forms": [
+    "opt"
+   ]
+  },
+  "vulg": {
+   "en": "common",
+   "he": "מצוי",
+   "origin": "Latin",
+   "theme": "Qualities",
+   "display": "vulg",
+   "forms": [
+    "vulg"
+   ]
+  },
+  "clype": {
+   "en": "shield",
+   "he": "מגן",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "clype",
+   "forms": [
+    "clype"
+   ]
+  },
+  "falcin": {
+   "en": "sickle",
+   "he": "מגל",
+   "origin": "Latin",
+   "theme": "Shape",
+   "display": "falcin",
+   "forms": [
+    "falcin"
+   ]
+  },
+  "ocul": {
+   "en": "eye",
+   "he": "עין",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "ocul",
+   "forms": [
+    "ocul"
+   ]
+  },
+  "pil": {
+   "en": "hair",
+   "he": "שיער",
+   "origin": "Latin",
+   "theme": "Body",
+   "display": "pil",
+   "forms": [
+    "pil"
+   ]
+  }
+ },
+ "splits": {
+  "Acridotheres": [
+   [
+    "Acrido",
+    "acrido"
+   ],
+   [
+    "theres",
+    "theres"
+   ]
+  ],
+  "Acrocephalus": [
+   [
+    "Acro",
+    "acro"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "Alopochen": [
+   [
+    "Alopo",
+    "alopo"
+   ],
+   [
+    "chen",
+    "chen"
+   ]
+  ],
+  "Ammomanes": [
+   [
+    "Ammo",
+    "ammo"
+   ],
+   [
+    "manes",
+    "manes"
+   ]
+  ],
+  "Ammoperdix": [
+   [
+    "Ammo",
+    "ammo"
+   ],
+   [
+    "perdix",
+    "perdix"
+   ]
+  ],
+  "Anthropoides": [
+   [
+    "Anthropo",
+    "anthropo"
+   ],
+   [
+    "ides",
+    "ides"
+   ]
+  ],
+  "Ardeola": [
+   [
+    "Arde",
+    "arde"
+   ],
+   [
+    "ola",
+    "ola"
+   ]
+  ],
+  "Arenaria": [
+   [
+    "Aren",
+    "aren"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "Bombycilla": [
+   [
+    "Bomby",
+    "bomby"
+   ],
+   [
+    "cilla",
+    "cilla"
+   ]
+  ],
+  "Bucephala": [
+   [
+    "Buce",
+    "buce"
+   ],
+   [
+    "phala",
+    "cephalus"
+   ]
+  ],
+  "Burhinus": [
+   [
+    "Bur",
+    "buce"
+   ],
+   [
+    "hinus",
+    "hinus"
+   ]
+  ],
+  "Butorides": [
+   [
+    "Butor",
+    "butor"
+   ],
+   [
+    "ides",
+    "ides"
+   ]
+  ],
+  "Calandrella": [
+   [
+    "Calandr",
+    "calandr"
+   ],
+   [
+    "ella",
+    "ella"
+   ]
+  ],
+  "Calonectris": [
+   [
+    "Calo",
+    "calo"
+   ],
+   [
+    "nectris",
+    "nectris"
+   ]
+  ],
+  "Caprimulgus": [
+   [
+    "Capri",
+    "capri"
+   ],
+   [
+    "mulgus",
+    "mulgus"
+   ]
+  ],
+  "Carpodacus": [
+   [
+    "Carpo",
+    "carpo"
+   ],
+   [
+    "dacus",
+    "dacus"
+   ]
+  ],
+  "Carpospiza": [
+   [
+    "Carpo",
+    "carpo"
+   ],
+   [
+    "spiza",
+    "spiza"
+   ]
+  ],
+  "Cercotrichas": [
+   [
+    "Cerco",
+    "cerca"
+   ],
+   [
+    "trichas",
+    "trichas"
+   ]
+  ],
+  "Chlamydotis": [
+   [
+    "Chlamyd",
+    "chlamyd"
+   ],
+   [
+    "otis",
+    "otis"
+   ]
+  ],
+  "Chlidonias": [
+   [
+    "Chlidon",
+    "chelidon"
+   ],
+   [
+    "ias",
+    "ias"
+   ]
+  ],
+  "Chroicocephalus": [
+   [
+    "Chroico",
+    "chroico"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "Chrysococcyx": [
+   [
+    "Chryso",
+    "chryso"
+   ],
+   [
+    "coccyx",
+    "coccyx"
+   ]
+  ],
+  "Circaetus": [
+   [
+    "Circ",
+    "circ"
+   ],
+   [
+    "aetus",
+    "aetus"
+   ]
+  ],
+  "Clangula": [
+   [
+    "Clang",
+    "clang"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "Coccothraustes": [
+   [
+    "Cocco",
+    "cocco"
+   ],
+   [
+    "thraustes",
+    "thraustes"
+   ]
+  ],
+  "Coracias": [
+   [
+    "Corac",
+    "corax"
+   ],
+   [
+    "ias",
+    "ias"
+   ]
+  ],
+  "Cursorius": [
+   [
+    "Cursor",
+    "cursor"
+   ],
+   [
+    "ius",
+    "ius"
+   ]
+  ],
+  "Dendrocopos": [
+   [
+    "Dendro",
+    "dendro"
+   ],
+   [
+    "copos",
+    "copos"
+   ]
+  ],
+  "Dendrocygna": [
+   [
+    "Dendro",
+    "dendro"
+   ],
+   [
+    "cygna",
+    "cygna"
+   ]
+  ],
+  "Dicrurus": [
+   [
+    "Dicr",
+    "dicr"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "Eremalauda": [
+   [
+    "Erem",
+    "eremo"
+   ],
+   [
+    "alauda",
+    "alauda"
+   ]
+  ],
+  "Eremophila": [
+   [
+    "Eremo",
+    "eremo"
+   ],
+   [
+    "phila",
+    "phila"
+   ]
+  ],
+  "Eremopterix": [
+   [
+    "Eremo",
+    "eremo"
+   ],
+   [
+    "pterix",
+    "pterus"
+   ]
+  ],
+  "Eurystomus": [
+   [
+    "Eury",
+    "eury"
+   ],
+   [
+    "stomus",
+    "stomus"
+   ]
+  ],
+  "Ficedula": [
+   [
+    "Fic",
+    "fic"
+   ],
+   [
+    "edula",
+    "edula"
+   ]
+  ],
+  "Fratercula": [
+   [
+    "Fraterc",
+    "fraterc"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "Gallinago": [
+   [
+    "Gallin",
+    "gallin"
+   ],
+   [
+    "ago",
+    "ago"
+   ]
+  ],
+  "Gallinula": [
+   [
+    "Gallin",
+    "gallin"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "Gelochelidon": [
+   [
+    "Gelo",
+    "gelo"
+   ],
+   [
+    "chelidon",
+    "chelidon"
+   ]
+  ],
+  "Glareola": [
+   [
+    "Glare",
+    "glare"
+   ],
+   [
+    "ola",
+    "ola"
+   ]
+  ],
+  "Gulosus": [
+   [
+    "Gul",
+    "gul"
+   ],
+   [
+    "osus",
+    "osus"
+   ]
+  ],
+  "Gypaetus": [
+   [
+    "Gyp",
+    "gyp"
+   ],
+   [
+    "aetus",
+    "aetus"
+   ]
+  ],
+  "Haematopus": [
+   [
+    "Haemat",
+    "haemat"
+   ],
+   [
+    "opus",
+    "pus"
+   ]
+  ],
+  "Haliaeetus": [
+   [
+    "Halia",
+    "halia"
+   ],
+   [
+    "eetus",
+    "aetus"
+   ]
+  ],
+  "Helopsaltes": [
+   [
+    "Helo",
+    "helo"
+   ],
+   [
+    "psaltes",
+    "psaltes"
+   ]
+  ],
+  "Hieraaetus": [
+   [
+    "Hiera",
+    "hiera"
+   ],
+   [
+    "aetus",
+    "aetus"
+   ]
+  ],
+  "Himantopus": [
+   [
+    "Himant",
+    "himant"
+   ],
+   [
+    "opus",
+    "pus"
+   ]
+  ],
+  "Hydrobates": [
+   [
+    "Hydro",
+    "hydro"
+   ],
+   [
+    "bates",
+    "bates"
+   ]
+  ],
+  "Hydrocoloeus": [
+   [
+    "Hydro",
+    "hydro"
+   ],
+   [
+    "coloeus",
+    "coloeus"
+   ]
+  ],
+  "Hydroprogne": [
+   [
+    "Hydro",
+    "hydro"
+   ],
+   [
+    "progne",
+    "progne"
+   ]
+  ],
+  "Hypocolius": [
+   [
+    "Hypo",
+    "hypo"
+   ],
+   [
+    "colius",
+    "colius"
+   ]
+  ],
+  "Ichthyaetus": [
+   [
+    "Ichthy",
+    "ichthy"
+   ],
+   [
+    "aetus",
+    "aetus"
+   ]
+  ],
+  "Leptoptilos": [
+   [
+    "Lepto",
+    "lepto"
+   ],
+   [
+    "ptilos",
+    "ptilos"
+   ]
+  ],
+  "Leucophaeus": [
+   [
+    "Leuco",
+    "leuca"
+   ],
+   [
+    "phaeus",
+    "phaeus"
+   ]
+  ],
+  "Limnodromus": [
+   [
+    "Limno",
+    "limno"
+   ],
+   [
+    "dromus",
+    "droma"
+   ]
+  ],
+  "Linaria": [
+   [
+    "Lin",
+    "lin"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "Locustella": [
+   [
+    "Locust",
+    "locust"
+   ],
+   [
+    "ella",
+    "ella"
+   ]
+  ],
+  "Lymnocryptes": [
+   [
+    "Lymno",
+    "limno"
+   ],
+   [
+    "cryptes",
+    "cryptes"
+   ]
+  ],
+  "Marmaronetta": [
+   [
+    "Marmaro",
+    "marmaro"
+   ],
+   [
+    "netta",
+    "netta"
+   ]
+  ],
+  "Melanitta": [
+   [
+    "Melan",
+    "melaena"
+   ],
+   [
+    "itta",
+    "netta"
+   ]
+  ],
+  "Melanocorypha": [
+   [
+    "Melano",
+    "melaena"
+   ],
+   [
+    "corypha",
+    "corypha"
+   ]
+  ],
+  "Melierax": [
+   [
+    "Meli",
+    "meli"
+   ],
+   [
+    "erax",
+    "hiera"
+   ]
+  ],
+  "Mergellus": [
+   [
+    "Merg",
+    "merg"
+   ],
+   [
+    "ellus",
+    "ellus"
+   ]
+  ],
+  "Microcarbo": [
+   [
+    "Micro",
+    "micro"
+   ],
+   [
+    "carbo",
+    "carbo"
+   ]
+  ],
+  "Monticola": [
+   [
+    "Monti",
+    "monti"
+   ],
+   [
+    "cola",
+    "cola"
+   ]
+  ],
+  "Motacilla": [
+   [
+    "Mota",
+    "mota"
+   ],
+   [
+    "cilla",
+    "cilla"
+   ]
+  ],
+  "Muscicapa": [
+   [
+    "Musci",
+    "musci"
+   ],
+   [
+    "capa",
+    "capa"
+   ]
+  ],
+  "Myiopsitta": [
+   [
+    "Myio",
+    "myio"
+   ],
+   [
+    "psitta",
+    "psittac"
+   ]
+  ],
+  "Nycticorax": [
+   [
+    "Nycti",
+    "nycti"
+   ],
+   [
+    "corax",
+    "corax"
+   ]
+  ],
+  "Oceanites": [
+   [
+    "Ocean",
+    "ocean"
+   ],
+   [
+    "ites",
+    "ites"
+   ]
+  ],
+  "Onychognathus": [
+   [
+    "Onycho",
+    "onycho"
+   ],
+   [
+    "gnathus",
+    "gnathus"
+   ]
+  ],
+  "Onychoprion": [
+   [
+    "Onycho",
+    "onycho"
+   ],
+   [
+    "prion",
+    "prion"
+   ]
+  ],
+  "Oxyura": [
+   [
+    "Oxy",
+    "oxy"
+   ],
+   [
+    "ura",
+    "urus"
+   ]
+  ],
+  "Panurus": [
+   [
+    "Pan",
+    "pan"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "Periparus": [
+   [
+    "Peri",
+    "peri"
+   ],
+   [
+    "parus",
+    "parus"
+   ]
+  ],
+  "Phalacrocorax": [
+   [
+    "Phalacro",
+    "phalacro"
+   ],
+   [
+    "corax",
+    "corax"
+   ]
+  ],
+  "Phalaropus": [
+   [
+    "Phalar",
+    "phalar"
+   ],
+   [
+    "opus",
+    "pus"
+   ]
+  ],
+  "Phoeniconaias": [
+   [
+    "Phoenico",
+    "phoenico"
+   ],
+   [
+    "naias",
+    "naias"
+   ]
+  ],
+  "Phoenicopterus": [
+   [
+    "Phoenico",
+    "phoenico"
+   ],
+   [
+    "pterus",
+    "pterus"
+   ]
+  ],
+  "Phoenicurus": [
+   [
+    "Phoenic",
+    "phoenico"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "Phylloscopus": [
+   [
+    "Phyllo",
+    "phyllo"
+   ],
+   [
+    "scopus",
+    "scopus"
+   ]
+  ],
+  "Poicephalus": [
+   [
+    "Poice",
+    "phaeus"
+   ],
+   [
+    "phalus",
+    "cephalus"
+   ]
+  ],
+  "Psittacula": [
+   [
+    "Psittac",
+    "psittac"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "Pterocles": [
+   [
+    "Ptero",
+    "pterus"
+   ],
+   [
+    "cles",
+    "cles"
+   ]
+  ],
+  "Pterodroma": [
+   [
+    "Ptero",
+    "pterus"
+   ],
+   [
+    "droma",
+    "droma"
+   ]
+  ],
+  "Ptyonoprogne": [
+   [
+    "Ptyono",
+    "ptyono"
+   ],
+   [
+    "progne",
+    "progne"
+   ]
+  ],
+  "Pycnonotus": [
+   [
+    "Pycno",
+    "pycno"
+   ],
+   [
+    "notus",
+    "notus"
+   ]
+  ],
+  "Pyrrhocorax": [
+   [
+    "Pyrrho",
+    "pyrrho"
+   ],
+   [
+    "corax",
+    "corax"
+   ]
+  ],
+  "Ramphocoris": [
+   [
+    "Rampho",
+    "rampho"
+   ],
+   [
+    "coris",
+    "coris"
+   ]
+  ],
+  "Recurvirostra": [
+   [
+    "Recurvi",
+    "recurvi"
+   ],
+   [
+    "rostra",
+    "rostris"
+   ]
+  ],
+  "Rhodopechys": [
+   [
+    "Rhodo",
+    "rhodo"
+   ],
+   [
+    "pechys",
+    "pechys"
+   ]
+  ],
+  "Rhodospiza": [
+   [
+    "Rhodo",
+    "rhodo"
+   ],
+   [
+    "spiza",
+    "spiza"
+   ]
+  ],
+  "Riparia": [
+   [
+    "Rip",
+    "rip"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "Rostratula": [
+   [
+    "Rostrat",
+    "rostris"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "Rynchops": [
+   [
+    "Rynch",
+    "rhynchos"
+   ],
+   [
+    "ops",
+    "ops"
+   ]
+  ],
+  "Saxicola": [
+   [
+    "Saxi",
+    "saxi"
+   ],
+   [
+    "cola",
+    "cola"
+   ]
+  ],
+  "Scotocerca": [
+   [
+    "Scoto",
+    "scoto"
+   ],
+   [
+    "cerca",
+    "cerca"
+   ]
+  ],
+  "Spilopelia": [
+   [
+    "Spilo",
+    "spilo"
+   ],
+   [
+    "pelia",
+    "pelia"
+   ]
+  ],
+  "Sternula": [
+   [
+    "Stern",
+    "stern"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "Streptopelia": [
+   [
+    "Strepto",
+    "strepto"
+   ],
+   [
+    "pelia",
+    "pelia"
+   ]
+  ],
+  "Tachybaptus": [
+   [
+    "Tachy",
+    "tachy"
+   ],
+   [
+    "baptus",
+    "baptus"
+   ]
+  ],
+  "Tachyspiza": [
+   [
+    "Tachy",
+    "tachy"
+   ],
+   [
+    "spiza",
+    "spiza"
+   ]
+  ],
+  "Tarsiger": [
+   [
+    "Tarsi",
+    "tarsi"
+   ],
+   [
+    "ger",
+    "ger"
+   ]
+  ],
+  "Thalassarche": [
+   [
+    "Thalass",
+    "thalass"
+   ],
+   [
+    "arche",
+    "arche"
+   ]
+  ],
+  "Tichodroma": [
+   [
+    "Ticho",
+    "ticho"
+   ],
+   [
+    "droma",
+    "droma"
+   ]
+  ],
+  "Troglodytes": [
+   [
+    "Trogl",
+    "trogl"
+   ],
+   [
+    "odytes",
+    "odytes"
+   ]
+  ],
+  "acuminata": [
+   [
+    "acumin",
+    "acumin"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "acutirostris": [
+   [
+    "acuti",
+    "acuti"
+   ],
+   [
+    "rostris",
+    "rostris"
+   ]
+  ],
+  "aeruginosus": [
+   [
+    "aerugin",
+    "aerugin"
+   ],
+   [
+    "osus",
+    "osus"
+   ]
+  ],
+  "agricola": [
+   [
+    "agri",
+    "agri"
+   ],
+   [
+    "cola",
+    "cola"
+   ]
+  ],
+  "alaudipes": [
+   [
+    "alaudi",
+    "alauda"
+   ],
+   [
+    "pes",
+    "pus"
+   ]
+  ],
+  "albellus": [
+   [
+    "alb",
+    "alb"
+   ],
+   [
+    "ellus",
+    "ellus"
+   ]
+  ],
+  "albicilla": [
+   [
+    "albi",
+    "alb"
+   ],
+   [
+    "cilla",
+    "cilla"
+   ]
+  ],
+  "albicollis": [
+   [
+    "albi",
+    "alb"
+   ],
+   [
+    "collis",
+    "collis"
+   ]
+  ],
+  "albifrons": [
+   [
+    "albi",
+    "alb"
+   ],
+   [
+    "frons",
+    "frons"
+   ]
+  ],
+  "angustirostris": [
+   [
+    "angusti",
+    "angusti"
+   ],
+   [
+    "rostris",
+    "rostris"
+   ]
+  ],
+  "apiaster": [
+   [
+    "api",
+    "api"
+   ],
+   [
+    "aster",
+    "aster"
+   ]
+  ],
+  "apivorus": [
+   [
+    "api",
+    "api"
+   ],
+   [
+    "vorus",
+    "vorus"
+   ]
+  ],
+  "apricaria": [
+   [
+    "apric",
+    "aprica"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "ardeola": [
+   [
+    "arde",
+    "arde"
+   ],
+   [
+    "ola",
+    "ola"
+   ]
+  ],
+  "argentatus": [
+   [
+    "argent",
+    "argent"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "arundinaceus": [
+   [
+    "arundin",
+    "arundin"
+   ],
+   [
+    "aceus",
+    "aceus"
+   ]
+  ],
+  "arvensis": [
+   [
+    "arv",
+    "arv"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "atricapilla": [
+   [
+    "atri",
+    "ater"
+   ],
+   [
+    "capilla",
+    "capilla"
+   ]
+  ],
+  "atricilla": [
+   [
+    "atri",
+    "ater"
+   ],
+   [
+    "cilla",
+    "cilla"
+   ]
+  ],
+  "atrifrons": [
+   [
+    "atri",
+    "ater"
+   ],
+   [
+    "frons",
+    "frons"
+   ]
+  ],
+  "atrogularis": [
+   [
+    "atro",
+    "ater"
+   ],
+   [
+    "gularis",
+    "gul"
+   ]
+  ],
+  "aureola": [
+   [
+    "aure",
+    "aure"
+   ],
+   [
+    "ola",
+    "ola"
+   ]
+  ],
+  "barbatus": [
+   [
+    "barb",
+    "barb"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "bengalensis": [
+   [
+    "bengal",
+    "bengal"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "benghalensis": [
+   [
+    "benghal",
+    "bengal"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "bilopha": [
+   [
+    "bi",
+    "bi"
+   ],
+   [
+    "lopha",
+    "lopha"
+   ]
+  ],
+  "bimaculata": [
+   [
+    "bi",
+    "bi"
+   ],
+   [
+    "maculata",
+    "macul"
+   ]
+  ],
+  "brachydactyla": [
+   [
+    "brachy",
+    "brachy"
+   ],
+   [
+    "dactyla",
+    "dactyl"
+   ]
+  ],
+  "brevipes": [
+   [
+    "brevi",
+    "brevi"
+   ],
+   [
+    "pes",
+    "pus"
+   ]
+  ],
+  "bruniceps": [
+   [
+    "bruni",
+    "brunni"
+   ],
+   [
+    "ceps",
+    "ceps"
+   ]
+  ],
+  "brunnicephalus": [
+   [
+    "brunni",
+    "brunni"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "caligata": [
+   [
+    "calig",
+    "calig"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "capensis": [
+   [
+    "cap",
+    "cap"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "carneipes": [
+   [
+    "carnei",
+    "carnei"
+   ],
+   [
+    "pes",
+    "pus"
+   ]
+  ],
+  "chinensis": [
+   [
+    "chin",
+    "chin"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "chloropus": [
+   [
+    "chloro",
+    "chloro"
+   ],
+   [
+    "pus",
+    "pus"
+   ]
+  ],
+  "chrysaetos": [
+   [
+    "chrys",
+    "chryso"
+   ],
+   [
+    "aetos",
+    "aetus"
+   ]
+  ],
+  "chrysopygia": [
+   [
+    "chryso",
+    "chryso"
+   ],
+   [
+    "pygia",
+    "pygia"
+   ]
+  ],
+  "cincturus": [
+   [
+    "cinct",
+    "cinct"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "cirrocephalus": [
+   [
+    "cirro",
+    "cirro"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "citreola": [
+   [
+    "citre",
+    "citre"
+   ],
+   [
+    "ola",
+    "ola"
+   ]
+  ],
+  "citrinella": [
+   [
+    "citrin",
+    "citrin"
+   ],
+   [
+    "ella",
+    "ella"
+   ]
+  ],
+  "clangula": [
+   [
+    "clang",
+    "clang"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "clypeata": [
+   [
+    "clype",
+    "clype"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "coccothraustes": [
+   [
+    "cocco",
+    "cocco"
+   ],
+   [
+    "thraustes",
+    "thraustes"
+   ]
+  ],
+  "concolor": [
+   [
+    "con",
+    "con"
+   ],
+   [
+    "color",
+    "color"
+   ]
+  ],
+  "conspicillata": [
+   [
+    "conspicill",
+    "conspicill"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "coronatus": [
+   [
+    "coron",
+    "coron"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "crassirostris": [
+   [
+    "crassi",
+    "crassi"
+   ],
+   [
+    "rostris",
+    "rostris"
+   ]
+  ],
+  "cristata": [
+   [
+    "crist",
+    "crist"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "cristatus": [
+   [
+    "crist",
+    "crist"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "crumenifer": [
+   [
+    "crumeni",
+    "crumeni"
+   ],
+   [
+    "fer",
+    "fer"
+   ]
+  ],
+  "curvirostra": [
+   [
+    "curvi",
+    "curvi"
+   ],
+   [
+    "rostra",
+    "rostris"
+   ]
+  ],
+  "cyanophrys": [
+   [
+    "cyano",
+    "cyano"
+   ],
+   [
+    "phrys",
+    "phrys"
+   ]
+  ],
+  "cyanurus": [
+   [
+    "cyan",
+    "cyano"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "dactylatra": [
+   [
+    "dactyl",
+    "dactyl"
+   ],
+   [
+    "atra",
+    "ater"
+   ]
+  ],
+  "dasypus": [
+   [
+    "dasy",
+    "dasy"
+   ],
+   [
+    "pus",
+    "pus"
+   ]
+  ],
+  "ecaudatus": [
+   [
+    "e",
+    "e"
+   ],
+   [
+    "caudatus",
+    "caudatus"
+   ]
+  ],
+  "erythronota": [
+   [
+    "erythro",
+    "erythro"
+   ],
+   [
+    "nota",
+    "nota"
+   ]
+  ],
+  "erythrophthalma": [
+   [
+    "erythro",
+    "erythro"
+   ],
+   [
+    "phthalma",
+    "phthalma"
+   ]
+  ],
+  "erythropus": [
+   [
+    "erythro",
+    "erythro"
+   ],
+   [
+    "pus",
+    "pus"
+   ]
+  ],
+  "erythrorhyncha": [
+   [
+    "erythro",
+    "erythro"
+   ],
+   [
+    "rhyncha",
+    "rhynchos"
+   ]
+  ],
+  "eunomus": [
+   [
+    "eu",
+    "eu"
+   ],
+   [
+    "nomus",
+    "nomus"
+   ]
+  ],
+  "eupatria": [
+   [
+    "eu",
+    "eu"
+   ],
+   [
+    "patria",
+    "patria"
+   ]
+  ],
+  "falcinellus": [
+   [
+    "falcin",
+    "falcin"
+   ],
+   [
+    "ellus",
+    "ellus"
+   ]
+  ],
+  "fasciata": [
+   [
+    "fasci",
+    "fasci"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "flavipes": [
+   [
+    "flavi",
+    "flavi"
+   ],
+   [
+    "pes",
+    "pus"
+   ]
+  ],
+  "flavirostris": [
+   [
+    "flavi",
+    "flavi"
+   ],
+   [
+    "rostris",
+    "rostris"
+   ]
+  ],
+  "fluviatilis": [
+   [
+    "fluvi",
+    "fluvi"
+   ],
+   [
+    "atilis",
+    "atilis"
+   ]
+  ],
+  "frugilegus": [
+   [
+    "frugi",
+    "frugi"
+   ],
+   [
+    "legus",
+    "legus"
+   ]
+  ],
+  "fuligula": [
+   [
+    "fuli",
+    "fuli"
+   ],
+   [
+    "gula",
+    "gul"
+   ]
+  ],
+  "fuscatus": [
+   [
+    "fusc",
+    "fusc"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "fuscicollis": [
+   [
+    "fusci",
+    "fusc"
+   ],
+   [
+    "collis",
+    "collis"
+   ]
+  ],
+  "gallinago": [
+   [
+    "gallin",
+    "gallin"
+   ],
+   [
+    "ago",
+    "ago"
+   ]
+  ],
+  "glareola": [
+   [
+    "glare",
+    "glare"
+   ],
+   [
+    "ola",
+    "ola"
+   ]
+  ],
+  "glaucurus": [
+   [
+    "glauc",
+    "glauc"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "grisegena": [
+   [
+    "grise",
+    "grisea"
+   ],
+   [
+    "gena",
+    "gena"
+   ]
+  ],
+  "gularis": [
+   [
+    "gul",
+    "gul"
+   ],
+   [
+    "aris",
+    "aris"
+   ]
+  ],
+  "haliaetus": [
+   [
+    "hali",
+    "halia"
+   ],
+   [
+    "aetus",
+    "aetus"
+   ]
+  ],
+  "hiaticula": [
+   [
+    "hiati",
+    "hiati"
+   ],
+   [
+    "cula",
+    "cola"
+   ]
+  ],
+  "himantopus": [
+   [
+    "himant",
+    "himant"
+   ],
+   [
+    "opus",
+    "pus"
+   ]
+  ],
+  "hispaniolensis": [
+   [
+    "hispaniol",
+    "hispaniol"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "hyperboreus": [
+   [
+    "hyper",
+    "hyper"
+   ],
+   [
+    "boreus",
+    "boreus"
+   ]
+  ],
+  "hypoleuca": [
+   [
+    "hypo",
+    "hypo"
+   ],
+   [
+    "leuca",
+    "leuca"
+   ]
+  ],
+  "hypoleucos": [
+   [
+    "hypo",
+    "hypo"
+   ],
+   [
+    "leucos",
+    "leuca"
+   ]
+  ],
+  "ichthyaetus": [
+   [
+    "ichthy",
+    "ichthy"
+   ],
+   [
+    "aetus",
+    "aetus"
+   ]
+  ],
+  "ignicapilla": [
+   [
+    "igni",
+    "igni"
+   ],
+   [
+    "capilla",
+    "capilla"
+   ]
+  ],
+  "inornatus": [
+   [
+    "inorn",
+    "inorn"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "lagopus": [
+   [
+    "lago",
+    "lago"
+   ],
+   [
+    "pus",
+    "pus"
+   ]
+  ],
+  "leucocephala": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "cephala",
+    "cephalus"
+   ]
+  ],
+  "leucocephalos": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "cephalos",
+    "cephalus"
+   ]
+  ],
+  "leucocephalus": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "leucogaster": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "gaster",
+    "gaster"
+   ]
+  ],
+  "leucomelaena": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "melaena",
+    "melaena"
+   ]
+  ],
+  "leucomelas": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "melas",
+    "melaena"
+   ]
+  ],
+  "leucophaeus": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "phaeus",
+    "phaeus"
+   ]
+  ],
+  "leucophthalmus": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "phthalmus",
+    "phthalmus"
+   ]
+  ],
+  "leucopsis": [
+   [
+    "leuc",
+    "leuca"
+   ],
+   [
+    "opsis",
+    "opsis"
+   ]
+  ],
+  "leucopterus": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "pterus",
+    "pterus"
+   ]
+  ],
+  "leucopyga": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "pyga",
+    "pygia"
+   ]
+  ],
+  "leucorodia": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "rodia",
+    "rodia"
+   ]
+  ],
+  "leucotis": [
+   [
+    "leuco",
+    "leuca"
+   ],
+   [
+    "tis",
+    "tis"
+   ]
+  ],
+  "leucurus": [
+   [
+    "leuc",
+    "leuca"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "lobatus": [
+   [
+    "lob",
+    "lob"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "longicaudus": [
+   [
+    "longi",
+    "longi"
+   ],
+   [
+    "caudus",
+    "caudatus"
+   ]
+  ],
+  "luscinioides": [
+   [
+    "luscini",
+    "luscini"
+   ],
+   [
+    "oides",
+    "oides"
+   ]
+  ],
+  "macrourus": [
+   [
+    "macro",
+    "macro"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "madagascariensis": [
+   [
+    "madagascari",
+    "madagascar"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "megarhynchos": [
+   [
+    "mega",
+    "mega"
+   ],
+   [
+    "rhynchos",
+    "rhynchos"
+   ]
+  ],
+  "melanocephala": [
+   [
+    "melano",
+    "melaena"
+   ],
+   [
+    "cephala",
+    "cephalus"
+   ]
+  ],
+  "melanocephalus": [
+   [
+    "melano",
+    "melaena"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "melanogaster": [
+   [
+    "melano",
+    "melaena"
+   ],
+   [
+    "gaster",
+    "gaster"
+   ]
+  ],
+  "melanoleuca": [
+   [
+    "melano",
+    "melaena"
+   ],
+   [
+    "leuca",
+    "leuca"
+   ]
+  ],
+  "melanopogon": [
+   [
+    "melano",
+    "melaena"
+   ],
+   [
+    "pogon",
+    "pogon"
+   ]
+  ],
+  "melanothorax": [
+   [
+    "melano",
+    "melaena"
+   ],
+   [
+    "thorax",
+    "thorax"
+   ]
+  ],
+  "melanura": [
+   [
+    "melan",
+    "melaena"
+   ],
+   [
+    "ura",
+    "urus"
+   ]
+  ],
+  "merganser": [
+   [
+    "merg",
+    "merg"
+   ],
+   [
+    "anser",
+    "anser"
+   ]
+  ],
+  "modularis": [
+   [
+    "modul",
+    "modul"
+   ],
+   [
+    "aris",
+    "aris"
+   ]
+  ],
+  "monorhis": [
+   [
+    "mono",
+    "mono"
+   ],
+   [
+    "rhis",
+    "hinus"
+   ]
+  ],
+  "montifringilla": [
+   [
+    "monti",
+    "monti"
+   ],
+   [
+    "fringilla",
+    "fringilla"
+   ]
+  ],
+  "muraria": [
+   [
+    "mur",
+    "mur"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "nebularia": [
+   [
+    "nebul",
+    "nebul"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "nigriceps": [
+   [
+    "nigri",
+    "nigri"
+   ],
+   [
+    "ceps",
+    "ceps"
+   ]
+  ],
+  "nigricollis": [
+   [
+    "nigri",
+    "nigri"
+   ],
+   [
+    "collis",
+    "collis"
+   ]
+  ],
+  "nipalensis": [
+   [
+    "nipal",
+    "nipal"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "nycticorax": [
+   [
+    "nycti",
+    "nycti"
+   ],
+   [
+    "corax",
+    "corax"
+   ]
+  ],
+  "ochropus": [
+   [
+    "ochro",
+    "ochro"
+   ],
+   [
+    "pus",
+    "pus"
+   ]
+  ],
+  "ochruros": [
+   [
+    "ochr",
+    "ochro"
+   ],
+   [
+    "uros",
+    "urus"
+   ]
+  ],
+  "ocularis": [
+   [
+    "ocul",
+    "ocul"
+   ],
+   [
+    "aris",
+    "aris"
+   ]
+  ],
+  "oedicnemus": [
+   [
+    "oedi",
+    "oedi"
+   ],
+   [
+    "cnemus",
+    "cnemus"
+   ]
+  ],
+  "optatus": [
+   [
+    "opt",
+    "opt"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "ostralegus": [
+   [
+    "ostra",
+    "ostra"
+   ],
+   [
+    "legus",
+    "legus"
+   ]
+  ],
+  "pennatus": [
+   [
+    "penn",
+    "penn"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "percnopterus": [
+   [
+    "percn",
+    "percn"
+   ],
+   [
+    "opterus",
+    "pterus"
+   ]
+  ],
+  "phaeopus": [
+   [
+    "phaeo",
+    "phaeus"
+   ],
+   [
+    "pus",
+    "pus"
+   ]
+  ],
+  "philomelos": [
+   [
+    "philo",
+    "phila"
+   ],
+   [
+    "melos",
+    "melos"
+   ]
+  ],
+  "phoenicurus": [
+   [
+    "phoenic",
+    "phoenico"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "pilaris": [
+   [
+    "pil",
+    "pil"
+   ],
+   [
+    "aris",
+    "aris"
+   ]
+  ],
+  "platyrhynchos": [
+   [
+    "platy",
+    "platy"
+   ],
+   [
+    "rhynchos",
+    "rhynchos"
+   ]
+  ],
+  "poliocephalus": [
+   [
+    "polio",
+    "polio"
+   ],
+   [
+    "cephalus",
+    "cephalus"
+   ]
+  ],
+  "pratensis": [
+   [
+    "prat",
+    "prat"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "pratincola": [
+   [
+    "pratin",
+    "prat"
+   ],
+   [
+    "cola",
+    "cola"
+   ]
+  ],
+  "ptilorhynchus": [
+   [
+    "ptilo",
+    "ptilos"
+   ],
+   [
+    "rhynchus",
+    "rhynchos"
+   ]
+  ],
+  "pygargus": [
+   [
+    "pyg",
+    "pygia"
+   ],
+   [
+    "argus",
+    "argus"
+   ]
+  ],
+  "pyrrhocorax": [
+   [
+    "pyrrho",
+    "pyrrho"
+   ],
+   [
+    "corax",
+    "corax"
+   ]
+  ],
+  "ralloides": [
+   [
+    "rall",
+    "rall"
+   ],
+   [
+    "oides",
+    "oides"
+   ]
+  ],
+  "rhipidurus": [
+   [
+    "rhipid",
+    "rhipid"
+   ],
+   [
+    "urus",
+    "urus"
+   ]
+  ],
+  "riparia": [
+   [
+    "rip",
+    "rip"
+   ],
+   [
+    "aria",
+    "aria"
+   ]
+  ],
+  "roseogrisea": [
+   [
+    "roseo",
+    "roseo"
+   ],
+   [
+    "grisea",
+    "grisea"
+   ]
+  ],
+  "rubecula": [
+   [
+    "rubec",
+    "rubec"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "rubicola": [
+   [
+    "rubi",
+    "rubi"
+   ],
+   [
+    "cola",
+    "cola"
+   ]
+  ],
+  "ruficollis": [
+   [
+    "rufi",
+    "ruf"
+   ],
+   [
+    "collis",
+    "collis"
+   ]
+  ],
+  "rufula": [
+   [
+    "ruf",
+    "ruf"
+   ],
+   [
+    "ula",
+    "ula"
+   ]
+  ],
+  "rusticola": [
+   [
+    "rusti",
+    "rusti"
+   ],
+   [
+    "cola",
+    "cola"
+   ]
+  ],
+  "sandvicensis": [
+   [
+    "sandvic",
+    "sandvic"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "saxatilis": [
+   [
+    "sax",
+    "saxi"
+   ],
+   [
+    "atilis",
+    "atilis"
+   ]
+  ],
+  "schoenobaenus": [
+   [
+    "schoeno",
+    "schoeno"
+   ],
+   [
+    "baenus",
+    "baenus"
+   ]
+  ],
+  "scirpaceus": [
+   [
+    "scirp",
+    "scirp"
+   ],
+   [
+    "aceus",
+    "aceus"
+   ]
+  ],
+  "scolopaceus": [
+   [
+    "scolop",
+    "scolop"
+   ],
+   [
+    "aceus",
+    "aceus"
+   ]
+  ],
+  "semitorquata": [
+   [
+    "semi",
+    "semi"
+   ],
+   [
+    "torquata",
+    "torquata"
+   ]
+  ],
+  "senegalensis": [
+   [
+    "senegal",
+    "senegal"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "serrirostris": [
+   [
+    "serri",
+    "serri"
+   ],
+   [
+    "rostris",
+    "rostris"
+   ]
+  ],
+  "signata": [
+   [
+    "sign",
+    "sign"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "smyrnensis": [
+   [
+    "smyrn",
+    "smyrn"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ],
+  "spinosus": [
+   [
+    "spin",
+    "spin"
+   ],
+   [
+    "osus",
+    "osus"
+   ]
+  ],
+  "spodocephala": [
+   [
+    "spodo",
+    "spodo"
+   ],
+   [
+    "cephala",
+    "cephalus"
+   ]
+  ],
+  "squamiceps": [
+   [
+    "squami",
+    "squam"
+   ],
+   [
+    "ceps",
+    "ceps"
+   ]
+  ],
+  "stagnatilis": [
+   [
+    "stagn",
+    "stagn"
+   ],
+   [
+    "atilis",
+    "atilis"
+   ]
+  ],
+  "stellaris": [
+   [
+    "stell",
+    "stell"
+   ],
+   [
+    "aris",
+    "aris"
+   ]
+  ],
+  "stellata": [
+   [
+    "stell",
+    "stell"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "stenura": [
+   [
+    "sten",
+    "sten"
+   ],
+   [
+    "ura",
+    "urus"
+   ]
+  ],
+  "striata": [
+   [
+    "stri",
+    "stri"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "striolata": [
+   [
+    "striol",
+    "striol"
+   ],
+   [
+    "ata",
+    "atus"
+   ]
+  ],
+  "subbuteo": [
+   [
+    "sub",
+    "sub"
+   ],
+   [
+    "buteo",
+    "buteo"
+   ]
+  ],
+  "subminuta": [
+   [
+    "sub",
+    "sub"
+   ],
+   [
+    "minuta",
+    "minuta"
+   ]
+  ],
+  "subruficollis": [
+   [
+    "sub",
+    "sub"
+   ],
+   [
+    "rufi",
+    "ruf"
+   ],
+   [
+    "collis",
+    "collis"
+   ]
+  ],
+  "tenuirostris": [
+   [
+    "tenui",
+    "tenui"
+   ],
+   [
+    "rostris",
+    "rostris"
+   ]
+  ],
+  "torquatus": [
+   [
+    "torqu",
+    "torqu"
+   ],
+   [
+    "atus",
+    "atus"
+   ]
+  ],
+  "tricollaris": [
+   [
+    "tri",
+    "tri"
+   ],
+   [
+    "collaris",
+    "collaris"
+   ]
+  ],
+  "tricolor": [
+   [
+    "tri",
+    "tri"
+   ],
+   [
+    "color",
+    "color"
+   ]
+  ],
+  "tridactyla": [
+   [
+    "tri",
+    "tri"
+   ],
+   [
+    "dactyla",
+    "dactyl"
+   ]
+  ],
+  "troglodytes": [
+   [
+    "trogl",
+    "trogl"
+   ],
+   [
+    "odytes",
+    "odytes"
+   ]
+  ],
+  "viscivorus": [
+   [
+    "visci",
+    "visci"
+   ],
+   [
+    "vorus",
+    "vorus"
+   ]
+  ],
+  "vulgaris": [
+   [
+    "vulg",
+    "vulg"
+   ],
+   [
+    "aris",
+    "aris"
+   ]
+  ],
+  "xanthocollis": [
+   [
+    "xantho",
+    "xantho"
+   ],
+   [
+    "collis",
+    "collis"
+   ]
+  ],
+  "xanthoprymna": [
+   [
+    "xantho",
+    "xantho"
+   ],
+   [
+    "prymna",
+    "prymna"
+   ]
+  ],
+  "xanthopygos": [
+   [
+    "xantho",
+    "xantho"
+   ],
+   [
+    "pygos",
+    "pygia"
+   ]
+  ],
+  "zeylonensis": [
+   [
+    "zeylon",
+    "zeylon"
+   ],
+   [
+    "ensis",
+    "ensis"
+   ]
+  ]
+ },
+ "themes": [
+  "Colour",
+  "Body",
+  "Size",
+  "Shape",
+  "Qualities",
+  "Where it lives",
+  "Food",
+  "Behaviour",
+  "Birds",
+  "Mammals",
+  "Other animals",
+  "Places",
+  "Word-building"
+ ]
+}

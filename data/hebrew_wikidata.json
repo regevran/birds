@@ -1,0 +1,302 @@
+{
+ "Actitis hypoleucos": {
+  "he_label": "ביצנית לבנת-בטן",
+  "hewiki": "ביצנית לבנת-בטן"
+ },
+ "Anas platyrhynchos": {
+  "he_label": "ברכיה",
+  "hewiki": "ברכייה"
+ },
+ "Apus apus": {
+  "he_label": "סיס חומות",
+  "hewiki": "סיס חומות"
+ },
+ "Accipiter nisus": {
+  "he_label": "נץ מצוי",
+  "hewiki": "נץ מצוי"
+ },
+ "Ardea cinerea": {
+  "he_label": "אנפה אפורה",
+  "hewiki": "אנפה אפורה"
+ },
+ "Anthus pratensis": {
+  "he_label": "פפיון שדות",
+  "hewiki": "פפיון שדות"
+ },
+ "Aythya ferina": {
+  "he_label": "צולל חלודי",
+  "hewiki": "צולל חלודי"
+ },
+ "Arenaria interpres": {
+  "he_label": "ארנריה אדמונית",
+  "hewiki": "ארנריה אדמונית"
+ },
+ "Anser fabalis": {
+  "he_label": "אווז האחו",
+  "hewiki": "אווז האחו"
+ },
+ "Acrocephalus arundinaceus": {
+  "he_label": "קנית גדולה אירופית",
+  "hewiki": "קנית אירופית"
+ },
+ "Ardeola ralloides": {
+  "he_label": "אנפית סוף",
+  "hewiki": "אנפית סוף"
+ },
+ "Aquila nipalensis": {
+  "he_label": "עיט ערבות",
+  "hewiki": "עיט ערבות"
+ },
+ "Anthus campestris": {
+  "he_label": "פיפיון צהוב חום",
+  "hewiki": "פפיון צהוב"
+ },
+ "Acrocephalus schoenobaenus": {
+  "he_label": "קנית פסים",
+  "hewiki": "קנית פסים"
+ },
+ "Aquila chrysaetos": {
+  "he_label": "עיט זהוב",
+  "hewiki": "עיט זהוב"
+ },
+ "Aratinga nenday": {
+  "he_label": "קוניור שחור-ראש",
+  "hewiki": "קוניור שחור ראש"
+ },
+ "Alaudala rufescens": {
+  "he_label": "עפרונן גמדי",
+  "hewiki": "עפרונן גמדי"
+ },
+ "Argya squamiceps": {
+  "he_label": "זנבן ערבי",
+  "hewiki": "זנבן ערבי"
+ },
+ "Acridotheres leucocephalus": {
+  "he_label": "זרזיר בורמזי",
+  "hewiki": "זרזיר בורמזי"
+ },
+ "Asio otus": {
+  "he_label": "ינשוף עצים ארוך אוזן",
+  "hewiki": "ינשוף עצים"
+ },
+ "Anas acuta": {
+  "he_label": "ברווז חד-זנב צפוני",
+  "hewiki": "ברווז חד-זנב"
+ },
+ "Anas crecca": {
+  "he_label": "שרשיר מצוי",
+  "hewiki": "שרשיר מצוי"
+ },
+ "Asio flammeus": {
+  "he_label": "ינשוף שדות",
+  "hewiki": "ינשוף שדות"
+ },
+ "Anser anser": {
+  "he_label": "אווז אפור [הבית]",
+  "hewiki": "אווז אפור"
+ },
+ "Alauda arvensis": {
+  "he_label": "זרעית השדה",
+  "hewiki": "זרעית השדה"
+ },
+ "Ardea ibis": {
+  "he_label": "אנפית בקר מערבית",
+  "hewiki": "אנפית בקר מערבית"
+ },
+ "Alaudala heinei": {
+  "he_label": "עפרונן טורקסטני",
+  "hewiki": "עפרונן טורקסטני"
+ },
+ "Anarhynchus atrifrons": {
+  "he_label": "חופמי טיבטי",
+  "hewiki": "חופמי טיבטי"
+ },
+ "Anthus japonicus": {
+  "he_label": "פפיון ממושקף",
+  "hewiki": "פפיון ממושקף"
+ },
+ "Aquila verreauxii": {
+  "he_label": "עיט שחור",
+  "hewiki": "עיט שחור"
+ },
+ "Acrocephalus agricola": {
+  "he_label": "קנית אורז",
+  "hewiki": "קנית אורז"
+ },
+ "Ammomanes deserti": {
+  "he_label": "עפרוני מדבר",
+  "hewiki": "עפרוני מדבר"
+ },
+ "Acrocephalus griseldis": {
+  "he_label": "קנית בצרה",
+  "hewiki": "קנית בצרה"
+ },
+ "Alaemon alaudipes": {
+  "he_label": "אלימון גדול",
+  "hewiki": "אלימון"
+ },
+ "Anthus richardi": {
+  "he_label": "פיפיון ארוך רגלים",
+  "hewiki": "פיפיון ארוך רגליים"
+ },
+ "Anthus godlewskii": {
+  "he_label": "פיפיון ערבות",
+  "hewiki": "פפיון ערבות"
+ },
+ "Ammoperdix heyi": {
+  "he_label": "קורא מדברי",
+  "hewiki": "קורא מדברי"
+ },
+ "Anthus similis": {
+  "he_label": "פיפיון הרים",
+  "hewiki": "פפיון הרים"
+ },
+ "Ardenna carneipes": {
+  "he_label": "יסעור אב רגלים",
+  "hewiki": "יסעור כהה-כנף"
+ },
+ "Ardenna gravis": {
+  "he_label": "יסעור שחור כיפה גדול",
+  "hewiki": "יסעור שחור-כיפה"
+ },
+ "Acrocephalus orientalis": {
+  "he_label": "קנית מזרחית",
+  "hewiki": "קנית מזרחית"
+ },
+ "Acrocephalus stentoreus": {
+  "he_label": "קנית צעקנית [אפריקאית]",
+  "hewiki": "קנית אפריקנית"
+ },
+ "Alcedo atthis": {
+  "he_label": "שלדג גמדי",
+  "hewiki": "שלדג גמדי"
+ },
+ "Acridotheres tristis": {
+  "he_label": "מיינה מצויה",
+  "hewiki": "מיינה מצויה"
+ },
+ "Ardea goliath": {
+  "he_label": "אנפה גוליית",
+  "hewiki": "אנפת גוליית"
+ },
+ "Athene noctua": {
+  "he_label": "כוס החורבות",
+  "hewiki": "כוס החורבות"
+ },
+ "Ardea alba": {
+  "he_label": "אנפה גדולה לבנה",
+  "hewiki": "לבנית גדולה"
+ },
+ "Anthus trivialis": {
+  "he_label": "פיפיון עצים",
+  "hewiki": "פפיון עצים"
+ },
+ "Acrocephalus scirpaceus": {
+  "he_label": "קנית קטנה אירופאית",
+  "hewiki": "קנית קטנה"
+ },
+ "Ardea purpurea": {
+  "he_label": "אנפה ארגמנית",
+  "hewiki": "אנפה ארגמנית"
+ },
+ "Apus pallidus": {
+  "he_label": "סיס חוורוור",
+  "hewiki": "סיס חוורוור"
+ },
+ "Aegypius monachus": {
+  "he_label": "עוזנייה שחורה",
+  "hewiki": "עוזנייה שחורה"
+ },
+ "Aquila heliaca": {
+  "he_label": "עיט שמש",
+  "hewiki": "עיט שמש"
+ },
+ "Anser albifrons": {
+  "he_label": "אווז לבן-מצח",
+  "hewiki": "אווז לבן-מצח"
+ },
+ "Apus melba": {},
+ "Alopochen aegyptiacus": {},
+ "Ammomanes cincturus": {},
+ "Anarhynchus leschenaultii": {},
+ "Anarhynchus mongolus": {},
+ "Accipiter gentilis": {
+  "he_label": "נץ גדול"
+ },
+ "Anser erythropus": {
+  "he_label": "אווז קטן",
+  "hewiki": "אווז קטן"
+ },
+ "Anthropoides virgo": {
+  "he_label": "עגור חן מיזרחי",
+  "hewiki": "עגור חן"
+ },
+ "Alectoris chukar": {
+  "he_label": "חוגלת סלעים",
+  "hewiki": "חוגלת סלעים"
+ },
+ "Anas capensis": {
+  "he_label": "שרשיר הכף",
+  "hewiki": "שרשיר הכף"
+ },
+ "Anthus spinoletta": {
+  "he_label": "פיפיון מים",
+  "hewiki": "פפיון המים"
+ },
+ "Acrocephalus palustris": {
+  "he_label": "קנית ביצות",
+  "hewiki": "קנית ביצות"
+ },
+ "Ardea melanocephala": {
+  "he_label": "אנפה שחורת-ראש",
+  "hewiki": "אנפה שחורת-ראש"
+ },
+ "Aquila fasciata": {
+  "he_label": "עיט ניצי",
+  "hewiki": "עיט ניצי"
+ },
+ "Anthus cervinus": {
+  "he_label": "פיפיון אדום-גרון",
+  "hewiki": "פיפיון אדום-גרון"
+ },
+ "Anhinga melanogaster": {
+  "he_label": "נחשון הודי",
+  "hewiki": "נחשון הודי"
+ },
+ "Acrocephalus dumetorum": {
+  "he_label": "קנית פינית",
+  "hewiki": "קנית פינית"
+ },
+ "Aquila rapax": {
+  "he_label": "עיט סוואנות",
+  "hewiki": "עיט סוואנות"
+ },
+ "Acrocephalus melanopogon": {
+  "he_label": "קנית זמירון",
+  "hewiki": "זמירון (ציפור)"
+ },
+ "Anas erythrorhyncha": {
+  "he_label": "שרשיר אדום-מקור",
+  "hewiki": "שרשיר אדום-מקור"
+ },
+ "Ardeola bacchus": {
+  "he_label": "אנפית סוף סינית",
+  "hewiki": "אנפית סוף סינית"
+ },
+ "Alauda gulgula": {
+  "he_label": "זרעית קטנה",
+  "hewiki": "זרעית קטנה"
+ },
+ "Apus affinis": {
+  "he_label": "סיס גליל",
+  "hewiki": "סיס גליל"
+ },
+ "Anser serrirostris": {
+  "he_label": "אווז אחו הטונדרה",
+  "hewiki": "אווז אחו הטונדרה"
+ },
+ "Anthus hodgsoni": {
+  "he_label": "פיפיון זיתי",
+  "hewiki": "פפיון זיתי"
+ }
+}
