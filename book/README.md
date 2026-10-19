@@ -7,16 +7,24 @@ has its own layout, front matter, colour, indexes and cover.  Nothing in
 ## Build
 
 ```sh
-book/build.sh
+./render.sh
 ```
+
+`render.sh` builds the interior and then the cover, in that order; the cover
+reads the interior's page count to compute the spine. Use `--interior-only` or
+`--cover-only` to run just one half, and see `./render.sh --help` for the
+builder options (`--base`, `--pages`, `--caliper`, `--spine`).
 
 Outputs:
 
 | File | What it is |
 |---|---|
 | `out/book/israel_birds_pocket.pdf` | interior, A5, 72 pages, numbered from the first list page |
-| `out/book/cover_front_draft.pdf` | front cover only, 154 × 216 mm (3 mm bleed) |
 | `out/book/cover_spread.pdf` | back + spine + front, spine computed from the interior |
+
+The front panel alone is a proof, not a build artifact: write it on demand
+with `python3 book/make_cover.py --front-only` (it lands in
+`out/book/cover_front_draft.pdf`, 154 × 216 mm).
 
 The cover script reads the interior's page count with `pdfinfo`, so rebuilding
 after a content change keeps the spine correct.

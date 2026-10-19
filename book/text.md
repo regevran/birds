@@ -30,7 +30,7 @@ logo_credit: Noa Shvartsun Regev
 # The dedication page (page iii), after the copyright page. Two lines.
 
 line1: לשאול,
-line2: שבכלל לא צריך את הספר הזה.
+line2: שבכלל לא צריך את המדריך הזה.
 
 ## copyright
 # The copyright page (page ii), on the back of the title page.
@@ -150,5 +150,5 @@ back_para_1: |
     565 species in 84 families, with Latin, English and Hebrew names, and the
     meaning of every Latin part.
 back_para_2: |
-    Grey marks the parts you can look up in the index of word elements. A
-    Hebrew name index points straight to the page.
+    Grey marks the parts you can look up in the index of word elements. 
+    Hebrew index for bird names is included.

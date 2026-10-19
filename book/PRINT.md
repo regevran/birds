@@ -13,7 +13,9 @@
    - Back + spine + front, outside only.
    - Spine 3.96 mm.
 
-Do **not** send `out/book/cover_front_draft.pdf`; it is a front-cover proof only.
+A front panel alone (`cover_front_draft.pdf`) is a proof, produced only with
+`python3 book/make_cover.py --front-only`; it is not part of the print set and
+is not written by the normal build.
 
 ## Specification
 

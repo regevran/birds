@@ -11,9 +11,11 @@ word elements sit in a separate left-aligned list inside the same frame, so
 they do not read as extra columns of the bird row.  There are no invented
 equals signs.
 
-Outputs (all with 3 mm bleed):
-  out/book/cover_front_draft.pdf
+Output (3 mm bleed):
   out/book/cover_spread.pdf      (back + spine + front)
+
+``--front-only`` writes the front panel alone to
+out/book/cover_front_draft.pdf as a proof; the normal build does not.
 
 The trim size is 148 x 210 mm.  Run after make_pocket.py so the page count is
 known for the spine; the count is read from the built interior, or pass
@@ -337,7 +339,9 @@ def main():
     ap.add_argument("--spine", type=float, default=0,
                     help="final spine width in mm; overrides --caliper")
     ap.add_argument("--out", default=os.path.join(ROOT, "out", "book"))
-    ap.add_argument("--front-only", action="store_true")
+    ap.add_argument("--front-only", action="store_true",
+                    help="write the front panel alone as a proof "
+                         "(cover_front_draft.pdf) instead of the spread")
     args = ap.parse_args()
 
     register()
@@ -346,19 +350,18 @@ def main():
     if not args.pages:
         args.pages = count_pages(os.path.join(args.out, "israel_birds_pocket.pdf"))
 
-    # Front cover, trim + bleed.
-    pw, ph = TRIM_W + 2 * BLEED, TRIM_H + 2 * BLEED
-    front = os.path.join(args.out, "cover_front_draft.pdf")
-    c = canvas.Canvas(front, pagesize=(pw, ph),
-                      initialFontName="BirdLatin", initialFontSize=10)
-    c.setTitle("Birds of Israel — cover")
-    c.setAuthor(AUTHOR)
-    draw_front(c, BLEED, BLEED, etym)
-    c.showPage()
-    c.save()
-    print(f"Wrote {front}  ({pw / mm:.0f} x {ph / mm:.0f} mm, 3 mm bleed)")
-
+    # Front panel alone, trim + bleed — a proof, written only when asked.
     if args.front_only:
+        pw, ph = TRIM_W + 2 * BLEED, TRIM_H + 2 * BLEED
+        front = os.path.join(args.out, "cover_front_draft.pdf")
+        c = canvas.Canvas(front, pagesize=(pw, ph),
+                          initialFontName="BirdLatin", initialFontSize=10)
+        c.setTitle("Birds of Israel — cover")
+        c.setAuthor(AUTHOR)
+        draw_front(c, BLEED, BLEED, etym)
+        c.showPage()
+        c.save()
+        print(f"Wrote {front}  ({pw / mm:.0f} x {ph / mm:.0f} mm, 3 mm bleed)")
         return
 
     # Full spread: back + spine + front.
