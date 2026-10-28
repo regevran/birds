@@ -7,6 +7,7 @@
 #   ./render.sh                  interior + cover
 #   ./render.sh --interior-only  interior only
 #   ./render.sh --cover-only     cover only, from the existing interior
+#   ./render.sh --one-file       front cover + interior + back cover, one PDF
 #
 # Options passed to the builders:
 #   --base PT      interior base type size (default 10)
@@ -23,6 +24,8 @@ Build the A5 pocket edition (interior + cover) into out/book/.
   render.sh                  interior + cover
   render.sh --interior-only  interior only
   render.sh --cover-only     cover only, from the existing interior
+  render.sh --one-file       front cover + interior + back cover, one PDF
+                             (out/book/israel_birds_one_file.pdf, all A5)
 
 Options passed to the builders:
   --base PT      interior base type size (default 10)
@@ -35,6 +38,7 @@ EOF
 
 interior=1
 cover=1
+one_file=0
 pocket_args=()
 cover_args=()
 
@@ -50,6 +54,10 @@ while (($#)); do
             ;;
         --cover-only)
             interior=0
+            shift
+            ;;
+        --one-file)
+            one_file=1
             shift
             ;;
         --base)
@@ -77,6 +85,12 @@ while (($#)); do
     esac
 done
 
+if ((one_file)); then
+    interior=1
+    cover=1
+    cover_args+=("--panels")
+fi
+
 if ((interior)); then
     echo "==> interior"
     python3 book/make_pocket.py ${pocket_args[@]+"${pocket_args[@]}"}
@@ -85,4 +99,17 @@ fi
 if ((cover)); then
     echo "==> cover"
     python3 book/make_cover.py ${cover_args[@]+"${cover_args[@]}"}
+fi
+
+if ((one_file)); then
+    command -v pdfunite >/dev/null || {
+        echo "render: --one-file needs pdfunite (poppler-utils)" >&2
+        exit 1
+    }
+    out=out/book
+    combined=$out/israel_birds_one_file.pdf
+    echo "==> one file"
+    pdfunite "$out/cover_front.pdf" "$out/israel_birds_pocket.pdf" \
+             "$out/cover_back.pdf" "$combined"
+    echo "Wrote $combined  (front cover + interior + back cover)"
 fi

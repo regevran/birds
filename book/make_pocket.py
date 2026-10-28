@@ -4,7 +4,7 @@
 A separate work from the A4 learning sheets.  All printed prose lives in
 ``book/text.md``; this file places it.  It reads the same source data
 (``data/israel_birds_final.json`` and ``data/etymology.json``) but has its own
-layout, front matter, colour and indexes:
+layout, front matter, monochrome palette and indexes:
 
   * A5 (148 x 210 mm), one text column, 10 pt species type;
   * front matter: title, copyright, contents, key (unnumbered);
@@ -29,7 +29,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
 from bidi.algorithm import get_display
-from reportlab.lib.colors import HexColor
+from reportlab.lib.colors import CMYKColor
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
@@ -37,8 +37,7 @@ import book_text
 import make_book as mb
 import make_book_family as mf
 import pocket_fonts
-from make_book import (FAINT, GREY, LIGHT_RULE, MID_RULE,
-                       hebrew_text, w, wrap_words)
+from make_book import hebrew_text, w
 from etym import Etymology
 
 # ---------------------------------------------------------------- identity
@@ -48,9 +47,8 @@ T = book_text.Text(TEXT_PATH)
 
 TITLE_HE = T["book.title_he"]
 SUBTITLE_HE = T["book.subtitle_he"]
-TITLE_EN = T["book.title_en"]
-SUBTITLE_EN = T["book.subtitle_en"]
-EDITION = T["book.edition"]
+EDITION_HE = T["book.edition_he"]
+AUTHOR_HE = T["book.author_he"]
 AUTHOR = T["book.author"]
 
 LEGEND_TEXT = [
@@ -61,15 +59,23 @@ LEGEND_TEXT = [
     ("—", T["key.legend_none"]),
 ]
 
-LOGO = os.path.join(ROOT, "book", "assets", "logo_circle.png")
+LOGO = os.path.join(ROOT, "book", "assets", "logo_circle_gray.png")
 
-# Warm palette taken from the cover logo (ochre #ECB652 on dark ink).
-ACCENT = HexColor("#7A4E12")
-ACCENT_RULE = HexColor("#B99A62")
-INK = HexColor("#2F2714")
-QUIET = HexColor("#4A4034")
-SAND = HexColor("#F3E7CD")
-PAPER = HexColor("#FFFDF7")
+
+def K(level):
+    """K-only print colour (C=M=Y=0); the interior is printed B/W."""
+    return CMYKColor(0, 0, 0, level)
+
+
+# The interior is monochrome; the cover keeps the warm colour palette.
+ACCENT = K(1.00)         # headings, family names, folios
+ACCENT_RULE = K(0.45)    # section rules
+INK = K(1.00)            # body text
+QUIET = K(0.75)          # English names, secondary text
+GREY = K(0.70)           # continuation labels, explanatory notes
+FAINT = K(0.60)          # small labels and markers
+LIGHT_RULE = K(0.35)     # row separators
+MID_RULE = K(0.55)       # genus and header rules
 
 # Index metrics (points).
 ETYM_ROW, ETYM_THEME = 10.8, 19.0
@@ -124,6 +130,11 @@ def punct_rsb(ch, size):
 def centred_he(c, x, y, size, text, font="BirdHebrew"):
     c.setFont(font, size)
     c.drawCentredString(x, y, heb(text))
+
+
+# Mixed Hebrew/Latin prose is drawn in per-script font runs (see mixed_text).
+from mixed_text import (draw_left_para, draw_rich, draw_rich_para,
+                        wrap_rich)
 
 
 # ---------------------------------------------------------------- geometry
@@ -252,7 +263,7 @@ def flow1(items, cap, height):
                 used += height(carry)
                 theme = carry[1]
             elif item[0] == "entry" and theme is not None:
-                cur.append(("theme", f"{theme} ({T['labels.continued']})"))
+                cur.append(("theme", f"{theme} {T['labels.continued']}"))
                 used += height(("theme", theme))
         if item[0] == "theme":
             theme = item[1]
@@ -297,6 +308,24 @@ def flow2(items, cap, height):
 
 # ---------------------------------------------------------------- etymology index
 
+def example_element_rows(etym, latin):
+    """The elements of ``latin``, in the element index's row format."""
+    words = latin.split()
+    if not words:
+        return []
+    genus = words[0]
+    epithet = words[1] if len(words) > 1 else ""
+    parts = etym.splits.get(epithet) or etym.splits.get(genus) or []
+    rows = []
+    for i, (surface, eid) in enumerate(parts):
+        el = etym.elements[eid]
+        shown = surface.lower()
+        if i == len(parts) - 1 and len(parts) > 1:
+            shown = "-" + shown
+        rows.append((shown, el["en"], el["he"]))
+    return rows
+
+
 def etym_items(etym):
     rows = etym.form_rows()
     items = []
@@ -305,7 +334,7 @@ def etym_items(etym):
                        key=lambda r: (r["key"], r["shown"]))
         if not group:
             continue
-        items.append(("theme", theme))
+        items.append(("theme", T["themes." + theme]))
         items += [("entry", (r["shown"], r["en"], r["he"])) for r in group]
     return items
 
@@ -518,8 +547,8 @@ def draw_family_heading(c, m, fam, fam_he, top, continued):
     if continued:
         x = m.margin_x + w(fam, "BirdLatinBold", size) + 2.5 * mm
         c.setFillColor(GREY)
-        c.setFont("BirdLatin", size * 0.52)
-        c.drawString(x, baseline, T["labels.continued"])
+        draw_rich(c, T["labels.continued"], size * 0.58, x, baseline,
+                  align="left")
     if fam_he:
         c.setFillColor(INK)
         c.setFont("BirdHebrewBold", size * 0.92)
@@ -546,61 +575,50 @@ def draw_title_page(c, m):
     c.setLineWidth(1.0)
     c.line(54 * mm, 95 * mm, 94 * mm, 95 * mm)
 
-    c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 16)
-    c.drawCentredString(m.page_w / 2, 83 * mm, TITLE_EN)
-    c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 9)
-    c.drawCentredString(m.page_w / 2, 74.5 * mm, SUBTITLE_EN)
-
     c.setFillColor(INK)
-    c.setFont("BirdLatin", 10.5)
-    c.drawCentredString(m.page_w / 2, 55 * mm, AUTHOR)
+    draw_rich(c, AUTHOR_HE, 10.5, m.page_w / 2, 76 * mm, align="center")
     c.setFillColor(GREY)
-    c.setFont("BirdLatin", 8.5)
-    c.drawCentredString(m.page_w / 2, 45 * mm, EDITION)
+    draw_rich(c, EDITION_HE, 8.5, m.page_w / 2, 65 * mm, align="center")
 
 
 def draw_copyright_page(c, m):
     x, right = m.margin_x, m.right
     y = m.page_h - 38 * mm
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 12)
-    c.drawString(x, y, TITLE_EN)
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 12)
-    c.drawRightString(right, y, heb(TITLE_HE))
-
-    y -= 15
-    c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 9)
-    c.drawString(x, y, SUBTITLE_EN)
-    y -= 14
-    c.drawString(x, y, EDITION)
-
-    y -= 26
-    c.setFillColor(INK)
-    c.setFont("BirdLatin", 9)
-    c.drawString(x, y, T["copyright.rights"])
+    draw_rich(c, TITLE_HE, 14, right, y, he_bold=True)
 
     y -= 16
     c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 8.5)
-    c.drawString(x, y, f"Logo: {T['book.logo_credit']}")
+    draw_rich(c, SUBTITLE_HE, 9, right, y)
+    y -= 14
+    draw_rich(c, EDITION_HE, 9, right, y)
 
     y -= 26
-    paras = [
-        T["copyright.sources_1"],
-        T["copyright.sources_2"],
-        T["copyright.disclaimer"],
+    c.setFillColor(INK)
+    draw_rich(c, T["copyright.rights"], 9, right, y)
+
+    y -= 16
+    c.setFillColor(QUIET)
+    logo = f"{T['copyright.logo_label']} {T['book.logo_credit']}"
+    draw_rich(c, logo, 8.5, right, y)
+
+    y -= 26
+    sources = [
+        (T["copyright.sources_1"], T["copyright.sources_1_en"]),
+        (T["copyright.sources_2"], T["copyright.sources_2_en"]),
     ]
-    for para in paras:
+    for he_para, en_para in sources:
         c.setFillColor(QUIET)
-        c.setFont("BirdLatin", 8.2)
-        for line in wrap_words(para, "BirdLatin", 8.2, m.col_w):
-            c.drawString(x, y, line)
-            y -= 11.5
-        y -= 7
+        y = draw_rich_para(c, he_para, 8.2, right, y, m.col_w, leading=11.5)
+        y -= 4
+        c.setFillColor(GREY)
+        y = draw_left_para(c, en_para, 7.6, x, y, m.col_w, leading=10.5)
+        y -= 9
+
+    c.setFillColor(QUIET)
+    y = draw_rich_para(c, T["copyright.disclaimer"], 8.2, right, y, m.col_w,
+                       leading=11.5)
+    y -= 7
 
     y -= 10
     c.setStrokeColor(ACCENT_RULE)
@@ -609,15 +627,12 @@ def draw_copyright_page(c, m):
 
     y -= 14
     c.setFillColor(INK)
-    c.setFont("BirdLatin", 9)
-    c.drawString(x, y, T["copyright.printed_en"])
-    c.setFont("BirdHebrew", 9)
-    c.drawRightString(right, y, heb(T["copyright.printed_he"]))
+    draw_rich(c, T["copyright.printed_he"], 9, right, y)
 
     y -= 14
     c.setFillColor(FAINT)
-    c.setFont("BirdLatin", 7.4)
-    c.drawString(x, y, T["copyright.typeset"])
+    draw_rich_para(c, T["copyright.typeset"], 7.4, right, y, m.col_w,
+                   leading=10.5)
 
 
 def draw_dedication_page(c, m):
@@ -656,11 +671,8 @@ def draw_contents_page(c, m, families, fam_page, sect):
     families = sorted(families, key=lambda f: f["family"])
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 16)
-    c.drawString(m.margin_x, top - 16, T["contents.heading_en"])
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 14)
-    c.drawRightString(m.right, top - 16, heb(T["contents.heading_he"]))
+    draw_rich(c, T["contents.heading_he"], 16, m.right, top - 16,
+              he_bold=True)
 
     y = top - 42
     sections = [
@@ -669,12 +681,11 @@ def draw_contents_page(c, m, families, fam_page, sect):
         (T["contents.section_elements"], sect["etym"]),
     ]
     for name, pno in sections:
-        c.setFillColor(INK)
-        c.setFont("BirdLatin", 9.2)
-        c.drawString(m.margin_x, y, name)
         c.setFillColor(ACCENT)
         c.setFont("BirdLatin", 9.2)
-        c.drawRightString(m.right, y, str(pno))
+        c.drawString(m.margin_x, y, str(pno))
+        c.setFillColor(INK)
+        draw_rich(c, name, 9.2, m.right, y)
         y -= 15
 
     y -= 6
@@ -692,9 +703,8 @@ def draw_contents_page(c, m, families, fam_page, sect):
         x = m.margin_x + ci * (col_w + gap)
         yy = y
         c.setFillColor(FAINT)
-        c.setFont("BirdLatin", 6.4)
-        c.drawString(x, yy, T["contents.column_family"])
-        c.drawRightString(x + col_w, yy, T["contents.column_page"])
+        draw_rich(c, T["contents.column_family"], 6.4, x, yy, align="left")
+        draw_rich(c, T["contents.column_page"], 6.4, x + col_w, yy)
         yy -= 10
         c.setStrokeColor(LIGHT_RULE)
         c.setLineWidth(0.4)
@@ -713,56 +723,62 @@ def draw_contents_page(c, m, families, fam_page, sect):
 def draw_key_page(c, m, etym):
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 16)
-    c.drawString(m.margin_x, top - 16, T["key.heading_en"])
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 12)
-    c.drawRightString(m.right, top - 16, heb(T["key.heading_he"]))
+    draw_rich(c, T["key.heading_he"], 16, m.right, top - 16, he_bold=True)
 
     y = top - 42
     size = 9.0
-    paras = [T["key.intro_1"], T["key.intro_2"]]
-    for para in paras:
+    for para in [T["key.intro_1"], T["key.intro_2"]]:
         c.setFillColor(QUIET)
-        c.setFont("BirdLatin", size)
-        for line in wrap_words(para, "BirdLatin", size, m.col_w):
-            c.drawString(m.margin_x, y, line)
-            y -= size * 1.45
+        y = draw_rich_para(c, para, size, m.right, y, m.col_w)
         y -= 7
 
     y -= 4
     x0 = m.margin_x + 8 * mm
+    rows = example_element_rows(etym, T["key.example_latin"]) if etym else []
     if etym is not None:
         etym.draw_latin(c, x0, y - 2, 12, T["key.example_latin"])
-    c.setFillColor(GREY)
-    c.setFont("BirdLatin", 8.2)
-    c.drawString(x0, y - 18, T["key.example_gloss"])
+        dash_w = w("-", "BirdLatin", 8.8)
+        x_text = x0 + dash_w
+        x_en = x0 + 34 * mm
+        row_y = y - 18
+        for shown, en, he in rows:
+            c.setFillColor(INK)
+            c.setFont("BirdLatin", 8.8)
+            if shown.startswith("-"):
+                c.drawString(x0, row_y, "-")
+                c.drawString(x_text, row_y, shown[1:])
+            else:
+                c.drawString(x_text, row_y, shown)
+            c.setFillColor(QUIET)
+            c.setFont("BirdLatin", 8.2)
+            c.drawString(x_en, row_y, en)
+            c.setFillColor(INK)
+            c.setFont("BirdHebrew", 8.8)
+            c.drawRightString(m.right, row_y, heb(he))
+            row_y -= 11.0
 
-    y -= 40
+    y -= 18 + max(1, len(rows)) * 11.0 + 6
     c.setFillColor(QUIET)
-    c.setFont("BirdLatin", size)
-    c.drawString(m.margin_x, y, T["key.markers_intro"])
+    draw_rich(c, T["key.markers_intro"], size, m.right, y)
     y -= size * 1.8
 
     marker_w = 17 * mm
     body_w = m.col_w - marker_w
     for marker, text in LEGEND_TEXT:
-        lines = wrap_words(text, "BirdLatin", 8.6, body_w) or [""]
+        lines = wrap_rich(text, 8.6, body_w) or [""]
         shown = f"({marker})" if marker != "—" else "—"
         c.setFillColor(INK)
         c.setFont("BirdLatin", 9)
-        c.drawString(m.margin_x, y, shown)
+        c.drawRightString(m.right, y, shown)
         c.setFillColor(QUIET)
-        c.setFont("BirdLatin", 8.6)
         for i, ln in enumerate(lines):
-            c.drawString(m.margin_x + marker_w, y - i * 11.5, ln)
+            draw_rich(c, ln, 8.6, m.right - marker_w, y - i * 11.5)
         y -= max(1, len(lines)) * 11.5 + 5
 
     y -= 8
     c.setFillColor(GREY)
-    for line in wrap_words(T["key.markers_note"], "BirdLatin", 8.0, m.col_w):
-        c.drawString(m.margin_x, y, line)
-        y -= 11.5
+    y = draw_rich_para(c, T["key.markers_note"], 8.0, m.right, y, m.col_w,
+                       leading=11.5)
 
     y -= 14
     c.setStrokeColor(ACCENT_RULE)
@@ -771,19 +787,12 @@ def draw_key_page(c, m, etym):
 
     y -= 14
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 10.5)
-    c.drawString(m.margin_x, y, T["key.order_heading_en"])
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 10)
-    c.drawRightString(m.right, y, heb(T["key.order_heading_he"]))
+    draw_rich(c, T["key.order_heading_he"], 10.5, m.right, y, he_bold=True)
 
     y -= 13
     for para in [T["key.order_note_1"], T["key.order_note_2"]]:
         c.setFillColor(QUIET)
-        c.setFont("BirdLatin", 8.2)
-        for line in wrap_words(para, "BirdLatin", 8.2, m.col_w):
-            c.drawString(m.margin_x, y, line)
-            y -= 11.5
+        y = draw_rich_para(c, para, 8.2, m.right, y, m.col_w, leading=11.5)
         y -= 5
 
 
@@ -792,20 +801,13 @@ def draw_key_page(c, m, etym):
 def draw_etym_page(c, m, items, pno):
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 13)
-    c.drawString(m.margin_x, top - 13, T["element_index.heading_en"])
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 10.5)
-    c.drawRightString(m.right, top - 13,
-                      heb(T["element_index.heading_he"]))
+    draw_rich(c, T["element_index.heading_he"], 13, m.right, top - 13,
+              he_bold=True)
 
     y = top - 26
     c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 7.4)
-    sub = T["element_index.subtitle"]
-    for line in wrap_words(sub, "BirdLatin", 7.4, m.col_w):
-        c.drawString(m.margin_x, y, line)
-        y -= 10.5
+    y = draw_rich_para(c, T["element_index.subtitle"], 7.4, m.right, y,
+                       m.col_w, leading=10.5)
 
     y -= 6
     dash_w = w("-", "BirdLatin", 8.8)
@@ -813,10 +815,10 @@ def draw_etym_page(c, m, items, pno):
     x_en = m.margin_x + 92
     x_he = m.right
     c.setFillColor(FAINT)
-    c.setFont("BirdLatin", 6.4)
-    c.drawString(x_text, y, T["element_index.column_element"])
-    c.drawString(x_en, y, T["element_index.column_english"])
-    c.drawRightString(x_he, y, T["element_index.column_hebrew"])
+    draw_rich(c, T["element_index.column_element"], 6.4, x_en - 2 * mm, y)
+    draw_rich(c, T["element_index.column_english"], 6.4, x_en, y,
+              align="left")
+    draw_rich(c, T["element_index.column_hebrew"], 6.4, x_he, y)
     c.setStrokeColor(MID_RULE)
     c.setLineWidth(0.5)
     c.line(m.margin_x, y - 4, x_he, y - 4)
@@ -826,8 +828,7 @@ def draw_etym_page(c, m, items, pno):
         if kind == "theme":
             cy -= 4
             c.setFillColor(ACCENT)
-            c.setFont("BirdLatinBold", 8.4)
-            c.drawString(m.margin_x, cy - 8.4, val.upper())
+            draw_rich(c, val, 8.4, x_he, cy - 8.4, he_bold=True)
             c.setStrokeColor(ACCENT_RULE)
             c.setLineWidth(0.5)
             c.line(m.margin_x, cy - 12.5, x_he, cy - 12.5)
@@ -863,20 +864,13 @@ def draw_etym_page(c, m, items, pno):
 def draw_hebrew_page(c, m, cols, pno):
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 13)
-    c.drawString(m.margin_x, top - 13, T["hebrew_index.heading_en"])
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 10.5)
-    c.drawRightString(m.right, top - 13,
-                      heb(T["hebrew_index.heading_he"]))
+    draw_rich(c, T["hebrew_index.heading_he"], 13, m.right, top - 13,
+              he_bold=True)
 
     y = top - 26
     c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 7.4)
-    sub = T["hebrew_index.subtitle"]
-    for line in wrap_words(sub, "BirdLatin", 7.4, m.col_w):
-        c.drawString(m.margin_x, y, line)
-        y -= 10.5
+    y = draw_rich_para(c, T["hebrew_index.subtitle"], 7.4, m.right, y,
+                       m.col_w, leading=10.5)
 
     col_w = (m.col_w - 6 * mm) / 2
     # Hebrew reads right-to-left: the first half of the alphabet is the right
@@ -887,10 +881,8 @@ def draw_hebrew_page(c, m, cols, pno):
     for ci, items in enumerate(cols):
         x, right = col_x[ci], col_x[ci] + col_w
         c.setFillColor(FAINT)
-        c.setFont("BirdLatin", 6.4)
-        c.drawString(x, y, T["hebrew_index.column_page"])
-        c.setFont("BirdHebrew", 6.4)
-        c.drawRightString(right, y, heb(T["hebrew_index.column_name"]))
+        draw_rich(c, T["hebrew_index.column_page"], 6.4, x, y, align="left")
+        draw_rich(c, T["hebrew_index.column_name"], 6.4, right, y)
         c.setStrokeColor(MID_RULE)
         c.setLineWidth(0.5)
         c.line(x, y - 4, right, y - 4)
@@ -925,11 +917,7 @@ def draw_hebrew_page(c, m, cols, pno):
 def draw_notes_page(c, m, pno):
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
-    c.setFont("BirdLatinBold", 13)
-    c.drawString(m.margin_x, top - 13, T["notes.heading_en"])
-    c.setFillColor(INK)
-    c.setFont("BirdHebrewBold", 10.5)
-    c.drawRightString(m.right, top - 13, heb(T["notes.heading_he"]))
+    draw_rich(c, T["notes.heading_he"], 13, m.right, top - 13, he_bold=True)
 
     y = top - 40
     c.setStrokeColor(LIGHT_RULE)
@@ -964,7 +952,8 @@ def render(args):
     latin_font, hebrew_font = register_fonts()
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
-    etym = Etymology(args.etym)
+    etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
+                     plain_color=K(1.00))
 
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)

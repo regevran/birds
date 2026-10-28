@@ -8,6 +8,7 @@ has its own layout, front matter, colour, indexes and cover.  Nothing in
 
 ```sh
 ./render.sh
+./render.sh --one-file   # front cover + interior + back cover in one PDF
 ```
 
 `render.sh` builds the interior and then the cover, in that order; the cover
@@ -21,6 +22,10 @@ Outputs:
 |---|---|
 | `out/book/israel_birds_pocket.pdf` | interior, A5, 72 pages, numbered from the first list page |
 | `out/book/cover_spread.pdf` | back + spine + front, spine computed from the interior |
+| `out/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 74 pages |
+
+The one-file sequence uses A5 trim cover panels without bleed, so every page
+is the same size; the print-ready cover with bleed is still `cover_spread.pdf`.
 
 The front panel alone is a proof, not a build artifact: write it on demand
 with `python3 book/make_cover.py --front-only` (it lands in
@@ -43,14 +48,18 @@ Format:
 - `key: value` is a single line.
 - `key: |` followed by four-space-indented lines is a paragraph; the lines are
   joined with spaces and wrapped by the layout, so you can break them wherever
-  is comfortable.
+  is comfortable. End a line with `\` to force a line break there.
 - Lines beginning with `#` are notes and are not printed.
 
-Two cautions: Hebrew values should use Hebrew letters, spaces and the maqaf
-(־) — the Hebrew font does not carry ASCII punctuation; and the cover birds and
-word elements are drawn from the species and etymology data, so their names and
-meanings are not in the text file. `book/book_text.py` is the small parser; it
-fails loudly on a missing or duplicated key.
+The interior prose is Hebrew; the cover is Hebrew and Latin. English remains
+for bird names, the element glosses, and the English source lines on the
+copyright page. Hebrew values may contain ASCII punctuation, digits and Latin
+names — the layout orders each line right to left and draws those characters
+from the Latin font. Use the maqaf
+(־) and the Hebrew geresh/gershayim (׳ / ״) inside Hebrew words. The cover birds
+and word elements are drawn from the species and etymology data, so their names
+and meanings are not in the text file. `book/book_text.py` is the small parser;
+it fails loudly on a missing or duplicated key.
 
 Data — species, names, etymologies and order names — stays in `data/`.
 
@@ -91,14 +100,17 @@ Data — species, names, etymologies and order names — stays in `data/`.
   element index.
 - **Perfect-bound softcover.** 72 pages on 90 gsm paper gives a 3.96 mm spine;
   the spread is 305.96 × 216 mm including 3 mm bleed.
-- **Warm palette.** Sand field, ochre accent `#7A4E12` derived from the cover
-  mark, dark ink `#2F2714`.  Accent is used for family headings, rules, index
-  headings and folios only; the etymology grey `#5A5A5A` stays distinct.
+- **Monochrome interior, colour cover.** The interior is K-only: black `K100`
+  for body text, headings, family names and folios; `K75` for English names and
+  secondary text; `K70` for etymological elements and continuation labels;
+  `K60` for small labels; rules from `K35` to `K55`. The logo on the title page
+  is a grayscale copy. The cover keeps the warm palette — sand field, ochre
+  accent `#7A4E12`, dark ink `#2F2714`.
 - **Hebrew index order.** Sorted word by word, letters only, final forms filed
   with their regular letters (`ך` as `כ`, etc.).  Columns read right to left:
   the first half of the alphabet is the right-hand column.
-- **Cover.** The 13 bands stand for the 13 etymology themes; the mark is the
-  *צרים על ציפורים* robin. The examples sit in a light cream frame with an
+- **Cover.** The mark is the *צרים על ציפורים* robin. The examples sit in a
+  light cream frame with an
   ochre border on both panels: the front frame holds the compact European robin
   and its word elements; the back frame holds the Namaqua dove and Eurasian
   nightjar, with the word elements of both. All example information — family,
@@ -112,12 +124,13 @@ Data — species, names, etymologies and order names — stays in `data/`.
 `book/PRINT.md` is the full brief to send with the files. In short:
 
 - 72 pages, A5, perfect bound, spine 3.96 mm at 90 gsm (0.11 mm/sheet).
-- Interior: 90 gsm uncoated, cream/ivory or white, duplex.
-- Cover: 250 gsm white matte/silk, matte lamination outside; 3 mm bleed.
+- Interior: 90 gsm uncoated, white or cream/ivory, duplex, **black only**.
+- Cover: 250 gsm white matte/silk, matte lamination outside; 3 mm bleed, colour.
 - The cover sheet is 305.96 × 216 mm and needs SRA3 or larger (A3 is too
   narrow). Print at 100%, do not mirror.
-- The PDFs are RGB. Convert to CMYK if required, and proof: the sand/ochre and
-  the interior accent shift most.
+- The interior PDF is K-only CMYK (C=M=Y=0), with a grayscale logo, so it can
+  go on a B/W device. The cover PDF is RGB; convert it to CMYK with the
+  stock's profile and proof it — the sand and ochre shift most.
 - If the paper changes, regenerate the cover rather than scaling it:
 
   ```sh

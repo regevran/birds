@@ -23,12 +23,16 @@ ENTRY_H = 11.2
 
 
 class Etymology:
-    def __init__(self, path="data/etymology.json"):
+    def __init__(self, path="data/etymology.json", part_color=None,
+                 dot_color=None, plain_color=None):
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
         self.elements = data["elements"]
         self.splits = data["splits"]
         self.themes = data.get("themes", [])
+        self.part_color = part_color or PART_GREY
+        self.dot_color = dot_color or DOT_GREY
+        self.plain_color = plain_color or HexColor("#000000")
 
     # ---------------------------------------------------------------- widths
 
@@ -53,14 +57,14 @@ class Etymology:
     # ---------------------------------------------------------------- drawing
 
     def _dot(self, c, x, y, size):
-        c.setFillColor(DOT_GREY)
+        c.setFillColor(self.dot_color)
         c.circle(x + self._dot_adv(size, "BirdLatin") / 2,
                  y + size * 0.285, size * 0.078, stroke=0, fill=1)
 
     def draw_word(self, c, x, y, size, word):
         parts = self.splits.get(word)
         if not parts:
-            c.setFillColor(HexColor("#000000"))
+            c.setFillColor(self.plain_color)
             c.setFont("BirdLatin", size)
             c.drawString(x, y, word)
             return x + pdfmetrics.stringWidth(word, "BirdLatin", size)
@@ -70,7 +74,7 @@ class Etymology:
             if i:
                 self._dot(c, x, y, size)
                 x += self._dot_adv(size, "BirdLatin")
-            c.setFillColor(PART_GREY)
+            c.setFillColor(self.part_color)
             c.drawString(x, y, surface)
             x += pdfmetrics.stringWidth(surface, "BirdLatin", size)
         return x

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """Cover for the A5 pocket edition.
 
-All printed prose lives in ``book/text.md``; this file places it.  Design: a
-13-band chromatic strip (one band per etymology theme) across the head, the
-Closing in on Birds mark, a Hebrew-led title, and the examples set in light
-cream frames on both panels.  The front frame holds the European robin; the
-back frame holds the Namaqua dove and Eurasian nightjar, with the word elements
-of both.  The bird blocks use Latin / English / Hebrew in the book's order; the
-word elements sit in a separate left-aligned list inside the same frame, so
-they do not read as extra columns of the bird row.  There are no invented
-equals signs.
+All printed prose lives in ``book/text.md``; this file places it.  Design: the
+Closing in on Birds mark, a Hebrew-led title with its Latin counterpart, and
+the examples set in light cream frames on both panels.  The front frame holds
+the European robin; the back frame holds the Namaqua dove and Eurasian
+nightjar, with the word elements of both.  The bird blocks use Latin / English /
+Hebrew; the word elements are set in the index's element / English / Hebrew
+columns, in a separate list inside the same frame, so they do not read as extra
+columns of the bird row.  There are no invented equals signs.
 
 Output (3 mm bleed):
   out/book/cover_spread.pdf      (back + spine + front)
@@ -38,9 +37,9 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
 import book_text
-import make_book as mb
 import pocket_fonts
 from make_book import hebrew_text, w
+from mixed_text import draw_left_para, draw_rich_para
 from etym import PART_GREY, Etymology
 
 TRIM_W, TRIM_H = 148 * mm, 210 * mm
@@ -52,11 +51,7 @@ INK = HexColor("#2F2714")
 QUIET = HexColor("#4A4034")
 FAINT = HexColor("#8A7A5E")
 
-BANDS = [
-    "#7A4E12", "#A65E22", "#C97B2E", "#ECB652", "#D8C08A",
-    "#9A9A5B", "#5F7F55", "#2F5D62", "#3E6B89", "#6B5B95",
-    "#9B4F4F", "#C97B63", "#5A4A42",
-]
+SPINE_BAND = HexColor("#7A4E12")
 
 LOGO = os.path.join(ROOT, "book", "assets", "logo_circle.png")
 
@@ -72,10 +67,11 @@ T = book_text.Text(TEXT_PATH)
 
 TITLE_HE = T["book.title_he"]
 SUBTITLE_HE = T["book.subtitle_he"]
-TITLE_EN = T["book.title_en"]
-SUBTITLE_EN = T["book.subtitle_en"]
-EDITION = T["book.edition"]
+TITLE_LAT = T["book.title_lat"]
+SUBTITLE_LAT = T["book.subtitle_lat"]
+EDITION = T["book.edition_lat"]
 AUTHOR = T["book.author"]
+AUTHOR_HE = T["book.author_he"]
 
 
 def he(s):
@@ -163,27 +159,33 @@ def draw_bird(c, left, right, family_y, sp, etym, line=8 * mm,
     c.drawRightString(right, y, he(sp["hebrew"]))
 
 
-def draw_elements(c, x, y, rows, line=6 * mm, size=7.0):
-    """A left-aligned list inside the example frame: element, English, Hebrew.
+def draw_elements(c, left, right, y, rows, line=6 * mm, size=7.0):
+    """Element, English, Hebrew in the book's element-index columns.
 
-    Each line flows from the left with fixed gaps.  The meanings do not line up
-    with the bird row above, because they are a separate list, not a column of
-    the species entry.
+    The element is left-aligned (a leading dash hangs in the margin), the
+    English gloss starts at the index's fixed column, and Hebrew is right-
+    aligned on the frame's text edge.
     """
+    dash_w = w("-", "BirdLatin", size)
+    x_elem = left + dash_w
+    x_en = left + 33 * mm
+
     for shown, en, heb in rows:
         c.setFillColor(INK)
         c.setFont("BirdLatin", size)
-        c.drawString(x, y, shown)
+        if shown.startswith("-"):
+            c.drawString(left, y, "-")
+            c.drawString(x_elem, y, shown[1:])
+        else:
+            c.drawString(x_elem, y, shown)
 
-        ex = x + w(shown, "BirdLatin", size) + 3 * mm
         c.setFillColor(QUIET)
-        c.setFont("BirdLatin", size * 0.88)
-        c.drawString(ex, y, en)
+        c.setFont("BirdLatin", size * 0.9)
+        c.drawString(x_en, y, en)
 
-        hx = ex + w(en, "BirdLatin", size * 0.88) + 3 * mm
         c.setFillColor(INK)
         c.setFont("BirdHebrew", size * 1.03)
-        c.drawString(hx, y, he(heb))
+        c.drawRightString(right, y, he(heb))
 
         y -= line
 
@@ -196,14 +198,6 @@ def draw_front(c, x0, y0, etym):
     c.setFillColor(SAND)
     c.rect(x0 - BLEED, y0 - BLEED, W + 2 * BLEED, H + 2 * BLEED,
            stroke=0, fill=1)
-
-    # ---- 13-band strip, bled to the top and sides
-    band_w = (W + 2 * BLEED) / 13.0
-    top = y0 + H
-    for i, col in enumerate(BANDS):
-        c.setFillColor(HexColor(col))
-        c.rect(x0 - BLEED + i * band_w, top - 14 * mm,
-               band_w + 0.15, 14 * mm + BLEED, stroke=0, fill=1)
 
     # ---- mark
     lw = 52 * mm
@@ -224,15 +218,15 @@ def draw_front(c, x0, y0, etym):
     c.line(x0 + 52 * mm, y0 + 95 * mm, x0 + 96 * mm, y0 + 95 * mm)
 
     c.setFillColor(ACCENT)
-    centred_chars(c, cx, y0 + 82 * mm, TITLE_EN, "BirdLatinBold", 15.0, 1.4)
+    centred_chars(c, cx, y0 + 82 * mm, TITLE_LAT, "BirdLatinBold", 15.0, 1.4)
     c.setFillColor(QUIET)
     c.setFont("BirdLatin", 8.6)
-    c.drawCentredString(cx, y0 + 72 * mm, SUBTITLE_EN)
+    c.drawCentredString(cx, y0 + 72 * mm, SUBTITLE_LAT)
 
     # ---- author, before the example
     c.setFillColor(INK)
-    c.setFont("BirdLatin", 9.5)
-    c.drawCentredString(cx, y0 + 58.5 * mm, AUTHOR)
+    c.setFont("BirdHebrew", 9.5)
+    c.drawCentredString(cx, y0 + 58.5 * mm, he(AUTHOR_HE))
 
     # ---- example card: family, species row and word elements in one frame
     left, right = x0 + 24 * mm, x0 + 124 * mm
@@ -245,7 +239,7 @@ def draw_front(c, x0, y0, etym):
     content_right = right - 5 * mm
     draw_bird(c, content_left, content_right, y0 + 45 * mm,
               SPECIES[FRONT_SPECIES], etym, line=8 * mm, en_gap=40 * mm)
-    draw_elements(c, content_left, y0 + 29 * mm,
+    draw_elements(c, content_left, content_right, y0 + 29 * mm,
                   example_elements(etym, SPECIES[FRONT_SPECIES]),
                   line=7 * mm)
 
@@ -266,31 +260,33 @@ def draw_back(c, x0, y0, etym):
     c.drawImage(LOGO, x0 + (W - lw) / 2, y0 + H - 26 * mm - lh,
                 lw, lh, mask="auto")
 
+    cx = x0 + W / 2
     c.setFillColor(INK)
     c.setFont("BirdHebrewBold", 15)
-    c.drawCentredString(x0 + W / 2, y0 + 138 * mm, he(TITLE_HE))
+    c.drawCentredString(cx, y0 + 140 * mm, he(TITLE_HE))
     c.setFillColor(ACCENT)
     c.setFont("BirdLatinBold", 9.5)
-    c.drawCentredString(x0 + W / 2, y0 + 128 * mm, TITLE_EN)
-    c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 8)
-    c.drawCentredString(x0 + W / 2, y0 + 119 * mm,
-                        T["cover.back_subtitle"])
+    c.drawCentredString(cx, y0 + 131 * mm, TITLE_LAT)
 
-    # Everything below the subtitle is left-aligned on one edge.
+    # Subtitle in both languages, then the blurb: Hebrew first, Latin after.
+    c.setFillColor(QUIET)
+    c.setFont("BirdHebrew", 8.8)
+    c.drawCentredString(cx, y0 + 123 * mm, he(T["cover.back_subtitle_he"]))
+    c.setFont("BirdLatin", 8.0)
+    c.drawCentredString(cx, y0 + 116 * mm, T["cover.back_subtitle"])
+
     x_text = x0 + 20 * mm
     text_w = 108 * mm
-    y = y0 + 108 * mm
     c.setFillColor(QUIET)
-    c.setFont("BirdLatin", 8.6)
-    for para in (T["cover.back_para_1"], T["cover.back_para_2"]):
-        for line in mb.wrap_words(para, "BirdLatin", 8.6, text_w):
-            c.drawString(x_text, y, line)
-            y -= 12.5
-        y -= 8
+    y = draw_rich_para(c, T["cover.back_para_1_he"], 8.8,
+                       x_text + text_w, y0 + 109 * mm, text_w, leading=11.0)
+    y -= 4 * mm
+    c.setFillColor(FAINT)
+    draw_left_para(c, T["cover.back_para_1"], 8.2, x_text, y, text_w,
+                   leading=10.4)
 
     # ---- example frame: both birds and their word elements together
-    fx, fy = x0 + 16 * mm, y0 + 14 * mm
+    fx, fy = x0 + 16 * mm, y0 + 12 * mm
     fw, fh = 116 * mm, 66 * mm
     c.setFillColor(HexColor("#FFF9EC"))
     c.setStrokeColor(HexColor("#C9A96A"))
@@ -307,7 +303,8 @@ def draw_back(c, x0, y0, etym):
 
     rows = (example_elements(etym, SPECIES[BACK_SPECIES[0]])
             + example_elements(etym, SPECIES[BACK_SPECIES[1]]))
-    draw_elements(c, x_text, y0 + 38 * mm, rows, line=6 * mm)
+    draw_elements(c, x_text, x_text + text_w, y0 + 38 * mm, rows,
+                  line=6 * mm)
 
     c.setFillColor(FAINT)
     c.setFont("BirdLatin", 7.0)
@@ -342,6 +339,9 @@ def main():
     ap.add_argument("--front-only", action="store_true",
                     help="write the front panel alone as a proof "
                          "(cover_front_draft.pdf) instead of the spread")
+    ap.add_argument("--panels", action="store_true",
+                    help="also write A5 trim panels cover_front.pdf and "
+                         "cover_back.pdf for a single-file sequence")
     args = ap.parse_args()
 
     register()
@@ -349,6 +349,21 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     if not args.pages:
         args.pages = count_pages(os.path.join(args.out, "israel_birds_pocket.pdf"))
+
+    # Separate A5 trim panels, for the one-file sequence.
+    if args.panels:
+        for name, draw, title in (
+                ("cover_front.pdf", draw_front, "Birds of Israel — front cover"),
+                ("cover_back.pdf", draw_back, "Birds of Israel — back cover")):
+            path = os.path.join(args.out, name)
+            c = canvas.Canvas(path, pagesize=(TRIM_W, TRIM_H),
+                              initialFontName="BirdLatin", initialFontSize=10)
+            c.setTitle(title)
+            c.setAuthor(AUTHOR)
+            draw(c, 0, 0, etym)
+            c.showPage()
+            c.save()
+            print(f"Wrote {path}  (A5 trim, no bleed)")
 
     # Front panel alone, trim + bleed — a proof, written only when asked.
     if args.front_only:
@@ -385,7 +400,7 @@ def main():
 
     # Spine: a single ochre band with the title running up it if it is wide
     # enough to set type; at ~4 mm it is left as colour.
-    c.setFillColor(HexColor(BANDS[0]))
+    c.setFillColor(SPINE_BAND)
     c.rect(BLEED + TRIM_W, 0, sp, sh, stroke=0, fill=1)
 
     c.showPage()

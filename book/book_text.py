@@ -9,9 +9,23 @@ The file is deliberately a small, hand-editable format rather than code:
         second line
 
 Lines starting with ``#`` are notes and are skipped. Block lines are joined
-with spaces, so the page layout does the wrapping. Missing keys fail loudly with
-the file and key name.
+with spaces, so the page layout does the wrapping; a line ending with a
+backslash keeps a hard line break. Missing keys fail loudly with the file and
+key name.
 """
+
+
+def _join_block(lines):
+    """Join block lines with spaces; a trailing backslash is a hard break."""
+    out = []
+    for line in lines:
+        if not line:
+            continue
+        if line.endswith("\\"):
+            out.append(line[:-1].rstrip() + "\n")
+        else:
+            out.append(line + " ")
+    return "".join(out).strip()
 
 
 class Text(dict):
@@ -61,7 +75,7 @@ class Text(dict):
                         i += 1
                     else:
                         break
-                data[full] = " ".join(x for x in block if x)
+                data[full] = _join_block(block)
                 continue
 
             data[full] = value
