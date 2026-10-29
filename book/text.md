@@ -13,6 +13,10 @@
 # layout draws those from the Latin font and orders the line right to left.
 # Use the maqaf (־) and the Hebrew geresh/gershayim (׳ / ״) inside Hebrew words.
 #
+# Inside a `|` block, a line `כותרת: X` starts a section title (the marker is
+# not printed), and a line beginning with `- ` is a bullet. A wrapped bullet
+# may continue on the next line. `**x**` marks one bold character.
+#
 # The interior is Hebrew; the cover is Hebrew and Latin.
 
 ## book
@@ -20,7 +24,7 @@
 
 title_he: ציפורי ישראל
 subtitle_he: שמות לטיניים ומשמעותם
-edition_he: מהדורה ראשונה · 2026
+edition_he: מהדורה שנייה · 2026
 author_he: רן רגב
 author: Ran Regev
 logo_credit: נועה שוורצון רגב
@@ -28,13 +32,13 @@ logo_credit: נועה שוורצון רגב
 # Cover only.
 title_lat: AVES ISRAELIS
 subtitle_lat: Nomina Latina eorumque significationes
-edition_lat: Editio prima · MMXXVI
+edition_lat: Editio secunda · MMXXVI
 
 ## dedication
 # The dedication page (page iii), after the copyright page. Two lines.
 
 line1: לשאול,
-line2: שבזכות הגזר הגמדי בכלל לא צריך את המדריך הזה.
+line2: שבזכות הגזר בכלל לא צריך את המדריך הזה.
 
 ## copyright
 # The copyright page (page ii), on the back of the title page.
@@ -69,23 +73,24 @@ heading_he: תוכן
 section_list: הרשימה (סדר טקסונומי)
 section_hebrew: מפתח שמות עבריים
 section_elements: מפתח מרכיבי השמות
-column_family: משפחה (א״ב)
-column_page: עמוד
 
 ## key
 # "How to use this book" (page v), the last front-matter page.
 
 heading_he: איך להשתמש בספר
 intro_1: |
-    המשפחות מסודרות לפי הסדר הטקסונומי; בתוך כל משפחה, הסוגים ואחר כך
-    המינים מסודרים לפי סדר אלפביתי. הלטינית משמאל, האנגלית באמצע
-    והעברית מימין.
+    כותרת: סדר
+    - הרשימה טקסונומית
+    - המשפחות מסודרות לפי הסדר הטקסונומי; בתוך כל משפחה, הסוגים ואחר כך
+    המינים מסודרים לפי סדר אלפביתי
+    - הלטינית משמאל, האנגלית באמצע והעברית מימין
+    - המפתחות שבסוף הספר אלפביתיים
 intro_2: |
-    חלק אפור בשם לטיני מופיע במפתח מרכיבי השמות שבסוף הספר; נקודה מוגבהת
-    מסמנת את החיבור. במפתח, קו מפריד בתחילה מסמן מרכיב שמסיים שם, וקו
-    מפריד בסוף מסמן מרכיב שמתחיל אותו. ב-Chroico·cephalus, החלק chroico-
-    מתחיל את השם והחלק -cephalus מסיים אותו.
-example_latin: Erithacus rubecula
+    כותרת: סימונים
+    - חלק אפור בשם לטיני מופיע במרכיבי השמות
+    - נקודה מוגבהת מסמנת את החיבור
+    - במפתח, קו מפריד בתחילה מסמן מרכיב שמסיים שם, וקו מפריד בסוף מסמן מרכיב שמתחיל אותו
+markers_heading: סימוני מינים
 markers_intro: סימונים מופיעים אחרי השם העברי, בסוגריים:
 legend_a: מין שמופיע בישראל לעיתים רחוקות או במקרה
 legend_i: |
@@ -93,19 +98,26 @@ legend_i: |
 legend_ex: |
     מין שאינו מופיע עוד בישראל, אף שאוכלוסיות שלו קיימות במקומות אחרים
 legend_x: מין או תת־מין שאינו קיים עוד
-legend_none: מין מקומי נפוץ
 markers_note: |
-    הסימונים מציינים חריגים בלבד; מין ללא סימון הוא פשוט מין שאינו נמנה
-    עם אף אחת מהקטגוריות האלה. עונה ושכיחות אינן מסומנות כאן. במפתח
-    השמות העבריים, המספר הוא העמוד ברשימה.
-order_heading_he: הערה על מיון הציפורים בספר
-order_note_1: |
-    הרשימה עוקבת אחר הסדר הטקסונומי של רשימת קלמנטס (2022). הסדרות
-    והמשפחות מופיעות בסדר המשמש מדריכי שדה ורשימות בדיקה, כך שקבוצות
-    קרובות נמצאות יחד.
-order_note_2: |
-    לצורכי חיפוש, התוכן מפרט את כל המשפחות לפי א״ב, מפתח השמות העבריים
-    מפרט את כל המינים, ומפתח מרכיבי השמות מסודר לפי א״ב בתוך כל נושא.
+    הסימונים מציינים חריגים בלבד; מין ללא סימון הוא מין שאינו נמנה
+    עם אף אחת מהקטגוריות האלה.
+
+    כותרת: רשימת חלופות
+    בפרק מרכיבי השמות לפי קבוצות, השורה שמתחת למרכיב מונה צורות אחרות של
+    אותו מרכיב.
+
+
+index_heading_he: מפתחות
+index_intro: |
+    במפתחות השמות והמשפחות, המספר הוא העמוד ברשימה.
+    בסוף הספר שישה מפתחות אלפביתיים. האות היוונית שבשפת כל עמוד היא
+    תג המפתח; מתחתיה מופיעות האות הראשונה והאחרונה באותו עמוד.
+index_hebrew_species: שמות עבריים (אלפא — **א**לף־בית)
+index_english_species: שמות אנגליים (אתא — **א**נגלית)
+index_latin_families: משפחות לטיניות (פי — **f**amily)
+index_hebrew_families: משפחות עבריות (מו — **מ**שפחה)
+index_latin_species: שמות לטיניים (למבדא — **ל**טיני)
+index_elements: מרכיבי שמות (רו — **ר**כיבים)
 
 ## hebrew_index
 # Header of the Hebrew name index.
@@ -132,15 +144,18 @@ heading_he: מפתח משפחות עבריות
 
 heading_he: מפתח שמות לטיניים
 
-## element_index
-# Header of the index of word elements (pages 55–65).
+## element_data
+# Header of the thematic word-element data pages (not an index).
 
-heading_he: מפתח מרכיבי השמות
-subtitle: |
-    אפור בספר מסמן מרכיב המופיע כאן; קו מפריד מראה היכן הוא מתחבר.
+heading_he: מרכיבי השמות לפי קבוצות
 column_element: מרכיב
 column_english: אנגלית
 column_hebrew: עברית
+
+## element_index
+# Header of the alphabetical index of word elements.
+
+heading_he: מפתח מרכיבי השמות
 column_latin: מרכיב
 column_page: עמוד
 column_meaning: משמעות

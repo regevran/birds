@@ -21,10 +21,10 @@ Run:
 
 import argparse
 import json
-import math
 import os
 import re
 import sys
+from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -57,7 +57,15 @@ LEGEND_TEXT = [
     ("I", T["key.legend_i"]),
     ("Ex", T["key.legend_ex"]),
     ("X", T["key.legend_x"]),
-    ("—", T["key.legend_none"]),
+]
+
+KEY_INDEXES = [
+    ("α", "key.index_hebrew_species"),
+    ("η", "key.index_english_species"),
+    ("φ", "key.index_latin_families"),
+    ("μ", "key.index_hebrew_families"),
+    ("λ", "key.index_latin_species"),
+    ("ρ", "key.index_elements"),
 ]
 
 LOGO = os.path.join(ROOT, "book", "assets", "logo_circle_gray.png")
@@ -79,7 +87,9 @@ LIGHT_RULE = K(0.35)     # row separators
 MID_RULE = K(0.55)       # genus and header rules
 
 # Index metrics (points).
-ETYM_ROW, ETYM_THEME = 10.8, 19.0
+ETYM_ROW, ETYM_THEME = 10.8, 26.0
+ETYM_VAR = 8.5
+ETYM_EN_X = 80                 # points from the text edge to the second column
 HEB_ROW, HEB_LETTER = 10.8, 20.0
 HEB_TOP_INSET = 32          # points from the top margin to the first column
 HEB_COLUMNS = 3             # established for index pages where the width fits
@@ -139,7 +149,7 @@ def centred_he(c, x, y, size, text, font="BirdHebrew"):
 
 # Mixed Hebrew/Latin prose is drawn in per-script font runs (see mixed_text).
 from mixed_text import (draw_left_para, draw_rich, draw_rich_para,
-                        wrap_rich)
+                        rich_width, wrap_rich)
 
 
 # ---------------------------------------------------------------- geometry
@@ -207,8 +217,8 @@ def paginate_body(m, families):
     """Flow families down one A5 column.
 
     A family heading never stands alone; when a family continues on a new page
-    its heading is repeated with "continued".  Returns pages, the first page of
-    every family, and the page of every species row.
+    its heading is repeated.  Returns pages, the first page of every family,
+    and the page of every species row.
     """
     pages, cur = [], []
     y, cur_fam, cur_order = m.col_top, None, None
@@ -268,7 +278,7 @@ def flow1(items, cap, height):
                 used += height(carry)
                 theme = carry[1]
             elif item[0] == "entry" and theme is not None:
-                cur.append(("theme", f"{theme} {T['labels.continued']}"))
+                cur.append(("theme", theme))
                 used += height(("theme", theme))
         if item[0] == "theme":
             theme = item[1]
@@ -313,39 +323,50 @@ def flow2(items, cap, height, ncols=2):
 
 # ---------------------------------------------------------------- etymology index
 
-def example_element_rows(etym, latin):
-    """The elements of ``latin``, in the element index's row format."""
-    words = latin.split()
-    if not words:
-        return []
-    genus = words[0]
-    epithet = words[1] if len(words) > 1 else ""
-    parts = etym.splits.get(epithet) or etym.splits.get(genus) or []
-    rows = []
-    for i, (surface, eid) in enumerate(parts):
-        el = etym.elements[eid]
-        shown = surface.lower()
-        if i == len(parts) - 1 and len(parts) > 1:
-            shown = "-" + shown
-        rows.append((shown, el["en"], el["he"]))
-    return rows
-
-
-def etym_items(etym):
+def etym_items(etym, sort_hebrew=True):
     rows = etym.form_rows()
+    by_meaning = defaultdict(list)
+    for row in rows:
+        by_meaning[(row["theme"], row["he"])].append(row)
+
     items = []
     for theme in etym.themes:
-        group = sorted((r for r in rows if r["theme"] == theme),
-                       key=lambda r: (r["key"], r["shown"]))
+        group = [r for r in rows if r["theme"] == theme]
+        if sort_hebrew:
+            group.sort(key=lambda r: (heb_key(r["he"]), r["key"], r["shown"]))
+        else:
+            group.sort(key=lambda r: (r["key"], r["shown"]))
         if not group:
             continue
         items.append(("theme", T["themes." + theme]))
-        items += [("entry", (r["shown"], r["en"], r["he"])) for r in group]
+        for row in group:
+            variants = sorted(
+                (r["shown"] for r in by_meaning[(row["theme"], row["he"])]
+                 if r["key"] != row["key"]),
+                key=lambda s: (s.lstrip("-").lower(), s))
+            line = " ".join(variants) if variants else ""
+            items.append(("entry", (row["shown"], row["en"], row["he"],
+                                    line)))
     return items
 
 
+def etym_var_width():
+    """Width available to a variant line, from the element column."""
+    return 122 * mm - w("-", "BirdLatin", 8.8)
+
+
 def etym_height(item):
-    return ETYM_THEME if item[0] == "theme" else ETYM_ROW
+    if item[0] == "theme":
+        return ETYM_THEME
+    line = item[1][3]
+    if not line:
+        return ETYM_ROW
+    return ETYM_ROW + len(wrap_rich(line, 6.8, etym_var_width())) * ETYM_VAR
+
+
+def etym_capacity(m):
+    """Usable height below the title and column header on a themed page."""
+    return (m.page_h - m.margin_top - 32 - 18) - m.margin_bot
 
 
 # ---------------------------------------------------------------- Hebrew index
@@ -556,7 +577,7 @@ def element_index_items(etym, records, species_page, cap):
             flow1(etym_items(etym), cap, etym_height), start=1):
         for kind, val in page_items:
             if kind == "entry":
-                shown, _en, _he = val
+                shown = val[0]
                 key = shown_to_key.get(shown, shown.strip("-").lower())
                 theme_page.setdefault(key, pno)
 
@@ -586,6 +607,15 @@ def draw_folio(c, m, pno):
     c.setFillColor(ACCENT)
     c.setFont("BirdLatin", 7.8)
     c.drawCentredString(m.page_w / 2, 7 * mm, str(pno))
+
+
+ROMAN = ("", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii")
+
+
+def draw_roman_folio(c, m, pno):
+    c.setFillColor(ACCENT)
+    c.setFont("BirdLatin", 7.8)
+    c.drawCentredString(m.page_w / 2, 7 * mm, ROMAN[pno])
 
 
 def page_families(page):
@@ -732,11 +762,6 @@ def draw_family_heading(c, m, fam, fam_he, top, continued):
     c.setFillColor(ACCENT)
     c.setFont("BirdLatinBold", size)
     c.drawString(m.margin_x, baseline, fam)
-    if continued:
-        x = m.margin_x + w(fam, "BirdLatinBold", size) + 2.5 * mm
-        c.setFillColor(GREY)
-        draw_rich(c, T["labels.continued"], size * 0.58, x, baseline,
-                  align="left")
     if fam_he:
         c.setFillColor(INK)
         c.setFont("BirdHebrewBold", size * 0.92)
@@ -855,57 +880,99 @@ def draw_dedication_page(c, m):
                           y2, full_stop)
 
 
-def draw_contents_page(c, m, families, fam_page, sect):
-    families = sorted(families, key=lambda f: f["family"])
+def draw_contents_page(c, m, sections):
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["contents.heading_he"], 16, m.right, top - 16,
               he_bold=True)
 
     y = top - 42
-    sections = [
-        (T["contents.section_list"], 1),
-        (T["contents.section_hebrew"], sect["hebrew"]),
-        (T["contents.section_elements"], sect["etym"]),
-    ]
     for name, pno in sections:
         c.setFillColor(ACCENT)
-        c.setFont("BirdLatin", 9.2)
+        c.setFont("BirdLatin", 9.4)
         c.drawString(m.margin_x, y, str(pno))
         c.setFillColor(INK)
-        draw_rich(c, name, 9.2, m.right, y)
-        y -= 15
+        draw_rich(c, name, 9.6, m.right, y)
+        y -= 16.5
 
-    y -= 6
-    c.setStrokeColor(ACCENT_RULE)
-    c.setLineWidth(0.6)
-    c.line(m.margin_x, y, m.right, y)
-    y -= 16
 
-    ncol, gap = 3, 5 * mm
-    col_w = (m.col_w - gap * (ncol - 1)) / ncol
-    per_col = math.ceil(len(families) / ncol)
-    row_h = 5.0 * mm
+def draw_key_label(c, m, text, size, x, y):
+    """Draw an index label, bolding the first letter of the mnemonic target."""
+    plain = text.replace("**", "")
+    c.setFillColor(QUIET)
+    draw_rich(c, plain, size, x, y)
+    if "**" not in text:
+        return
 
-    for ci in range(ncol):
-        x = m.margin_x + ci * (col_w + gap)
-        yy = y
-        c.setFillColor(FAINT)
-        draw_rich(c, T["contents.column_family"], 6.4, x, yy, align="left")
-        draw_rich(c, T["contents.column_page"], 6.4, x + col_w, yy)
-        yy -= 10
-        c.setStrokeColor(LIGHT_RULE)
-        c.setLineWidth(0.4)
-        c.line(x, yy + 3, x + col_w, yy + 3)
-        yy -= 5
-        for fam in families[ci * per_col:(ci + 1) * per_col]:
-            c.setFillColor(INK)
-            c.setFont("BirdLatin", 8.4)
-            c.drawString(x, yy, fam["family"])
-            c.setFillColor(ACCENT)
-            c.setFont("BirdLatin", 8.4)
-            c.drawRightString(x + col_w, yy, str(fam_page[fam["family"]]))
-            yy -= row_h
+    target = plain.rsplit("—", 1)[-1].strip().strip(")(").strip()
+    pos = plain.rfind(target)
+    if pos < 0 or not target:
+        return
+    suffix = plain[pos + len(target):]
+    width = rich_width(plain, size)
+    target_w = rich_width(target, size)
+    suffix_w = rich_width(suffix, size)
+    first = target[0]
+
+    if "֐" <= first <= "׿":
+        target_right = x - width + suffix_w + target_w
+        c.setFont("BirdHebrewBold", size)
+        c.drawRightString(target_right, y, first)
+    else:
+        target_left = x - width + suffix_w
+        c.setFont("BirdLatinBold", size)
+        c.drawString(target_left, y, first)
+
+
+def draw_key_block(c, m, text, y, size=9.0, leading=12.5,
+                   text_color=QUIET, title_color=ACCENT):
+    """Draw a key-page block in source order: titles, paragraphs, bullets."""
+    entries, mode = [], None
+    for raw in text.split("\n"):
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("כותרת:"):
+            entries.append(("title", line[len("כותרת:"):].strip()))
+            mode = None
+        elif line.startswith("- "):
+            entries.append(("bullet", line[2:].strip()))
+            mode = "bullet"
+        elif mode in ("bullet", "para"):
+            kind, value = entries[-1]
+            entries[-1] = (kind, f"{value} {line}".strip())
+        else:
+            entries.append(("para", line))
+            mode = "para"
+
+    drawn = False
+    for kind, value in entries:
+        if kind == "title":
+            if drawn:
+                y -= 6
+            c.setFillColor(title_color)
+            draw_rich(c, value, 10.5, m.right, y, he_bold=True)
+            y -= 13
+            drawn = True
+        elif kind == "bullet":
+            indent = 5 * mm
+            lines = wrap_rich(value, size, m.col_w - indent) or [""]
+            c.setFillColor(title_color)
+            c.setFont("BirdLatin", 8.0)
+            c.drawRightString(m.right, y, "•")
+            c.setFillColor(text_color)
+            for j, line in enumerate(lines):
+                draw_rich(c, line, size, m.right - indent,
+                          y - j * leading)
+            y -= len(lines) * leading + 1.5
+            drawn = True
+        else:
+            c.setFillColor(text_color)
+            y = draw_rich_para(c, value, size, m.right, y, m.col_w,
+                               leading=leading)
+            y -= 4
+            drawn = True
+    return y
 
 
 def draw_key_page(c, m, etym):
@@ -915,37 +982,14 @@ def draw_key_page(c, m, etym):
 
     y = top - 42
     size = 9.0
-    for para in [T["key.intro_1"], T["key.intro_2"]]:
-        c.setFillColor(QUIET)
-        y = draw_rich_para(c, para, size, m.right, y, m.col_w)
-        y -= 7
+    y = draw_key_block(c, m, T["key.intro_1"], y, size)
+    y -= 10
+    y = draw_key_block(c, m, T["key.intro_2"], y, size)
+    y -= 10
 
-    y -= 4
-    x0 = m.margin_x + 8 * mm
-    rows = example_element_rows(etym, T["key.example_latin"]) if etym else []
-    if etym is not None:
-        etym.draw_latin(c, x0, y - 2, 12, T["key.example_latin"])
-        dash_w = w("-", "BirdLatin", 8.8)
-        x_text = x0 + dash_w
-        x_en = x0 + 34 * mm
-        row_y = y - 18
-        for shown, en, he in rows:
-            c.setFillColor(INK)
-            c.setFont("BirdLatin", 8.8)
-            if shown.startswith("-"):
-                c.drawString(x0, row_y, "-")
-                c.drawString(x_text, row_y, shown[1:])
-            else:
-                c.drawString(x_text, row_y, shown)
-            c.setFillColor(QUIET)
-            c.setFont("BirdLatin", 8.2)
-            c.drawString(x_en, row_y, en)
-            c.setFillColor(INK)
-            c.setFont("BirdHebrew", 8.8)
-            c.drawRightString(m.right, row_y, heb(he))
-            row_y -= 11.0
-
-    y -= 18 + max(1, len(rows)) * 11.0 + 6
+    c.setFillColor(ACCENT)
+    draw_rich(c, T["key.markers_heading"], 10.5, m.right, y, he_bold=True)
+    y -= 13
     c.setFillColor(QUIET)
     draw_rich(c, T["key.markers_intro"], size, m.right, y)
     y -= size * 1.8
@@ -964,24 +1008,24 @@ def draw_key_page(c, m, etym):
         y -= max(1, len(lines)) * 11.5 + 5
 
     y -= 8
-    c.setFillColor(GREY)
-    y = draw_rich_para(c, T["key.markers_note"], 8.0, m.right, y, m.col_w,
-                       leading=11.5)
+    y = draw_key_block(c, m, T["key.markers_note"], y, 8.0, 11.5,
+                       text_color=GREY)
 
-    y -= 14
-    c.setStrokeColor(ACCENT_RULE)
-    c.setLineWidth(0.6)
-    c.line(m.margin_x, y, m.right, y)
-
-    y -= 14
+    y -= 16
     c.setFillColor(ACCENT)
-    draw_rich(c, T["key.order_heading_he"], 10.5, m.right, y, he_bold=True)
+    draw_rich(c, T["key.index_heading_he"], 10.5, m.right, y, he_bold=True)
 
-    y -= 13
-    for para in [T["key.order_note_1"], T["key.order_note_2"]]:
-        c.setFillColor(QUIET)
-        y = draw_rich_para(c, para, 8.2, m.right, y, m.col_w, leading=11.5)
-        y -= 5
+    y -= 12
+    y = draw_key_block(c, m, T["key.index_intro"], y, 7.8, 10.6)
+    y -= 4
+    for greek, key in KEY_INDEXES:
+        c.setFillColor(INK)
+        c.setFont("BirdLatinBold", 9.2)
+        c.drawRightString(m.right, y, greek)
+        draw_key_label(c, m, T[key], 8.2, m.right - 7 * mm, y)
+        y -= 10.8
+
+    y -= 3
 
 
 # ---------------------------------------------------------------- indexes
@@ -989,24 +1033,20 @@ def draw_key_page(c, m, etym):
 def draw_etym_page(c, m, items, pno):
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
-    draw_rich(c, T["element_index.heading_he"], 13, m.right, top - 13,
+    draw_rich(c, T["element_data.heading_he"], 13, m.right, top - 13,
               he_bold=True)
 
-    y = top - 26
-    c.setFillColor(QUIET)
-    y = draw_rich_para(c, T["element_index.subtitle"], 7.4, m.right, y,
-                       m.col_w, leading=10.5)
-
-    y -= 6
+    y = top - 32
     dash_w = w("-", "BirdLatin", 8.8)
     x_text = m.margin_x + dash_w
-    x_en = m.margin_x + 92
+    x_en = m.margin_x + ETYM_EN_X
     x_he = m.right
     c.setFillColor(FAINT)
-    draw_rich(c, T["element_index.column_element"], 6.4, x_en - 2 * mm, y)
-    draw_rich(c, T["element_index.column_english"], 6.4, x_en, y,
+    draw_rich(c, T["element_data.column_element"], 6.4, m.margin_x, y,
               align="left")
-    draw_rich(c, T["element_index.column_hebrew"], 6.4, x_he, y)
+    draw_rich(c, T["element_data.column_english"], 6.4, x_en, y,
+              align="left")
+    draw_rich(c, T["element_data.column_hebrew"], 6.4, x_he, y)
     c.setStrokeColor(MID_RULE)
     c.setLineWidth(0.5)
     c.line(m.margin_x, y - 4, x_he, y - 4)
@@ -1016,14 +1056,14 @@ def draw_etym_page(c, m, items, pno):
         if kind == "theme":
             cy -= 4
             c.setFillColor(ACCENT)
-            draw_rich(c, val, 8.4, x_he, cy - 8.4, he_bold=True)
+            draw_rich(c, val, 15, x_he, cy - 15, he_bold=True)
             c.setStrokeColor(ACCENT_RULE)
             c.setLineWidth(0.5)
-            c.line(m.margin_x, cy - 12.5, x_he, cy - 12.5)
-            cy -= ETYM_THEME - 4
+            c.line(m.margin_x, cy - 19, x_he, cy - 19)
+            cy -= ETYM_THEME
             continue
 
-        elem, en, he = val
+        elem, en, he, var_line = val
         baseline = cy - 7.6
         c.setFillColor(INK)
         c.setFont("BirdLatin", 8.8)
@@ -1041,7 +1081,16 @@ def draw_etym_page(c, m, items, pno):
         c.setFont("BirdHebrew", 8.8)
         c.drawRightString(x_he, baseline, heb(he))
 
-        cy -= ETYM_ROW
+        var_h = 0.0
+        if var_line:
+            lines = wrap_rich(var_line, 6.8, m.col_w - dash_w)
+            c.setFillColor(QUIET)
+            for j, line in enumerate(lines):
+                draw_rich(c, line, 6.8, x_text,
+                          baseline - ETYM_VAR * (j + 1), align="left")
+            var_h = len(lines) * ETYM_VAR
+
+        cy -= ETYM_ROW + var_h
         if i < len(items) - 1 and items[i + 1][0] != "theme":
             c.setStrokeColor(LIGHT_RULE)
             c.setLineWidth(0.3)
@@ -1504,23 +1553,58 @@ def render(args):
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
 
-    etym_pages = []
-    if etym is not None:
-        # Capacity must match draw_etym_page: title, subtitle, column header.
-        cap = (m.page_h - m.margin_top - 26
-               - 21 - 6 - 18) - m.margin_bot
-        etym_pages = flow1(etym_items(etym), cap, etym_height)
+    etym_pages = flow1(etym_items(etym), etym_capacity(m), etym_height)
     n_etym = len(etym_pages)
+    list_start = n_etym + 1
 
-    hebrew_pages = []
+    shifted = {k: v + (list_start - 1) for k, v in species_page.items()}
+    shifted_fam = {k: v + (list_start - 1) for k, v in fam_page.items()}
     cap_h = (m.page_h - m.margin_top - HEB_TOP_INSET) - m.margin_bot
-    hebrew_pages = flow2(hebrew_items(records, species_page), cap_h, heb_height)
-    n_hebrew = len(hebrew_pages)
 
-    sect = {"hebrew": n_body + 1, "etym": n_body + n_hebrew + 1}
+    hebrew_pages = flow2(hebrew_items(records, shifted), cap_h, heb_height,
+                         ncols=args.hebrew_columns)
+    heb_start = list_start + n_body
+
+    eng_pages = flow2(english_items(records, shifted), cap_h, eng_height,
+                      ncols=ENG_COLUMNS)
+    eng_start = heb_start + len(hebrew_pages)
+
+    lat_fam_pages = flow2(latin_family_items(families, shifted_fam), cap_h,
+                          latin_family_height, ncols=3)
+    lat_fam_start = eng_start + len(eng_pages)
+
+    heb_fam_pages = flow2(hebrew_family_items(families, shifted_fam), cap_h,
+                          hebrew_family_height, ncols=3)
+    heb_fam_start = lat_fam_start + len(lat_fam_pages)
+
+    lat_species_pages = flow2(latin_species_items(records, shifted), cap_h,
+                              latin_species_height, ncols=2)
+    lat_species_start = heb_fam_start + len(heb_fam_pages)
+
+    el_cap = (m.page_h - m.margin_top - EL_TOP_INSET) - m.margin_bot
+    el_items = element_index_items(etym, records, shifted, etym_capacity(m))
+    el_pages = flow2(el_items, el_cap, element_index_height, ncols=1)
+    el_start = lat_species_start + len(lat_species_pages)
+
+    notes_start = el_start + len(el_pages)
+    notes_pages = 2
+    tail_blank = 2
+
+    sections = [
+        (T["key.heading_he"], "v"),
+        (T["element_data.heading_he"], 1),
+        (T["contents.section_list"], list_start),
+        (T["hebrew_index.heading_he"], heb_start),
+        (T["english_index.heading_he"], eng_start),
+        (T["latin_family_index.heading_he"], lat_fam_start),
+        (T["hebrew_family_index.heading_he"], heb_fam_start),
+        (T["latin_species_index.heading_he"], lat_species_start),
+        (T["element_index.heading_he"], el_start),
+        (T["notes.heading_he"], notes_start),
+    ]
 
     front = 5
-    total = front + n_body + n_etym + n_hebrew + 1          # + notes
+    total = front + notes_start + notes_pages - 1 + tail_blank
     pad = (-total) % 4
     total += pad
 
@@ -1536,38 +1620,73 @@ def render(args):
     draw_title_page(c, m)
     c.showPage()
     draw_copyright_page(c, m)
+    draw_roman_folio(c, m, 2)
     c.showPage()
     draw_dedication_page(c, m)
+    draw_roman_folio(c, m, 3)
     c.showPage()
-    draw_contents_page(c, m, families, fam_page, sect)
+    draw_contents_page(c, m, sections)
+    draw_roman_folio(c, m, 4)
     c.showPage()
     draw_key_page(c, m, etym)
+    draw_roman_folio(c, m, 5)
     c.showPage()
 
-    for i, page in enumerate(body, start=1):
+    for i, items in enumerate(etym_pages, start=1):
+        draw_etym_page(c, m, items, i)
+        c.showPage()
+
+    for i, page in enumerate(body, start=list_start):
         draw_body_page(c, m, page, i, etym)
         c.showPage()
 
-    for i, cols in enumerate(hebrew_pages, start=1):
-        draw_hebrew_page(c, m, cols, n_body + i)
+    for i, cols in enumerate(hebrew_pages):
+        draw_hebrew_page(c, m, cols, heb_start + i,
+                         ncols=args.hebrew_columns, letter_stack=True)
         c.showPage()
 
-    for i, items in enumerate(etym_pages, start=1):
-        draw_etym_page(c, m, items, n_body + n_hebrew + i)
+    for i, cols in enumerate(eng_pages):
+        draw_english_page(c, m, cols, eng_start + i, letter_stack=True)
         c.showPage()
 
-    draw_notes_page(c, m, n_body + n_etym + n_hebrew + 1)
-    c.showPage()
+    for i, cols in enumerate(lat_fam_pages):
+        draw_latin_family_page(c, m, cols, lat_fam_start + i,
+                               letter_stack=True)
+        c.showPage()
 
-    for _ in range(pad):
+    for i, cols in enumerate(heb_fam_pages):
+        draw_hebrew_family_page(c, m, cols, heb_fam_start + i,
+                                letter_stack=True)
+        c.showPage()
+
+    for i, cols in enumerate(lat_species_pages):
+        draw_latin_species_page(c, m, cols, lat_species_start + i,
+                                letter_stack=True)
+        c.showPage()
+
+    for i, cols in enumerate(el_pages):
+        draw_element_index_page(c, m, cols, el_start + i,
+                                letter_stack=True, first_page=(i == 0))
+        c.showPage()
+
+    for i in range(notes_pages):
+        draw_notes_page(c, m, notes_start + i)
+        c.showPage()
+
+    for _ in range(tail_blank + pad):
         c.showPage()
 
     c.save()
 
     print(f"Wrote {out}")
     print(f"  A5, base {args.base:g} pt")
-    print(f"  front matter 5 + body {n_body} + etymology index {n_etym} "
-          f"+ Hebrew index {n_hebrew} + notes 1 + blanks {pad} = {total} pages")
+    print(f"  front matter 5 + themed {n_etym} + body {n_body} "
+          f"+ Hebrew {len(hebrew_pages)} + English {len(eng_pages)} "
+          f"+ Latin families {len(lat_fam_pages)} "
+          f"+ Hebrew families {len(heb_fam_pages)} "
+          f"+ Latin species {len(lat_species_pages)} "
+          f"+ elements {len(el_pages)} + notes {notes_pages} "
+          f"+ blanks {tail_blank + pad} = {total} pages")
     print(f"  {len(families)} families, {len(records)} species, "
           f"{leaves_for_spine(total):.2f} mm spine at 90 gsm")
     print(f"  Latin font : {latin_font}")
@@ -1591,8 +1710,7 @@ def render_hebrew_preview(args):
     body, _fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
 
-    cap = (m.page_h - m.margin_top - 26
-           - 21 - 6 - 18) - m.margin_bot
+    cap = etym_capacity(m)
     n_etym = len(flow1(etym_items(etym), cap, etym_height))
     list_start = n_etym + 1
     heb_start = list_start + n_body
@@ -1637,8 +1755,7 @@ def render_english_preview(args):
     body, _fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
 
-    cap = (m.page_h - m.margin_top - 26
-           - 21 - 6 - 18) - m.margin_bot
+    cap = etym_capacity(m)
     n_etym = len(flow1(etym_items(etym), cap, etym_height))
     list_start = n_etym + 1
     heb_start = list_start + n_body
@@ -1684,8 +1801,7 @@ def render_families_preview(args):
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
 
-    cap = (m.page_h - m.margin_top - 26
-           - 21 - 6 - 18) - m.margin_bot
+    cap = etym_capacity(m)
     n_etym = len(flow1(etym_items(etym), cap, etym_height))
     list_start = n_etym + 1
     heb_start = list_start + n_body
@@ -1742,8 +1858,7 @@ def render_latin_species_preview(args):
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
 
-    cap = (m.page_h - m.margin_top - 26
-           - 21 - 6 - 18) - m.margin_bot
+    cap = etym_capacity(m)
     n_etym = len(flow1(etym_items(etym), cap, etym_height))
     list_start = n_etym + 1
     heb_start = list_start + n_body
@@ -1789,6 +1904,58 @@ def render_latin_species_preview(args):
           f"{list_start + n_body - 1}")
 
 
+def render_themes_preview(args, sort_hebrew=True,
+                          name="preview-themes.pdf"):
+    """Proof of the themed element data pages with variant cross-references."""
+    register_fonts()
+    m = Metrics(args.base)
+    etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
+                     plain_color=K(1.00))
+
+    cap = etym_capacity(m)
+    pages = flow1(etym_items(etym, sort_hebrew=sort_hebrew), cap, etym_height)
+
+    out = os.path.join(os.path.dirname(args.out), name)
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    c = canvas.Canvas(out, pagesize=(m.page_w, m.page_h),
+                      initialFontName="BirdLatin", initialFontSize=10)
+    c.setTitle("Birds of Israel — themed word elements preview")
+    c.setAuthor(AUTHOR)
+    c.setCreator("book/make_pocket.py --preview-themes"
+                 + ("-hebrew" if sort_hebrew else ""))
+
+    for i, items in enumerate(pages, start=1):
+        draw_etym_page(c, m, items, i)
+        c.showPage()
+    c.save()
+
+    print(f"Wrote {out}")
+    print(f"  Themed elements: {len(pages)} pages, folios 1–{len(pages)}")
+
+
+def render_key_preview(args):
+    """Proof of the “How to read this book” page."""
+    register_fonts()
+    m = Metrics(args.base)
+    etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
+                     plain_color=K(1.00))
+
+    out = os.path.join(os.path.dirname(args.out), "preview-key.pdf")
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    c = canvas.Canvas(out, pagesize=(m.page_w, m.page_h),
+                      initialFontName="BirdLatin", initialFontSize=10)
+    c.setTitle("Birds of Israel — key page preview")
+    c.setAuthor(AUTHOR)
+    c.setCreator("book/make_pocket.py --preview-key")
+
+    draw_key_page(c, m, etym)
+    draw_roman_folio(c, m, 5)
+    c.showPage()
+    c.save()
+
+    print(f"Wrote {out}")
+
+
 def render_elements_preview(args):
     """Proof of the alphabetical word-element index, three columns."""
     register_fonts()
@@ -1800,8 +1967,7 @@ def render_elements_preview(args):
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
 
-    cap = (m.page_h - m.margin_top - 26
-           - 21 - 6 - 18) - m.margin_bot
+    cap = etym_capacity(m)
     n_etym = len(flow1(etym_items(etym), cap, etym_height))
     list_start = n_etym + 1
     heb_start = list_start + n_body
@@ -1846,7 +2012,7 @@ def render_elements_preview(args):
     print(f"Wrote {out}")
     print(f"  Word elements index, 1 column: {len(el_pages)} pages, "
           f"folios {el_start}–{last}")
-    print(f"  Themed pages 1–{n_etym}; list references 12–"
+    print(f"  Themed pages 1–{n_etym}; list references {list_start}–"
           f"{list_start + n_body - 1}")
 
 
@@ -1880,6 +2046,15 @@ def main():
                          "preview-latin-species.pdf")
     ap.add_argument("--preview-elements", action="store_true",
                     help="write the word-elements index as preview-elements.pdf")
+    ap.add_argument("--preview-themes", action="store_true",
+                    help="write the themed element data pages as "
+                         "preview-themes.pdf")
+    ap.add_argument("--preview-themes-hebrew", action="store_true",
+                    help="write a Hebrew-sorted themed preview as "
+                         "preview-themes-hebrew.pdf")
+    ap.add_argument("--preview-key", action="store_true",
+                    help="write the “How to read this book” page as "
+                         "preview-key.pdf")
     ap.add_argument("--hebrew-columns", type=int, choices=(2, 3),
                     default=HEB_COLUMNS,
                     help="columns in the Hebrew index preview (default 3)")
@@ -1894,6 +2069,13 @@ def main():
         render_latin_species_preview(args)
     elif args.preview_elements:
         render_elements_preview(args)
+    elif args.preview_themes:
+        render_themes_preview(args)
+    elif args.preview_themes_hebrew:
+        render_themes_preview(args, sort_hebrew=True,
+                              name="preview-themes-hebrew.pdf")
+    elif args.preview_key:
+        render_key_preview(args)
     else:
         render(args)
 

@@ -48,6 +48,9 @@ inspector-level build notes.
 Index proofs, with their final folios in the new structure:
 
 ```sh
+python3 book/make_pocket.py --preview-themes
+python3 book/make_pocket.py --preview-themes-hebrew
+python3 book/make_pocket.py --preview-key
 python3 book/make_pocket.py --preview-hebrew
 python3 book/make_pocket.py --preview-english
 python3 book/make_pocket.py --preview-families

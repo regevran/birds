@@ -16,12 +16,25 @@ key name.
 
 
 def _join_block(lines):
-    """Join block lines with spaces; a trailing backslash is a hard break."""
+    """Join block lines with spaces; a trailing backslash is a hard break.
+
+    A ``כותרת:`` line or a line beginning with ``- `` starts a layout block
+    (a title or a bullet). Its line break is kept so the key page can render
+    it; ordinary continuation lines still join with spaces.
+    """
     out = []
+    in_list = False
     for line in lines:
         if not line:
             continue
-        if line.endswith("\\"):
+        if line.startswith("כותרת:") or line.startswith("- "):
+            if out and not out[-1].endswith("\n"):
+                out.append("\n")
+            out.append(line + "\n")
+            in_list = line.startswith("- ")
+        elif in_list:
+            out.append(line + " ")
+        elif line.endswith("\\"):
             out.append(line[:-1].rstrip() + "\n")
         else:
             out.append(line + " ")

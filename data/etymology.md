@@ -819,7 +819,7 @@ arundin | reed | קנה | Latin | Where it lives
 arv | field | שדה | Latin | Where it lives
 aster | resembling | דמוי | Greek | Word-building
 ater, atri, atro, atra | black | שחור | Latin | Colour
-atilis | living among | חי ב | Latin | Where it lives
+atilis | living among | חי ב | Latin | Behaviour
 atus, ata | provided with | בעל | Latin | Word-building
 baenus | walker | מהלך | Greek | Behaviour
 baptus | diving | צולל | Greek | Behaviour
@@ -858,7 +858,7 @@ cles | notable | מפואר | Greek | Word-building
 cnemus | shin | שוק | Greek | Body
 Cocco | berry | גרגר | Greek | Food
 coccyx | cuckoo | קוקייה | Greek | Birds
-cola, cula | dweller | שוכן | Latin | Where it lives
+cola, cula | dweller | שוכן | Latin | Behaviour
 colius | coly (mousebird) | קוליו | Greek | Birds
 collaris | collar | צווארון | Latin | Body
 collis | neck | צוואר | Latin | Body
@@ -1084,11 +1084,11 @@ penn | feather | נוצה | Latin | Body
 spin | thorn | קוץ | Latin | Body
 torqu | collar | צווארון | Latin | Body
 calig | boot | מגף | Latin | Body
-aprica, apric | sunny | שטוף שמש | Latin | Where it lives
+aprica, apric | sunny | שטוף שמש | Latin | Qualities
 fluvi | river | נהר | Latin | Where it lives
-lin | flax | פשתן | Latin | Where it lives
+lin | flax | פשתן | Latin | Food
 mur | wall | חומה | Latin | Where it lives
-nebul | mist | ערפל | Latin | Where it lives
+nebul | mist | ערפל | Latin | Qualities
 rip | bank | גדה | Latin | Where it lives
 scirp | rush | אגמון | Latin | Where it lives
 stagn | pool | שלולית | Latin | Where it lives

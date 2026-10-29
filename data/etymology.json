@@ -282,7 +282,7 @@
    "en": "living among",
    "he": "חי ב",
    "origin": "Latin",
-   "theme": "Where it lives",
+   "theme": "Behaviour",
    "display": "atilis",
    "forms": [
     "atilis"
@@ -683,7 +683,7 @@
    "en": "dweller",
    "he": "שוכן",
    "origin": "Latin",
-   "theme": "Where it lives",
+   "theme": "Behaviour",
    "display": "cola",
    "forms": [
     "cola",
@@ -2985,7 +2985,7 @@
    "en": "sunny",
    "he": "שטוף שמש",
    "origin": "Latin",
-   "theme": "Where it lives",
+   "theme": "Qualities",
    "display": "aprica",
    "forms": [
     "aprica",
@@ -3006,7 +3006,7 @@
    "en": "flax",
    "he": "פשתן",
    "origin": "Latin",
-   "theme": "Where it lives",
+   "theme": "Food",
    "display": "lin",
    "forms": [
     "lin"
@@ -3026,7 +3026,7 @@
    "en": "mist",
    "he": "ערפל",
    "origin": "Latin",
-   "theme": "Where it lives",
+   "theme": "Qualities",
    "display": "nebul",
    "forms": [
     "nebul"
