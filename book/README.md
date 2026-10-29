@@ -16,6 +16,28 @@ reads the interior's page count to compute the spine. Use `--interior-only` or
 `--cover-only` to run just one half, and see `./render.sh --help` for the
 builder options (`--base`, `--pages`, `--caliper`, `--spine`).
 
+For proofs of the indexes in the new structure, with their final folios and
+page references:
+
+```sh
+python3 book/make_pocket.py --preview-hebrew
+python3 book/make_pocket.py --preview-hebrew --hebrew-columns 2
+python3 book/make_pocket.py --preview-english
+python3 book/make_pocket.py --preview-families
+python3 book/make_pocket.py --preview-latin-species
+python3 book/make_pocket.py --preview-elements
+```
+
+These write `out/book/preview-hebrew-3col.pdf` (the established three-column
+setting), `out/book/preview-hebrew.pdf` (two-column comparison),
+`out/book/preview-english.pdf` (two columns, because long English names do not
+fit three), `out/book/preview-families.pdf` (separate Latin and Hebrew family
+indexes, one page each), `out/book/preview-latin-species.pdf` (two columns,
+because long binomials do not fit three), and `out/book/preview-elements.pdf`
+(one column, with fixed columns for element, page, Hebrew meaning, group and
+occurrence pages). They are proofs, not print files; the assembled interior
+still uses the old structure until the new index section is put together.
+
 Outputs:
 
 | File | What it is |

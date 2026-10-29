@@ -108,13 +108,29 @@ order_note_2: |
     מפרט את כל המינים, ומפתח מרכיבי השמות מסודר לפי א״ב בתוך כל נושא.
 
 ## hebrew_index
-# Header of the Hebrew name index (pages 47–54).
+# Header of the Hebrew name index.
 
 heading_he: מפתח שמות עבריים
-subtitle: |
-    לפי סדר האלפבית העברי; המספרים הם עמודי הרשימה.
-column_page: עמוד
-column_name: שם עברי
+
+## english_index
+# Header of the English name index; no explanatory line.
+
+heading_he: מפתח שמות אנגליים
+
+## latin_family_index
+# Header of the Latin family-name index; no explanatory line.
+
+heading_he: מפתח משפחות לטיניות
+
+## hebrew_family_index
+# Header of the Hebrew family-name index; no explanatory line.
+
+heading_he: מפתח משפחות עבריות
+
+## latin_species_index
+# Header of the Latin species index; no explanatory line.
+
+heading_he: מפתח שמות לטיניים
 
 ## element_index
 # Header of the index of word elements (pages 55–65).
@@ -125,6 +141,11 @@ subtitle: |
 column_element: מרכיב
 column_english: אנגלית
 column_hebrew: עברית
+column_latin: מרכיב
+column_page: עמוד
+column_meaning: משמעות
+column_group: קבוצה
+column_refs: עמודי רשימה
 
 ## themes
 # Theme headings for the element index, keyed by the English names in
@@ -139,6 +160,23 @@ Where it lives: מקום מחיה
 Mammals: יונקים
 Size: גודל
 Other animals: בעלי חיים אחרים
+Behaviour: התנהגות
+Body: גוף
+Qualities: תכונות
+Places: מקומות
+
+## theme_short
+# Short group labels for the alphabetical element index.
+
+Word-building: בנייה
+Food: מזון
+Shape: צורה
+Colour: צבע
+Birds: ציפורים
+Where it lives: מקום
+Mammals: יונקים
+Size: גודל
+Other animals: חיות
 Behaviour: התנהגות
 Body: גוף
 Qualities: תכונות
