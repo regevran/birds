@@ -3,7 +3,7 @@
 ## Files to send
 
 1. **`out/book/israel_birds_pocket.pdf`** — interior.
-   - 104 pages / 52 sheets.
+   - 96 pages / 48 sheets.
    - A5, 148 × 210 mm.
    - **Black only** (K-only CMYK); print on a B/W device.
    - Single pages in reading order, no bleed.
@@ -11,14 +11,14 @@
      (two note blanks and three printer blanks).
 
 2. **`out/book/cover_spread.pdf`** — cover.
-   - One page, 307.72 × 216 mm including 3 mm bleed.
+   - One page, 307.28 × 216 mm including 3 mm bleed.
    - Back + spine + front, outside only.
-   - Spine 5.72 mm.
+   - Spine 5.28 mm.
    - **Full colour.**
 
 If the shop asks for a single file in reading order, run `./render.sh
---one-file`. It writes `out/book/israel_birds_one_file.pdf`: 106 A5 pages —
-front cover, the 104-page interior, then the back cover. Its cover panels are
+--one-file`. It writes `out/book/israel_birds_one_file.pdf`: 98 A5 pages —
+front cover, the 96-page interior, then the back cover. Its cover panels are
 trimmed (no bleed); use `cover_spread.pdf` above for the actual cover printing.
 
 A front panel alone (`cover_front_draft.pdf`) is a proof, produced only with
@@ -28,13 +28,13 @@ is not written by the normal build.
 ## Specification
 
 - **Trim:** A5, 148 × 210 mm.
-- **Extent:** 104 pages, including two blank note pages and three printer blanks
+- **Extent:** 96 pages, including two blank note pages and three printer blanks
   at the end. Do not add or remove pages.
-- **Binding:** perfect bound (paperback), softcover, spine 5.72 mm, no spine text.
+- **Binding:** perfect bound (paperback), softcover, spine 5.28 mm, no spine text.
 - **Interior paper:** 90 gsm uncoated book paper. White gives the best contrast for the K-only text; cream/ivory is acceptable. Duplex. Grain parallel to the spine.
 - **Cover paper:** 250 gsm white matte/silk card. 300 gsm is possible if the binder prefers it, but 250 gsm is easier to score at this spine. Print the outside only. Matte lamination outside recommended.
 - **Colour:** interior **black only** — the PDF is K-only CMYK (C=M=Y=0), so print it on a B/W device; do not run it as colour. The cover is **full colour** and the PDF is RGB; convert it to CMYK with the profile for the chosen stock and provide a proof.
-- **Cover press:** the cover sheet is 307.72 mm wide, so the press sheet must be
+- **Cover press:** the cover sheet is 307.28 mm wide, so the press sheet must be
   at least 308 mm wide. SRA3 (320 × 450 mm) works; A3 (297 mm) and 12 × 18 in
   (304.8 mm) are too narrow. Print at 100%; do not scale or mirror.
 - **Cover orientation:** back on the left, spine in the middle, front on the right, as supplied.
@@ -46,27 +46,27 @@ is not written by the normal build.
 
 The current spine is calculated for 90 gsm at 0.11 mm per sheet:
 
-    52 sheets × 0.11 mm = 5.72 mm
+    48 sheets × 0.11 mm = 5.28 mm
 
 If the shop uses a different stock, ask for its caliper and recalculate. Do not scale the cover to fit; regenerate it. Approximate uncoated values:
 
-| Stock | Caliper (mm/sheet) | Spine at 104 pp |
+| Stock | Caliper (mm/sheet) | Spine at 96 pp |
 |---|---:|---:|
-| 80 gsm | 0.10 | 5.20 mm |
-| 90 gsm | 0.11 | 5.72 mm (current) |
-| 100 gsm | 0.12 | 6.24 mm |
-| 120 gsm | 0.14 | 7.28 mm |
+| 80 gsm | 0.10 | 4.80 mm |
+| 90 gsm | 0.11 | 5.28 mm (current) |
+| 100 gsm | 0.12 | 5.76 mm |
+| 120 gsm | 0.14 | 6.72 mm |
 
 Actual caliper varies by paper. The bindery should confirm the final spine with the actual text block and cover stock. If they give a final spine, regenerate with:
 
 ```sh
-python3 book/make_cover.py --pages 104 --spine 5.72
+python3 book/make_cover.py --pages 96 --spine 5.28
 ```
 
 or, if working from caliper:
 
 ```sh
-python3 book/make_cover.py --pages 104 --caliper 0.12
+python3 book/make_cover.py --pages 96 --caliper 0.12
 ```
 
 - **Interior colour:** print black only. White uncoated gives the best contrast for the K-only text; cream/ivory is acceptable. Avoid glossy interior stock.
@@ -76,7 +76,7 @@ python3 book/make_cover.py --pages 104 --caliper 0.12
 ## Print notes
 
 - Keep the two blank note pages and the three printer blanks at the end. They
-  are part of the 104-page count and the 5.72 mm spine.
+  are part of the 96-page count and the 5.28 mm spine.
 - The interior side margins are 13 mm and the top margin 14 mm. Check the gutter in the proof. If the text feels tight at the binding edge, tell me before the full run; increasing the inner margin means repaginating.
 - The cover is the outside only; the inside cover is unprinted. If your workflow needs a 4-page cover file (outside plus a blank inside), ask me.
 - Print the cover spread as supplied; do not mirror it.
@@ -95,8 +95,8 @@ python3 book/make_cover.py --pages 104 --caliper 0.12
 
 Please quote and print this A5 perfect-bound paperback:
 
- - **Interior:** `israel_birds_pocket.pdf` — 104 pages, A5 148 × 210 mm, 90 gsm uncoated white (cream acceptable), duplex, **black only**.
- - **Cover:** `cover_spread.pdf` — 307.72 × 216 mm including 3 mm bleed, spine 5.72 mm, 250 gsm white matte/silk, matte lamination outside, **full colour**.
+ - **Interior:** `israel_birds_pocket.pdf` — 96 pages, A5 148 × 210 mm, 90 gsm uncoated white (cream acceptable), duplex, **black only**.
+ - **Cover:** `cover_spread.pdf` — 307.28 × 216 mm including 3 mm bleed, spine 5.28 mm, 250 gsm white matte/silk, matte lamination outside, **full colour**.
  - Perfect bound, no spine text. Grain parallel to the spine. Please provide a physical proof.
  - The cover needs SRA3 or larger (A3 is too narrow). Print at 100%; do not scale or mirror.
  - If you use a different paper, please tell me its caliper before printing; the spine must be recalculated, not scaled.

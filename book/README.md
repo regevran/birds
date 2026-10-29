@@ -31,8 +31,8 @@ python3 book/make_pocket.py --preview-latin-species
 python3 book/make_pocket.py --preview-elements
 ```
 
-These write `out/book/preview-themes.pdf` (the themed data pages with variant
-cross-references), `out/book/preview-themes-hebrew.pdf` (the Hebrew-meaning
+These write `out/book/preview-themes.pdf` (the themed data pages, one line per
+Hebrew meaning), `out/book/preview-themes-hebrew.pdf` (the Hebrew-meaning
 sorting used by the book), `out/book/preview-key.pdf` (the “How to read this book”
 page), `out/book/preview-hebrew-3col.pdf` (the established
 three-column setting), `out/book/preview-hebrew.pdf` (two-column comparison),
@@ -48,9 +48,9 @@ Outputs:
 
 | File | What it is |
 |---|---|
-| `out/book/israel_birds_pocket.pdf` | interior, A5, 104 pages, numbered from the themed-element pages |
+| `out/book/israel_birds_pocket.pdf` | interior, A5, 96 pages, numbered from the themed-element pages |
 | `out/book/cover_spread.pdf` | back + spine + front, spine computed from the interior |
-| `out/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 106 pages |
+| `out/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 98 pages |
 
 The one-file sequence uses A5 trim cover panels without bleed, so every page
 is the same size; the print-ready cover with bleed is still `cover_spread.pdf`.
@@ -99,25 +99,26 @@ Data — species, names, etymologies and order names — stays in `data/`.
 - **Front matter:** title (unnumbered), copyright (ii), dedication (iii),
   contents (iv), key (v). The dedication is the two lines `לשאול,` /
   `שבזכות הגזר בכלל לא צריך את המדריך הזה.` at the top right.
-- **Themed word elements, pages 1–15:** the element meanings by theme, sorted
-  by Hebrew meaning, one column, with the unmarked variant line under each
-  element. This is data, not an index.
-- **The list, pages 16–61:** 565 species in 84 families. **Families are in
+- **Themed word elements, pages 1–7:** the element meanings by theme, sorted
+  by Hebrew meaning, one column. Each line gathers all Latin forms that share
+  one Hebrew meaning, and gives the English gloss and Hebrew meaning once.
+  This is data, not an index.
+- **The list, pages 8–53:** 565 species in 84 families. **Families are in
   taxonomic order** (Clements 2022), with a heading for each of the 26 orders;
   genera and species are alphabetical inside a family. Latin on the left,
   **English in a fixed middle column**, Hebrew on the right; markers (`A`, `I`,
   `Ex`, `X`) in parentheses at the end of the Hebrew name; etymology split in
   grey with a raised dot.
-- **Hebrew name index, pages 62–66:** three columns flowing right-to-left,
+- **Hebrew name index, pages 54–58:** three columns flowing right-to-left,
   page references to the list.
-- **English name index, pages 67–73:** two columns.
-- **Latin family index, page 74:** three columns.
-- **Hebrew family index, page 75:** three columns.
-- **Latin species index, pages 76–82:** two columns.
-- **Word-element index, pages 83–92:** one column, fixed columns for element,
+- **English name index, pages 59–65:** two columns.
+- **Latin family index, page 66:** three columns.
+- **Hebrew family index, page 67:** three columns.
+- **Latin species index, pages 68–74:** two columns.
+- **Word-element index, pages 75–84:** one column, fixed columns for element,
   themed page, Hebrew meaning, group and occurrence pages.
-- **Notes, pages 93–94**, followed by two blank note pages and three printer
-  blanks to reach 104 pages.
+- **Notes, pages 85–86**, followed by two blank note pages and three printer
+  blanks to reach 96 pages.
 
 ## Design decisions
 
@@ -135,8 +136,8 @@ Data — species, names, etymologies and order names — stays in `data/`.
   hang in parentheses to the left of the Hebrew name, so every Hebrew name
   aligns on the same right edge — the same idea as the dash gutter in the
   element index.
-- **Perfect-bound softcover.** 104 pages on 90 gsm paper gives a 5.72 mm spine;
-  the spread is 307.72 × 216 mm including 3 mm bleed.
+- **Perfect-bound softcover.** 96 pages on 90 gsm paper gives a 5.28 mm spine;
+  the spread is 307.28 × 216 mm including 3 mm bleed.
 - **Monochrome interior, colour cover.** The interior is K-only: black `K100`
   for body text, headings, family names and folios; `K75` for English names and
   secondary text; `K70` for etymological elements and continuation labels;
@@ -160,10 +161,10 @@ Data — species, names, etymologies and order names — stays in `data/`.
 
 `book/PRINT.md` is the full brief to send with the files. In short:
 
-- 104 pages, A5, perfect bound, spine 5.72 mm at 90 gsm (0.11 mm/sheet).
+- 96 pages, A5, perfect bound, spine 5.28 mm at 90 gsm (0.11 mm/sheet).
 - Interior: 90 gsm uncoated, white or cream/ivory, duplex, **black only**.
 - Cover: 250 gsm white matte/silk, matte lamination outside; 3 mm bleed, colour.
-- The cover sheet is 307.72 × 216 mm and needs SRA3 or larger (A3 is too
+- The cover sheet is 307.28 × 216 mm and needs SRA3 or larger (A3 is too
   narrow). Print at 100%, do not mirror.
 - The interior PDF is K-only CMYK (C=M=Y=0), with a grayscale logo, so it can
   go on a B/W device. The cover PDF is RGB; convert it to CMYK with the
@@ -171,8 +172,8 @@ Data — species, names, etymologies and order names — stays in `data/`.
 - If the paper changes, regenerate the cover rather than scaling it:
 
   ```sh
-  python3 book/make_cover.py --pages 104 --caliper 0.12   # 100 gsm
-  python3 book/make_cover.py --pages 104 --spine 5.72     # bindery's final spine
+  python3 book/make_cover.py --pages 96 --caliper 0.12   # 100 gsm
+  python3 book/make_cover.py --pages 96 --spine 5.28     # bindery's final spine
   ```
 
 - Fonts: Noto Sans Mono (Latin) and Droid Sans Hebrew, both subset-embedded.

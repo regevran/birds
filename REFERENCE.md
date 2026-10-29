@@ -6,9 +6,9 @@ Orientation notes for future sessions. Read this before changing the A5 book.
 
 - The previous printed edition was 72 pages, perfect bound, A5 148 × 210 mm;
   five copies were printed.
-- The current assembled interior is 104 pages: front matter, themed elements,
+- The current assembled interior is 96 pages: front matter, themed elements,
   species list, six indexes, two notes pages and five blanks. The cover has
-  been rebuilt for the 5.72 mm spine.
+  been rebuilt for the 5.28 mm spine.
 - The interior is **K-only** (C=M=Y=0) and the logo is grayscale. The cover is
   full colour; colour inside was too expensive.
 - The cover reads the interior's page count and derives the spine.
@@ -57,15 +57,15 @@ Preview the new indexes with their final folios (these do not touch the
 assembled interior):
 
 ```sh
-python3 book/make_pocket.py --preview-themes      # themed data, 1–15
+python3 book/make_pocket.py --preview-themes      # themed data, 1–7
 python3 book/make_pocket.py --preview-themes-hebrew  # Hebrew-sorted output
 python3 book/make_pocket.py --preview-key         # “How to read this book”
-python3 book/make_pocket.py --preview-hebrew      # 3 columns, 62–66
+python3 book/make_pocket.py --preview-hebrew      # 3 columns, 54–58
 python3 book/make_pocket.py --preview-hebrew --hebrew-columns 2
-python3 book/make_pocket.py --preview-english     # 2 columns, 67–73
-python3 book/make_pocket.py --preview-families    # Latin 74, Hebrew 75
-python3 book/make_pocket.py --preview-latin-species  # 2 columns, 76–82
-python3 book/make_pocket.py --preview-elements    # 1 column, 83–92
+python3 book/make_pocket.py --preview-english     # 2 columns, 59–65
+python3 book/make_pocket.py --preview-families    # Latin 66, Hebrew 67
+python3 book/make_pocket.py --preview-latin-species  # 2 columns, 68–74
+python3 book/make_pocket.py --preview-elements    # 1 column, 75–84
 ```
 
 `pdfinfo`/`pdfunite` come from Poppler. `gs -sDEVICE=inkcov` is used to check
@@ -77,34 +77,35 @@ Outputs are in `out/book/`. Previews are proofs, not print files.
 
 - Front matter: five pages (title unnumbered; copyright ii, dedication iii,
   contents iv, key v).
-- Themed word-element data: Arabic **1–15**, one column; this is content, not
+- Themed word-element data: Arabic **1–7**, one column; this is content, not
   an index. Its title is `מרכיבי השמות לפי קבוצות`.
-- Species list: Arabic **16–61**.
+- Species list: Arabic **8–53**.
 - Indexes: Arabic, in the order below.
-- Notes: pages 93–94, then two blank note pages and printer padding to 104.
-- Themes are sorted by Hebrew meaning; variants are adjacent and the
-  `--preview-themes-hebrew` output is the same setting as the book.
+- Notes: pages 85–86, then two blank note pages and printer padding to 96.
+- Themes are sorted by Hebrew meaning; each line merges every Latin form that
+  shares one Hebrew meaning. The `--preview-themes-hebrew` output is the same
+  setting as the book.
 
 Page arithmetic:
 
 ```text
 front matter          5
-themed elements       15
-species list          46   -> 16–61
-Hebrew species        5    -> 62–66
-English species       7    -> 67–73
-Latin families        1    -> 74
-Hebrew families       1    -> 75
-Latin species         7    -> 76–82
-word elements         10   -> 83–92
-notes                 2    -> 93–94
-blank notes           2    -> 95–96
-padding               3    -> 97–99
-total                      -> 104 pages
+themed elements       7
+species list          46   -> 8–53
+Hebrew species        5    -> 54–58
+English species       7    -> 59–65
+Latin families        1    -> 66
+Hebrew families       1    -> 67
+Latin species         7    -> 68–74
+word elements         10   -> 75–84
+notes                 2    -> 85–86
+blank notes           2    -> 87–88
+padding               3    -> 89–91
+total                      -> 96 pages
 ```
 
 The final sheet count must be a multiple of four. At 90 gsm the spine
-formula is `(pages / 2) × 0.11 mm`; 104 pages give 5.72 mm.
+formula is `(pages / 2) × 0.11 mm`; 96 pages give 5.28 mm.
 
 ## Cover
 
@@ -122,32 +123,32 @@ Order after the species list:
 
 | Index | Marker | Columns | Type | Status |
 |---|---|---|---|---|
-| Hebrew species | α | 3 | Hebrew names + refs | assembled 62–66 |
-| English species | η | 2 | English names + refs | assembled 67–73 |
-| Latin families | φ | 3 | Latin family + refs | assembled 74 |
-| Hebrew families | μ | 3 | Hebrew family + refs | assembled 75 |
-| Latin species | λ | 2 | Latin binomial + refs | assembled 76–82 |
-| Word elements | ρ | 1 | element + page + Hebrew + group + refs | assembled 83–92 |
+| Hebrew species | α | 3 | Hebrew names + refs | assembled 54–58 |
+| English species | η | 2 | English names + refs | assembled 59–65 |
+| Latin families | φ | 3 | Latin family + refs | assembled 66 |
+| Hebrew families | μ | 3 | Hebrew family + refs | assembled 67 |
+| Latin species | λ | 2 | Latin binomial + refs | assembled 68–74 |
+| Word elements | ρ | 1 | element + page + Hebrew + group + refs | assembled 75–84 |
 
 - μ is provisional (mnemonic: *mishpacha*). Easy to change.
 - English is two columns because long names do not fit three: at 8.8 pt only
   65% fit, at 8.0 pt 80%; the longest English entry is about 54 mm against a
   37.3 mm three-column width.
 - Latin species is also two columns: the longest binomial is about 56 mm at
-  8.0 pt, and only 72% fit a 37.3 mm column. It is 7 pages (76–82).
+  8.0 pt, and only 72% fit a 37.3 mm column. It is 7 pages (68–74).
 - Latin and Hebrew family indexes are deliberately **separate**: a mixed
   Latin+Hebrew family row is data, not an index. Separate also makes three
   columns work; each family index is one page.
 - Indexes are pure: name + page reference only. Do not add explanations or
   translations that belong to the data.
 - References point to the first page of a family/species in the list
-  (16–61).
+  (8–53).
 - Letter headings repeat at the top of each column/page. The box shows the
   page's first and last letter.
 - Word-element entries use the agreed format **glossary page first, then the
-  list occurrence pages in parentheses**, e.g. `melaena 5 (14, 22, 31)`.
-  The themed list of elements is content, separate from this index.
-- The element index is one column and ten pages (83–92). The fixed row is
+  list occurrence pages in parentheses**. The themed list of elements is
+  content, separate from this index.
+- The element index is one column and ten pages (75–84). The fixed row is
   Latin element (first letter aligned, leading hyphen hanging) · themed page ·
   Hebrew meaning · short group label · occurrence pages. Consecutive pages
   are compressed into ranges (`19–21`). Column titles run on every page:
@@ -159,20 +160,22 @@ Order after the species list:
 - The themed data pages are titled `מרכיבי השמות לפי קבוצות` (not “מפתח”).
   Group headings are 15 pt bold — the same size as index letter headings —
   with a rule.
-- Entries within each theme are sorted by Hebrew meaning, so variants are
-  adjacent.
-- They carry variant cross-references: the line below each element is a
-  space-separated list of the other forms with the same theme + Hebrew meaning
-  (`micro-` / `-minuta`). There is no marker and no comma; the line starts at
-  the element (first) column and uses the full text width. This makes the
-  themed section 15 pages.
+- Entries within each theme are sorted by Hebrew meaning and merged: one line
+  carries every Latin form with that meaning, along with the English gloss and
+  the Hebrew meaning once each. The forms share the line rather than repeating
+  the meaning row by row.
+- A long line of forms shrinks to stay on one line; English stays right-aligned
+  in its column and the Hebrew meaning stays at the right edge. The longest
+  nine-form group (bill) drops to about 5.6 pt; all other groups stay larger.
+- This makes the themed section 7 pages (1–7).
 
 ## How to read this book
 
 The key page (v) is organized under `סדר`, `סימונים`, `סימוני מינים` and
 `מפתחות`. It carries the six-index order, the data-versus-index distinction
-and the unmarked variant line. A short `רשימת חלופות` section after the species
-markers explains that the line below an element lists variant forms. The Greek
+and the grouped Latin forms. A short `רשימת חלופות` section after the species
+markers explains that each line in the themed section gathers all the Latin
+forms of one Hebrew meaning. The Greek
 letter in the margin is described as the index tag, with the page's first and
 last letters below it. Each index row carries its mnemonic in parentheses —
 אלפא, אתא, פי, מו, למבדא, רו — with the initial of the matching word bolded

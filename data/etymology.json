@@ -582,7 +582,7 @@
    "en": "colour",
    "he": "צבע",
    "origin": "Greek",
-   "theme": "Colour",
+   "theme": "Qualities",
    "display": "chroico",
    "forms": [
     "chroico"
@@ -734,7 +734,7 @@
    "en": "colour",
    "he": "צבע",
    "origin": "Latin",
-   "theme": "Colour",
+   "theme": "Qualities",
    "display": "color",
    "forms": [
     "color"

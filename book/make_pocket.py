@@ -88,8 +88,7 @@ MID_RULE = K(0.55)       # genus and header rules
 
 # Index metrics (points).
 ETYM_ROW, ETYM_THEME = 10.8, 26.0
-ETYM_VAR = 8.5
-ETYM_EN_X = 80                 # points from the text edge to the second column
+ETYM_EN_GAP = 27 * mm          # English right edge, clear of the longest Hebrew
 HEB_ROW, HEB_LETTER = 10.8, 20.0
 HEB_TOP_INSET = 32          # points from the top margin to the first column
 HEB_COLUMNS = 3             # established for index pages where the width fits
@@ -324,6 +323,12 @@ def flow2(items, cap, height, ncols=2):
 # ---------------------------------------------------------------- etymology index
 
 def etym_items(etym, sort_hebrew=True):
+    """One line per theme + Hebrew meaning, with all its Latin forms.
+
+    Forms sharing a theme and a Hebrew meaning are the same entry: the reader
+    gets the meaning once and every Latin spelling that carries it, instead of
+    a repeated row and a cross-reference for each form.
+    """
     rows = etym.form_rows()
     by_meaning = defaultdict(list)
     for row in rows:
@@ -331,37 +336,29 @@ def etym_items(etym, sort_hebrew=True):
 
     items = []
     for theme in etym.themes:
-        group = [r for r in rows if r["theme"] == theme]
+        groups = [g for (t, _he), g in by_meaning.items() if t == theme]
         if sort_hebrew:
-            group.sort(key=lambda r: (heb_key(r["he"]), r["key"], r["shown"]))
+            groups.sort(key=lambda g: (heb_key(g[0]["he"]),
+                                       min(r["key"] for r in g)))
         else:
-            group.sort(key=lambda r: (r["key"], r["shown"]))
-        if not group:
+            groups.sort(key=lambda g: min(r["key"] for r in g))
+        if not groups:
             continue
         items.append(("theme", T["themes." + theme]))
-        for row in group:
-            variants = sorted(
-                (r["shown"] for r in by_meaning[(row["theme"], row["he"])]
-                 if r["key"] != row["key"]),
-                key=lambda s: (s.lstrip("-").lower(), s))
-            line = " ".join(variants) if variants else ""
-            items.append(("entry", (row["shown"], row["en"], row["he"],
-                                    line)))
+        for group in groups:
+            forms = sorted({r["shown"] for r in group},
+                           key=lambda s: (s.lstrip("-").lower(), s))
+            english = []
+            for row in sorted(group, key=lambda r: (r["key"], r["shown"])):
+                if row["en"] not in english:
+                    english.append(row["en"])
+            items.append(("entry", (forms, " / ".join(english),
+                                    group[0]["he"])))
     return items
 
 
-def etym_var_width():
-    """Width available to a variant line, from the element column."""
-    return 122 * mm - w("-", "BirdLatin", 8.8)
-
-
 def etym_height(item):
-    if item[0] == "theme":
-        return ETYM_THEME
-    line = item[1][3]
-    if not line:
-        return ETYM_ROW
-    return ETYM_ROW + len(wrap_rich(line, 6.8, etym_var_width())) * ETYM_VAR
+    return ETYM_THEME if item[0] == "theme" else ETYM_ROW
 
 
 def etym_capacity(m):
@@ -576,8 +573,9 @@ def element_index_items(etym, records, species_page, cap):
     for pno, page_items in enumerate(
             flow1(etym_items(etym), cap, etym_height), start=1):
         for kind, val in page_items:
-            if kind == "entry":
-                shown = val[0]
+            if kind != "entry":
+                continue
+            for shown in val[0]:
                 key = shown_to_key.get(shown, shown.strip("-").lower())
                 theme_page.setdefault(key, pno)
 
@@ -1039,13 +1037,13 @@ def draw_etym_page(c, m, items, pno):
     y = top - 32
     dash_w = w("-", "BirdLatin", 8.8)
     x_text = m.margin_x + dash_w
-    x_en = m.margin_x + ETYM_EN_X
+    x_en = m.right - ETYM_EN_GAP
     x_he = m.right
     c.setFillColor(FAINT)
     draw_rich(c, T["element_data.column_element"], 6.4, m.margin_x, y,
               align="left")
     draw_rich(c, T["element_data.column_english"], 6.4, x_en, y,
-              align="left")
+              align="right")
     draw_rich(c, T["element_data.column_hebrew"], 6.4, x_he, y)
     c.setStrokeColor(MID_RULE)
     c.setLineWidth(0.5)
@@ -1063,34 +1061,36 @@ def draw_etym_page(c, m, items, pno):
             cy -= ETYM_THEME
             continue
 
-        elem, en, he, var_line = val
+        forms, en, he = val
+        line = " ".join(forms)
+        lead = line.startswith("-")
+        body = line[1:] if lead else line
+        en_w = w(en, "BirdLatin", 8.2) if en else 0.0
+        avail = (x_en - en_w - 4 * mm) - x_text
+        raw = w(body, "BirdLatin", 8.8)
+        # Keep the occasional long run on one line and clear of the gloss.
+        size = min(8.8, 8.8 * avail / raw) if raw > avail and raw else 8.8
+        size = max(size, 5.5)
+
         baseline = cy - 7.6
         c.setFillColor(INK)
-        c.setFont("BirdLatin", 8.8)
-        if elem.startswith("-"):
+        c.setFont("BirdLatin", size)
+        if lead:
             c.drawString(m.margin_x, baseline, "-")
-            c.drawString(x_text, baseline, elem[1:])
+            c.drawString(x_text, baseline, body)
         else:
-            c.drawString(x_text, baseline, elem)
+            c.drawString(x_text, baseline, line)
 
-        c.setFillColor(QUIET)
-        c.setFont("BirdLatin", 8.2)
-        c.drawString(x_en, baseline, en)
+        if en:
+            c.setFillColor(QUIET)
+            c.setFont("BirdLatin", 8.2)
+            c.drawRightString(x_en, baseline, en)
 
         c.setFillColor(INK)
         c.setFont("BirdHebrew", 8.8)
         c.drawRightString(x_he, baseline, heb(he))
 
-        var_h = 0.0
-        if var_line:
-            lines = wrap_rich(var_line, 6.8, m.col_w - dash_w)
-            c.setFillColor(QUIET)
-            for j, line in enumerate(lines):
-                draw_rich(c, line, 6.8, x_text,
-                          baseline - ETYM_VAR * (j + 1), align="left")
-            var_h = len(lines) * ETYM_VAR
-
-        cy -= ETYM_ROW + var_h
+        cy -= ETYM_ROW
         if i < len(items) - 1 and items[i + 1][0] != "theme":
             c.setStrokeColor(LIGHT_RULE)
             c.setLineWidth(0.3)
@@ -1906,7 +1906,7 @@ def render_latin_species_preview(args):
 
 def render_themes_preview(args, sort_hebrew=True,
                           name="preview-themes.pdf"):
-    """Proof of the themed element data pages with variant cross-references."""
+    """Proof of the themed element data pages, one line per meaning."""
     register_fonts()
     m = Metrics(args.base)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),

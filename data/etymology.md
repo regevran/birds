@@ -848,7 +848,7 @@ chelidon, Chlidon | swallow | סנונית | Greek | Birds
 chen | goose | אווז | Greek | Birds
 Chlamyd | cloak | גלימה | Greek | Body
 chloro | green | ירוק | Greek | Colour
-Chroico | colour | צבע | Greek | Colour
+Chroico | colour | צבע | Greek | Qualities
 Chryso, chrys | golden | זהוב | Greek | Colour
 cilla | tail | זנב | Latin | Body
 cinct | banded | מפוספס | Latin | Colour
@@ -863,7 +863,7 @@ colius | coly (mousebird) | קוליו | Greek | Birds
 collaris | collar | צווארון | Latin | Body
 collis | neck | צוואר | Latin | Body
 coloeus | jackdaw | קאק | Greek | Birds
-color | colour | צבע | Latin | Colour
+color | colour | צבע | Latin | Qualities
 con | with | עם | Latin | Word-building
 copos | striker | מכה | Greek | Behaviour
 corax, corac | raven | עורב | Greek | Birds
