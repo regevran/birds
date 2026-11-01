@@ -1496,14 +1496,13 @@
     "macro"
    ]
   },
-  "macul": {
+  "maculata": {
    "en": "spot",
    "he": "כתם",
    "origin": "Latin",
    "theme": "Colour",
-   "display": "macul",
+   "display": "maculata",
    "forms": [
-    "macul",
     "maculata"
    ]
   },
@@ -1776,7 +1775,7 @@
    "en": "swollen",
    "he": "נפוח",
    "origin": "Greek",
-   "theme": "Body",
+   "theme": "Shape",
    "display": "oedi",
    "forms": [
     "oedi"
@@ -2351,8 +2350,7 @@
    "display": "ruf",
    "forms": [
     "ruf",
-    "rufi",
-    "rufa"
+    "rufi"
    ]
   },
   "rusti": {
@@ -2456,14 +2454,13 @@
     "spodo"
    ]
   },
-  "squam": {
+  "squami": {
    "en": "scale",
    "he": "קשקש",
    "origin": "Latin",
    "theme": "Body",
-   "display": "squam",
+   "display": "squami",
    "forms": [
-    "squam",
     "squami"
    ]
   },
@@ -2740,14 +2737,13 @@
     "hispaniol"
    ]
   },
-  "madagascar": {
+  "madagascari": {
    "en": "Madagascar",
    "he": "מדגסקר",
    "origin": "place name",
    "theme": "Places",
-   "display": "madagascar",
+   "display": "madagascari",
    "forms": [
-    "madagascar",
     "madagascari"
    ]
   },
@@ -2981,14 +2977,13 @@
     "calig"
    ]
   },
-  "aprica": {
+  "apric": {
    "en": "sunny",
    "he": "שטוף שמש",
    "origin": "Latin",
    "theme": "Qualities",
-   "display": "aprica",
+   "display": "apric",
    "forms": [
-    "aprica",
     "apric"
    ]
   },
@@ -3174,6 +3169,12 @@
     "cephalus"
    ]
   ],
+  "Alauda": [
+   [
+    "Alauda",
+    "alauda"
+   ]
+  ],
   "Alopochen": [
    [
     "Alopo",
@@ -3202,6 +3203,12 @@
    [
     "perdix",
     "perdix"
+   ]
+  ],
+  "Anser": [
+   [
+    "Anser",
+    "anser"
    ]
   ],
   "Anthropoides": [
@@ -3262,6 +3269,12 @@
    [
     "hinus",
     "hinus"
+   ]
+  ],
+  "Buteo": [
+   [
+    "Buteo",
+    "buteo"
    ]
   ],
   "Butorides": [
@@ -3512,6 +3525,12 @@
    [
     "ula",
     "ula"
+   ]
+  ],
+  "Fringilla": [
+   [
+    "Fringilla",
+    "fringilla"
    ]
   ],
   "Gallinago": [
@@ -3834,6 +3853,12 @@
     "psittac"
    ]
   ],
+  "Netta": [
+   [
+    "Netta",
+    "netta"
+   ]
+  ],
   "Nycticorax": [
    [
     "Nycti",
@@ -3874,6 +3899,12 @@
     "prion"
    ]
   ],
+  "Otis": [
+   [
+    "Otis",
+    "otis"
+   ]
+  ],
   "Oxyura": [
    [
     "Oxy",
@@ -3892,6 +3923,12 @@
    [
     "urus",
     "urus"
+   ]
+  ],
+  "Parus": [
+   [
+    "Parus",
+    "parus"
    ]
   ],
   "Periparus": [
@@ -4264,6 +4301,12 @@
     "pus"
    ]
   ],
+  "alba": [
+   [
+    "alba",
+    "alb"
+   ]
+  ],
   "albellus": [
    [
     "alb",
@@ -4314,6 +4357,12 @@
     "rostris"
    ]
   ],
+  "anser": [
+   [
+    "anser",
+    "anser"
+   ]
+  ],
   "apiaster": [
    [
     "api",
@@ -4337,7 +4386,7 @@
   "apricaria": [
    [
     "apric",
-    "aprica"
+    "apric"
    ],
    [
     "aria",
@@ -4382,6 +4431,18 @@
    [
     "ensis",
     "ensis"
+   ]
+  ],
+  "ater": [
+   [
+    "ater",
+    "ater"
+   ]
+  ],
+  "atra": [
+   [
+    "atra",
+    "ater"
    ]
   ],
   "atricapilla": [
@@ -4481,7 +4542,7 @@
    ],
    [
     "maculata",
-    "macul"
+    "maculata"
    ]
   ],
   "brachydactyla": [
@@ -4524,6 +4585,12 @@
     "cephalus"
    ]
   ],
+  "buteo": [
+   [
+    "buteo",
+    "buteo"
+   ]
+  ],
   "caligata": [
    [
     "calig",
@@ -4542,6 +4609,12 @@
    [
     "ensis",
     "ensis"
+   ]
+  ],
+  "carbo": [
+   [
+    "carbo",
+    "carbo"
    ]
   ],
   "carneipes": [
@@ -4664,6 +4737,12 @@
     "thraustes"
    ]
   ],
+  "collaris": [
+   [
+    "collaris",
+    "collaris"
+   ]
+  ],
   "concolor": [
    [
     "con",
@@ -4682,6 +4761,12 @@
    [
     "ata",
     "atus"
+   ]
+  ],
+  "corax": [
+   [
+    "corax",
+    "corax"
    ]
   ],
   "coronatus": [
@@ -4732,6 +4817,12 @@
    [
     "fer",
     "fer"
+   ]
+  ],
+  "cursor": [
+   [
+    "cursor",
+    "cursor"
    ]
   ],
   "curvirostra": [
@@ -4922,6 +5013,12 @@
    [
     "gula",
     "gul"
+   ]
+  ],
+  "fusca": [
+   [
+    "fusca",
+    "fusc"
    ]
   ],
   "fuscatus": [
@@ -5287,7 +5384,7 @@
   "madagascariensis": [
    [
     "madagascari",
-    "madagascar"
+    "madagascari"
    ],
    [
     "ensis",
@@ -5382,6 +5479,12 @@
    [
     "anser",
     "anser"
+   ]
+  ],
+  "minuta": [
+   [
+    "minuta",
+    "minuta"
    ]
   ],
   "modularis": [
@@ -5877,7 +5980,7 @@
   "squamiceps": [
    [
     "squami",
-    "squam"
+    "squami"
    ],
    [
     "ceps",
@@ -6098,6 +6201,83 @@
     "ensis"
    ]
   ]
+ },
+ "whole_names": {
+  "Thalasseus": {
+   "en": "fisherman, from Greek thalassa (sea)",
+   "he": "דייג",
+   "source": "Jobling 2010"
+  },
+  "Aegypius": {
+   "en": "vulture",
+   "he": "נשר",
+   "source": "Jobling 2010"
+  },
+  "Anarhynchus": {
+   "en": "backwards bill (ana + rhynchus)",
+   "he": "מקור הפוך",
+   "source": "Jobling 2010"
+  },
+  "cyaneus": {
+   "en": "dark-blue",
+   "he": "כחול־כהה",
+   "source": "Jobling 2010"
+  },
+  "eremodites": {
+   "en": "desert diver",
+   "he": "צולל־מדבר",
+   "source": "Jobling 2010"
+  },
+  "melanotos": {
+   "en": "black-backed (melas + noton)",
+   "he": "שחור־גב",
+   "source": "Jobling 2010"
+  },
+  "metabates": {
+   "en": "leaper, vaulter",
+   "he": "מקפץ, מדלג",
+   "source": "Jobling 2010"
+  },
+  "monedula": {
+   "en": "jackdaw (money-eater)",
+   "he": "קאק",
+   "source": "Jobling 2010"
+  },
+  "oceanicus": {
+   "en": "oceanic",
+   "he": "אוקיאני",
+   "source": "Jobling 2010"
+  },
+  "phoenicuroides": {
+   "en": "resembling a redstart",
+   "he": "דומה לחכלילית",
+   "source": "Jobling 2010"
+  },
+  "Podiceps": {
+   "en": "rump-foot (podex + pes)",
+   "he": "רגל־שת",
+   "source": "Jobling 2010"
+  },
+  "rufescens": {
+   "en": "reddish",
+   "he": "אדמדם",
+   "source": "Jobling 2010"
+  },
+  "rufina": {
+   "en": "golden-red",
+   "he": "אדמדם־זהוב",
+   "source": "Jobling 2010"
+  },
+  "rufinus": {
+   "en": "golden-red",
+   "he": "אדמדם־זהוב",
+   "source": "Jobling 2010"
+  },
+  "vanellus": {
+   "en": "lapwing (little fan)",
+   "he": "סייפן",
+   "source": "Jobling 2010"
+  }
  },
  "themes": [
   "Colour",

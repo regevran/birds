@@ -65,6 +65,7 @@ KEY_INDEXES = [
     ("φ", "key.index_latin_families"),
     ("μ", "key.index_hebrew_families"),
     ("λ", "key.index_latin_species"),
+    ("σ", "key.index_whole_names"),
     ("ρ", "key.index_elements"),
 ]
 
@@ -599,6 +600,39 @@ def element_index_height(item):
     return ENG_LETTER if item[0] == "letter" else EL_ROW
 
 
+# ---------------------------------------------------------------- whole-name index
+
+WHOLE_ROW = 12.0
+WHOLE_TOP_INSET = 38
+
+
+def whole_index_items(etym, records, species_page):
+    """Alphabetical index of whole names with a lexical meaning."""
+    occ = {}
+    for sp in records:
+        page = species_page.get(sp["latin"])
+        if not page:
+            continue
+        for word in (sp.get("genus", ""), sp.get("epithet", "")):
+            if word and etym.whole_name(word):
+                occ.setdefault(word.lower(), set()).add(page)
+
+    items, letter = [], None
+    for word in sorted(etym.whole_names, key=lambda s: (s.lower(), s)):
+        data = etym.whole_names[word]
+        first = word[0].upper()
+        if first != letter:
+            items.append(("letter", first))
+            letter = first
+        refs = page_ranges(occ.get(word.lower(), set()))
+        items.append(("entry", (word, data["en"], data["he"], refs)))
+    return items
+
+
+def whole_index_height(item):
+    return ENG_LETTER if item[0] == "letter" else WHOLE_ROW
+
+
 # ---------------------------------------------------------------- page furniture
 
 def draw_folio(c, m, pno):
@@ -983,14 +1017,14 @@ def draw_key_page(c, m, etym):
     y = draw_key_block(c, m, T["key.intro_1"], y, size)
     y -= 10
     y = draw_key_block(c, m, T["key.intro_2"], y, size)
-    y -= 10
+    y -= 6
 
     c.setFillColor(ACCENT)
     draw_rich(c, T["key.markers_heading"], 10.5, m.right, y, he_bold=True)
-    y -= 13
+    y -= 10
     c.setFillColor(QUIET)
     draw_rich(c, T["key.markers_intro"], size, m.right, y)
-    y -= size * 1.8
+    y -= size * 1.2
 
     marker_w = 17 * mm
     body_w = m.col_w - marker_w
@@ -1003,17 +1037,17 @@ def draw_key_page(c, m, etym):
         c.setFillColor(QUIET)
         for i, ln in enumerate(lines):
             draw_rich(c, ln, 8.6, m.right - marker_w, y - i * 11.5)
-        y -= max(1, len(lines)) * 11.5 + 5
+        y -= max(1, len(lines)) * 11.5 + 2
 
-    y -= 8
+    y -= 2
     y = draw_key_block(c, m, T["key.markers_note"], y, 8.0, 11.5,
                        text_color=GREY)
 
-    y -= 16
+    y -= 6
     c.setFillColor(ACCENT)
     draw_rich(c, T["key.index_heading_he"], 10.5, m.right, y, he_bold=True)
 
-    y -= 12
+    y -= 8
     y = draw_key_block(c, m, T["key.index_intro"], y, 7.8, 10.6)
     y -= 4
     for greek, key in KEY_INDEXES:
@@ -1095,6 +1129,76 @@ def draw_etym_page(c, m, items, pno):
             c.setStrokeColor(LIGHT_RULE)
             c.setLineWidth(0.3)
             c.line(m.margin_x, cy, x_he, cy)
+    draw_folio(c, m, pno)
+
+
+def draw_whole_index_page(c, m, cols, pno, letter_stack=False):
+    draw_index_marker(c, m, latin_letter_range(cols),
+                      T["whole_index.heading_he"], "σ", slot=5,
+                      rng_font="BirdLatin", rng_rtl=False,
+                      title_font="BirdHebrewBold", title_rtl=True,
+                      letter_stack=letter_stack,
+                      letters=latin_letter_bounds(cols))
+    top = m.page_h - m.margin_top
+    c.setFillColor(ACCENT)
+    draw_rich(c, T["whole_index.heading_he"], 13, m.right, top - 13,
+              he_bold=True)
+
+    x = m.margin_x
+    x_en = x + 38 * mm
+    x_he = m.right - 12 * mm
+    y_head = top - 25
+    c.setFillColor(FAINT)
+    draw_rich(c, T["whole_index.column_word"], 6.4, x, y_head,
+              align="left")
+    draw_rich(c, T["whole_index.column_english"], 6.4, x_en, y_head,
+              align="left")
+    draw_rich(c, T["whole_index.column_hebrew"], 6.4, x_he, y_head,
+              align="right")
+    draw_rich(c, T["whole_index.column_refs"], 6.4, m.right, y_head,
+              align="right")
+    c.setStrokeColor(MID_RULE)
+    c.setLineWidth(0.5)
+    c.line(x, y_head - 4, m.right, y_head - 4)
+
+    cy = top - WHOLE_TOP_INSET
+    for item in cols[0] if cols else []:
+        kind, val = item
+        if kind == "letter":
+            cy -= 3
+            c.setFillColor(ACCENT)
+            c.setFont("BirdLatinBold", 15)
+            c.drawString(x, cy - 12, val)
+            c.setStrokeColor(ACCENT_RULE)
+            c.setLineWidth(0.5)
+            c.line(x, cy - 16, m.right, cy - 16)
+            cy -= ENG_LETTER - 3
+            continue
+
+        word, en, he, refs = val
+        baseline = cy - 8.2
+        c.setFillColor(INK)
+        c.setFont("BirdLatin", 8.8)
+        c.drawString(x, baseline, word)
+
+        size = 7.8
+        avail = x_he - x_en - 4 * mm
+        while size > 5.5 and w(en, "BirdLatin", size) > avail:
+            size -= 0.1
+        c.setFillColor(QUIET)
+        c.setFont("BirdLatin", size)
+        c.drawString(x_en, baseline, en)
+
+        c.setFillColor(QUIET)
+        draw_rich(c, he, 8.2, x_he, baseline)
+
+        if refs:
+            c.setFillColor(QUIET)
+            c.setFont("BirdLatin", 7.6)
+            c.drawRightString(m.right, baseline, refs)
+
+        cy -= WHOLE_ROW
+
     draw_folio(c, m, pno)
 
 
@@ -1430,7 +1534,7 @@ def draw_latin_species_page(c, m, cols, pno, ncols=2, letter_stack=False):
 def draw_element_index_page(c, m, cols, pno, ncols=1, letter_stack=False,
                             first_page=False):
     draw_index_marker(c, m, latin_letter_range(cols),
-                      T["element_index.heading_he"], "ρ", slot=5,
+                      T["element_index.heading_he"], "ρ", slot=6,
                       rng_font="BirdLatin", rng_rtl=False,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
@@ -1548,7 +1652,7 @@ def render(args):
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
@@ -1581,10 +1685,15 @@ def render(args):
                               latin_species_height, ncols=2)
     lat_species_start = heb_fam_start + len(heb_fam_pages)
 
+    whole_cap = (m.page_h - m.margin_top - WHOLE_TOP_INSET) - m.margin_bot
+    whole_items = whole_index_items(etym, records, shifted)
+    whole_pages = flow2(whole_items, whole_cap, whole_index_height, ncols=1)
+    whole_start = lat_species_start + len(lat_species_pages)
+
     el_cap = (m.page_h - m.margin_top - EL_TOP_INSET) - m.margin_bot
     el_items = element_index_items(etym, records, shifted, etym_capacity(m))
     el_pages = flow2(el_items, el_cap, element_index_height, ncols=1)
-    el_start = lat_species_start + len(lat_species_pages)
+    el_start = whole_start + len(whole_pages)
 
     notes_start = el_start + len(el_pages)
     notes_pages = 2
@@ -1599,6 +1708,7 @@ def render(args):
         (T["latin_family_index.heading_he"], lat_fam_start),
         (T["hebrew_family_index.heading_he"], heb_fam_start),
         (T["latin_species_index.heading_he"], lat_species_start),
+        (T["whole_index.heading_he"], whole_start),
         (T["element_index.heading_he"], el_start),
         (T["notes.heading_he"], notes_start),
     ]
@@ -1664,6 +1774,11 @@ def render(args):
                                 letter_stack=True)
         c.showPage()
 
+    for i, cols in enumerate(whole_pages):
+        draw_whole_index_page(c, m, cols, whole_start + i,
+                              letter_stack=True)
+        c.showPage()
+
     for i, cols in enumerate(el_pages):
         draw_element_index_page(c, m, cols, el_start + i,
                                 letter_stack=True, first_page=(i == 0))
@@ -1685,6 +1800,7 @@ def render(args):
           f"+ Latin families {len(lat_fam_pages)} "
           f"+ Hebrew families {len(heb_fam_pages)} "
           f"+ Latin species {len(lat_species_pages)} "
+          f"+ whole names {len(whole_pages)} "
           f"+ elements {len(el_pages)} + notes {notes_pages} "
           f"+ blanks {tail_blank + pad} = {total} pages")
     print(f"  {len(families)} families, {len(records)} species, "
@@ -1705,7 +1821,7 @@ def render_hebrew_preview(args):
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     body, _fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
@@ -1750,7 +1866,7 @@ def render_english_preview(args):
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     body, _fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
@@ -1796,7 +1912,7 @@ def render_families_preview(args):
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
@@ -1853,7 +1969,7 @@ def render_latin_species_preview(args):
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
@@ -1910,7 +2026,7 @@ def render_themes_preview(args, sort_hebrew=True,
     register_fonts()
     m = Metrics(args.base)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     cap = etym_capacity(m)
     pages = flow1(etym_items(etym, sort_hebrew=sort_hebrew), cap, etym_height)
@@ -1938,7 +2054,7 @@ def render_key_preview(args):
     register_fonts()
     m = Metrics(args.base)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     out = os.path.join(os.path.dirname(args.out), "preview-key.pdf")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
@@ -1962,7 +2078,7 @@ def render_elements_preview(args):
     m = Metrics(args.base)
     records, families = load(args.data, args.order_source)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
-                     plain_color=K(1.00))
+                     plain_color=K(1.00), whole_color=K(0.60))
 
     body, fam_page, species_page = paginate_body(m, families)
     n_body = len(body)
@@ -1988,7 +2104,10 @@ def render_elements_preview(args):
     lat_species_start = heb_fam_start + len(heb_fam_pages)
     lat_species_pages = flow2(latin_species_items(records, shifted), cap_h,
                               latin_species_height, ncols=2)
-    el_start = lat_species_start + len(lat_species_pages)
+    whole_cap = (m.page_h - m.margin_top - WHOLE_TOP_INSET) - m.margin_bot
+    whole_pages = flow2(whole_index_items(etym, records, shifted), whole_cap,
+                        whole_index_height, ncols=1)
+    el_start = lat_species_start + len(lat_species_pages) + len(whole_pages)
 
     items = element_index_items(etym, records, shifted, cap)
     el_cap = (m.page_h - m.margin_top - EL_TOP_INSET) - m.margin_bot

@@ -115,9 +115,12 @@ Data — species, names, etymologies and order names — stays in `data/`.
 - **Latin family index, page 66:** three columns.
 - **Hebrew family index, page 67:** three columns.
 - **Latin species index, pages 68–74:** two columns.
-- **Word-element index, pages 75–84:** one column, fixed columns for element,
+- **Whole-name index, page 75:** one column; σ marks whole, non-decomposed
+  names with a known meaning. A light superscript `*` after a whole name in
+  the list points here.
+- **Word-element index, pages 76–85:** one column, fixed columns for element,
   themed page, Hebrew meaning, group and occurrence pages.
-- **Notes, pages 85–86**, followed by two blank note pages and three printer
+- **Notes, pages 86–87**, followed by two blank note pages and two printer
   blanks to reach 96 pages.
 
 ## Design decisions
@@ -126,7 +129,7 @@ Data — species, names, etymologies and order names — stays in `data/`.
   of the old A4 two-column sheets, so the type size carries over unchanged.
 - **Two orders, on purpose.** The list follows the taxonomic sequence of the
   Clements Checklist (2022), so related families sit together and the order
-  carries information. The six indexes are alphabetical, because a printed
+  carries information. The seven indexes are alphabetical, because a printed
   book is faster to search by name. The key page explains this division; the
   copyright page names the sequence source.
 - **Three fields per row.** Latin, English, Hebrew. English starts at a fixed

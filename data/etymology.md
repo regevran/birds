@@ -3,8 +3,11 @@
 This file is the source of truth for how Latin names are split.
 
 Words are written `word = split`. A middle dot `·` marks a morpheme
-boundary; a word with no dot is deliberately whole. Every segment must
-match a form in the Elements table at the bottom.
+boundary; a word with no dot is deliberately whole, unless the word itself
+is exactly a form in the Elements table — then it is treated as a
+single-part split and set grey. Every segment must match a form in the
+Elements table at the bottom. The Elements table lists only forms that
+occur in a name in this book; unused dictionary variants are not kept.
 
 Add `# checked` to a whole-word line to say "I looked at this and it
 is not decomposable"; the build reports any whole word that ends or
@@ -787,6 +790,27 @@ xanthopygos = xantho·pygos
 yelkouan = yelkouan
 zeylonensis = zeylon·ensis
 
+## Whole names
+
+`word | English | Hebrew | source`
+The word is a whole, non-decomposed name that still has a lexical meaning.
+
+Thalasseus | fisherman, from Greek thalassa (sea) | דייג | Jobling 2010
+Aegypius | vulture | נשר | Jobling 2010
+Anarhynchus | backwards bill (ana + rhynchus) | מקור הפוך | Jobling 2010
+cyaneus | dark-blue | כחול־כהה | Jobling 2010
+eremodites | desert diver | צולל־מדבר | Jobling 2010
+melanotos | black-backed (melas + noton) | שחור־גב | Jobling 2010
+metabates | leaper, vaulter | מקפץ, מדלג | Jobling 2010
+monedula | jackdaw (money-eater) | קאק | Jobling 2010
+oceanicus | oceanic | אוקיאני | Jobling 2010
+phoenicuroides | resembling a redstart | דומה לחכלילית | Jobling 2010
+Podiceps | rump-foot (podex + pes) | רגל־שת | Jobling 2010
+rufescens | reddish | אדמדם | Jobling 2010
+rufina | golden-red | אדמדם־זהוב | Jobling 2010
+rufinus | golden-red | אדמדם־זהוב | Jobling 2010
+vanellus | lapwing (little fan) | סייפן | Jobling 2010
+
 ## Elements
 
 `forms | English | Hebrew | origin | theme`
@@ -938,7 +962,7 @@ longi | long | ארוך | Latin | Size
 lopha | crest | ציצית | Greek | Body
 luscini | nightingale | זמיר | Latin | Birds
 macro | long | ארוך | Greek | Size
-macul, maculata | spot | כתם | Latin | Colour
+maculata | spot | כתם | Latin | Colour
 manes | fond of | חובב | Greek | Behaviour
 Marmaro | marble | שיש | Greek | Colour
 mega | great | גדול | Greek | Size
@@ -965,7 +989,7 @@ notus | back | גב | Greek | Body
 Nycti | night | לילה | Greek | Behaviour
 Ocean | ocean | אוקיינוס | Greek | Where it lives
 ochro, ochr | ochre | אוכרה | Greek | Colour
-oedi | swollen | נפוח | Greek | Body
+oedi | swollen | נפוח | Greek | Shape
 oides | resembling | דומה ל | Greek | Word-building
 ola | little | הקטנה | Latin | Word-building
 Onycho | claw | טופר | Greek | Body
@@ -1020,7 +1044,7 @@ roseo | pink | ורוד | Latin | Colour
 rostris, rostra, Rostrat | bill | מקור | Latin | Body
 rubec | red | אדום | Latin | Colour
 rubi | bramble | פטל | Latin | Where it lives
-ruf, rufi, rufa | reddish | אדמדם | Latin | Colour
+ruf, rufi | reddish | אדמדם | Latin | Colour
 rusti | countryside | כפר | Latin | Where it lives
 Saxi, sax | rock | סלע | Latin | Where it lives
 schoeno | reed | קנה | Greek | Where it lives
@@ -1031,7 +1055,7 @@ serri | saw | מסור | Latin | Shape
 Spilo | spot | כתם | Greek | Colour
 spiza | finch | פרושית | Greek | Birds
 spodo | ash | אפר | Greek | Colour
-squam, squami | scale | קשקש | Latin | Body
+squami | scale | קשקש | Latin | Body
 sten | narrow | צר | Greek | Size
 Stern | tern | שחפית | Latin | Birds
 stomus | mouth | פה | Greek | Body
@@ -1060,7 +1084,7 @@ bengal, benghal | Bengal | בנגל | place name | Places
 cap | the Cape | כף התקווה הטובה | place name | Places
 chin | China | סין | place name | Places
 hispaniol | Hispaniola | היספניולה | place name | Places
-madagascar, madagascari | Madagascar | מדגסקר | place name | Places
+madagascari | Madagascar | מדגסקר | place name | Places
 nipal | Nepal | נפאל | place name | Places
 sandvic | the Sandwich Islands | איי סנדוויץ | place name | Places
 senegal | Senegal | סנגל | place name | Places
@@ -1084,7 +1108,7 @@ penn | feather | נוצה | Latin | Body
 spin | thorn | קוץ | Latin | Body
 torqu | collar | צווארון | Latin | Body
 calig | boot | מגף | Latin | Body
-aprica, apric | sunny | שטוף שמש | Latin | Qualities
+apric | sunny | שטוף שמש | Latin | Qualities
 fluvi | river | נהר | Latin | Where it lives
 lin | flax | פשתן | Latin | Food
 mur | wall | חומה | Latin | Where it lives

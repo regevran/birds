@@ -7,8 +7,8 @@
    - A5, 148 × 210 mm.
    - **Black only** (K-only CMYK); print on a B/W device.
    - Single pages in reading order, no bleed.
-   - Page 1 is the title page; the last five pages are intentionally blank
-     (two note blanks and three printer blanks).
+   - Page 1 is the title page; the last four pages are intentionally blank
+     (two note blanks and two printer blanks).
 
 2. **`out/book/cover_spread.pdf`** — cover.
    - One page, 307.28 × 216 mm including 3 mm bleed.
@@ -28,7 +28,7 @@ is not written by the normal build.
 ## Specification
 
 - **Trim:** A5, 148 × 210 mm.
-- **Extent:** 96 pages, including two blank note pages and three printer blanks
+- **Extent:** 96 pages, including two blank note pages and two printer blanks
   at the end. Do not add or remove pages.
 - **Binding:** perfect bound (paperback), softcover, spine 5.28 mm, no spine text.
 - **Interior paper:** 90 gsm uncoated book paper. White gives the best contrast for the K-only text; cream/ivory is acceptable. Duplex. Grain parallel to the spine.
@@ -75,7 +75,7 @@ python3 book/make_cover.py --pages 96 --caliper 0.12
 
 ## Print notes
 
-- Keep the two blank note pages and the three printer blanks at the end. They
+- Keep the two blank note pages and the two printer blanks at the end. They
   are part of the 96-page count and the 5.28 mm spine.
 - The interior side margins are 13 mm and the top margin 14 mm. Check the gutter in the proof. If the text feels tight at the binding edge, tell me before the full run; increasing the inner margin means repaginating.
 - The cover is the outside only; the inside cover is unprinted. If your workflow needs a 4-page cover file (outside plus a blank inside), ask me.

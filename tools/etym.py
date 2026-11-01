@@ -24,15 +24,18 @@ ENTRY_H = 11.2
 
 class Etymology:
     def __init__(self, path="data/etymology.json", part_color=None,
-                 dot_color=None, plain_color=None):
+                 dot_color=None, plain_color=None, whole_color=None):
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
         self.elements = data["elements"]
         self.splits = data["splits"]
+        self.whole_names = data.get("whole_names", {})
+        self.whole_by_lower = {w.lower(): v for w, v in self.whole_names.items()}
         self.themes = data.get("themes", [])
         self.part_color = part_color or PART_GREY
         self.dot_color = dot_color or DOT_GREY
         self.plain_color = plain_color or HexColor("#000000")
+        self.whole_color = whole_color or HexColor("#7A7A7A")
 
     # ---------------------------------------------------------------- widths
 
@@ -42,10 +45,19 @@ class Etymology:
     def _dot_adv(self, size, font):
         return pdfmetrics.stringWidth("M", font, size) * 0.72
 
+    def _whole_adv(self, size, font):
+        return pdfmetrics.stringWidth("*", font, size * 0.56) + 0.6
+
+    def whole_name(self, word):
+        return self.whole_by_lower.get(word.lower())
+
     def word_width(self, word, size, font="BirdLatin"):
         parts = self.splits.get(word)
         if not parts:
-            return pdfmetrics.stringWidth(word, font, size)
+            width = pdfmetrics.stringWidth(word, font, size)
+            if self.whole_name(word):
+                width += self._whole_adv(size, font)
+            return width
         return (sum(pdfmetrics.stringWidth(s, font, size) for s, _ in parts)
                 + (len(parts) - 1) * self._dot_adv(size, font))
 
@@ -67,7 +79,14 @@ class Etymology:
             c.setFillColor(self.plain_color)
             c.setFont("BirdLatin", size)
             c.drawString(x, y, word)
-            return x + pdfmetrics.stringWidth(word, "BirdLatin", size)
+            width = pdfmetrics.stringWidth(word, "BirdLatin", size)
+            if self.whole_name(word):
+                mark_size = size * 0.56
+                c.setFillColor(self.whole_color)
+                c.setFont("BirdLatin", mark_size)
+                c.drawString(x + width + 0.6, y + size * 0.42, "*")
+                return x + width + self._whole_adv(size, "BirdLatin")
+            return x + width
 
         c.setFont("BirdLatin", size)
         for i, (surface, _) in enumerate(parts):
@@ -94,34 +113,29 @@ class Etymology:
         Every form gets its own alphabetically placed entry, so a reader who
         sees `phalus` can look up `phalus` rather than having to guess that the
         entry is filed under `cephalus`.  The hyphen shows where that particular
-        form attaches.
+        form attaches.  Only forms that occur in a name in this book are
+        listed; the build rejects any unused form in the source table.
         """
         usage = {}
-        elem_pos = {}
+        used = set()
         for word, parts in self.splits.items():
             for i, (surface, eid) in enumerate(parts):
                 key = (eid, surface.lower())
+                used.add(key)
                 u = usage.setdefault(key, [0, 0])
                 if i == 0:
                     u[0] += 1
                 if i == len(parts) - 1:
                     u[1] += 1
-                ep = elem_pos.setdefault(eid, [0, 0])
-                if i == 0:
-                    ep[0] += 1
-                if i == len(parts) - 1:
-                    ep[1] += 1
 
         rows, seen = [], set()
         for eid, e in self.elements.items():
             for form in e.get("forms", [e["display"]]):
                 form = form.lower()
-                if (form, e["en"]) in seen:
+                if (eid, form) not in used or (form, e["en"]) in seen:
                     continue
                 seen.add((form, e["en"]))
                 first, last = usage.get((eid, form), (0, 0))
-                if not first and not last:          # form not used in a split
-                    first, last = elem_pos.get(eid, (0, 0))
                 shown = form
                 if first and not last:
                     shown += "-"

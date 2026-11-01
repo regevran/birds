@@ -90,6 +90,7 @@ intro_2: |
     - חלק אפור בשם לטיני מופיע במרכיבי השמות
     - נקודה מוגבהת מסמנת את החיבור
     - במפתח, קו מפריד בתחילה מסמן מרכיב שמסיים שם, וקו מפריד בסוף מסמן מרכיב שמתחיל אותו
+    - כוכבית קטנה אחרי שם שלם מפנה למפתח שמות שלמים
 markers_heading: סימוני מינים
 markers_intro: סימונים מופיעים אחרי השם העברי, בסוגריים:
 legend_a: מין שמופיע בישראל לעיתים רחוקות או במקרה
@@ -110,7 +111,7 @@ markers_note: |
 index_heading_he: מפתחות
 index_intro: |
     במפתחות השמות והמשפחות, המספר הוא העמוד ברשימה.
-    בסוף הספר שישה מפתחות אלפביתיים. האות היוונית שבשפת כל עמוד היא
+    בסוף הספר שבעה מפתחות אלפביתיים. האות היוונית שבשפת כל עמוד היא
     תג המפתח; מתחתיה מופיעות האות הראשונה והאחרונה באותו עמוד.
 index_hebrew_species: שמות עבריים (אלפא — **א**לף־בית)
 index_english_species: שמות אנגליים (אתא — **א**נגלית)
@@ -118,6 +119,7 @@ index_latin_families: משפחות לטיניות (פי — **f**amily)
 index_hebrew_families: משפחות עבריות (מו — **מ**שפחה)
 index_latin_species: שמות לטיניים (למבדא — **ל**טיני)
 index_elements: מרכיבי שמות (רו — **ר**כיבים)
+index_whole_names: שמות שלמים (סיגמא — **s**ynolon, שלם)
 
 ## hebrew_index
 # Header of the Hebrew name index.
@@ -162,6 +164,15 @@ column_meaning: משמעות
 column_group: קבוצה
 column_refs: עמודי רשימה
 
+## whole_index
+# Header of the alphabetical index of whole names with a known meaning.
+
+heading_he: מפתח שמות שלמים
+column_word: שם
+column_english: אנגלית
+column_hebrew: עברית
+column_refs: עמודים
+
 ## themes
 # Theme headings for the element index, keyed by the English names in
 # data/etymology.json.
@@ -198,7 +209,7 @@ Qualities: תכונות
 Places: מקומות
 
 ## notes
-# The ruled notes page (page 66) at the end of the book.
+# The ruled notes page at the end of the book.
 
 heading_he: רשימות
 

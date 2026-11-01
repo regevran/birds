@@ -7,9 +7,11 @@ dataset unless:
   1. every genus and epithet in the species data appears exactly once;
   2. every split reassembles to the exact name;
   3. every segment of a split matches a form in the Elements table;
-  4. no whole word begins or ends with a known element unless the line is
-     marked `# checked` (this is what catches a missed -ensis);
-  5. every element has a valid theme and is actually used.
+  4. no whole word begins or ends with a known element unless it is exactly a
+     form (which is auto-split) or the line is marked `# checked` (this is what
+     catches a missed -ensis);
+  5. every element has a valid theme and is used, and every listed form is
+     used.
 
 Run:
     python3 tools/build_etymology.py            # build
@@ -32,6 +34,7 @@ THEME_ORDER = [
 def parse_md(path):
     words = []          # (word, split, checked, lineno)
     elements = []       # (forms, en, he, origin, theme, lineno)
+    whole_names = []    # (word, en, he, source, lineno)
     section = None
     for n, raw in enumerate(open(path, encoding="utf-8"), start=1):
         line = raw.strip()
@@ -55,7 +58,14 @@ def parse_md(path):
             if len(f) != 5:
                 raise SystemExit(f"line {n}: expected 5 fields, got {len(f)}")
             elements.append((f[0], f[1], f[2], f[3], f[4], n))
-    return words, elements
+        elif section == "Whole names":
+            if "|" not in body:
+                continue
+            f = [x.strip() for x in body.split("|")]
+            if len(f) != 4:
+                raise SystemExit(f"line {n}: expected 4 fields, got {len(f)}")
+            whole_names.append((f[0], f[1], f[2], f[3], n))
+    return words, elements, whole_names
 
 
 def main():
@@ -69,7 +79,7 @@ def main():
     epithets = {r["epithet"] for r in records}
     known = genera | epithets
 
-    words, elements = parse_md(MD)
+    words, elements, whole_names = parse_md(MD)
     errors = []
     candidates = []
 
@@ -115,6 +125,10 @@ def main():
                                   f"matches no element form")
                 parts.append([seg, eid])
             splits[word] = parts
+        elif word.lower() in form_map:
+            # A whole word that is exactly an element form is still a split:
+            # it must be set grey and indexed like any other occurrence.
+            splits[word] = [[word, form_map[word.lower()]]]
         else:
             splits[word] = None
             if not comment.startswith("checked"):
@@ -126,6 +140,28 @@ def main():
     used = {eid for parts in splits.values() if parts for _, eid in parts}
     for eid in sorted(elem.keys() - used):
         errors.append(f"element never used: {eid}")
+    used_forms = {(seg.lower(), eid)
+                  for parts in splits.values() if parts
+                  for seg, eid in parts}
+    for eid, e in elem.items():
+        for form in e["forms"]:
+            if (form, eid) not in used_forms:
+                errors.append(f"form never used: {form!r} ({eid})")
+
+    whole = {}
+    for word, en, he, source, n in whole_names:
+        if word not in known:
+            errors.append(f"line {n}: whole name {word!r} is not in the "
+                          f"species data")
+            continue
+        if word in whole:
+            errors.append(f"line {n}: whole name {word!r} is duplicated")
+        if splits.get(word) is not None:
+            errors.append(f"line {n}: whole name {word!r} is already split")
+        if not en or not he or not source:
+            errors.append(f"line {n}: whole name {word!r} needs English, "
+                          f"Hebrew and source")
+        whole[word] = {"en": en, "he": he, "source": source}
 
     # ---- missed-split scan ---------------------------------------------
     forms_by_len = sorted(form_map, key=len, reverse=True)
@@ -163,6 +199,7 @@ def main():
         return
     if args.check:
         print("No missed-split candidates: every whole word is accounted for.")
+        return
 
     payload = {
         "elements": {eid: {"en": e["en"], "he": e["he"],
@@ -170,6 +207,7 @@ def main():
                            "display": e["display"], "forms": e["forms"]}
                      for eid, e in elem.items()},
         "splits": {w: p for w, p in splits.items() if p},
+        "whole_names": whole,
         "themes": THEME_ORDER,
     }
     with open("data/etymology.json", "w", encoding="utf-8") as f:
@@ -178,7 +216,8 @@ def main():
 
     print(f"Wrote data/etymology.json")
     print(f"  {len(elem)} elements, {len(payload['splits'])} split words, "
-          f"{len(words) - len(payload['splits'])} whole")
+          f"{len(words) - len(payload['splits'])} whole, "
+          f"{len(whole)} whole-name entries")
     print(f"  coverage: {len(seen)} words, all present exactly once")
 
 

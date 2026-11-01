@@ -7,7 +7,7 @@ Orientation notes for future sessions. Read this before changing the A5 book.
 - The previous printed edition was 72 pages, perfect bound, A5 148 × 210 mm;
   five copies were printed.
 - The current assembled interior is 96 pages: front matter, themed elements,
-  species list, six indexes, two notes pages and five blanks. The cover has
+  species list, seven indexes, two notes pages and four blanks. The cover has
   been rebuilt for the 5.28 mm spine.
 - The interior is **K-only** (C=M=Y=0) and the logo is grayscale. The cover is
   full colour; colour inside was too expensive.
@@ -65,7 +65,7 @@ python3 book/make_pocket.py --preview-hebrew --hebrew-columns 2
 python3 book/make_pocket.py --preview-english     # 2 columns, 59–65
 python3 book/make_pocket.py --preview-families    # Latin 66, Hebrew 67
 python3 book/make_pocket.py --preview-latin-species  # 2 columns, 68–74
-python3 book/make_pocket.py --preview-elements    # 1 column, 75–84
+python3 book/make_pocket.py --preview-elements    # 1 column, 76–85
 ```
 
 `pdfinfo`/`pdfunite` come from Poppler. `gs -sDEVICE=inkcov` is used to check
@@ -81,7 +81,8 @@ Outputs are in `out/book/`. Previews are proofs, not print files.
   an index. Its title is `מרכיבי השמות לפי קבוצות`.
 - Species list: Arabic **8–53**.
 - Indexes: Arabic, in the order below.
-- Notes: pages 85–86, then two blank note pages and printer padding to 96.
+- Whole names: page 75.
+- Notes: pages 86–87, then two blank note pages and printer padding to 96.
 - Themes are sorted by Hebrew meaning; each line merges every Latin form that
   shares one Hebrew meaning. The `--preview-themes-hebrew` output is the same
   setting as the book.
@@ -97,10 +98,11 @@ English species       7    -> 59–65
 Latin families        1    -> 66
 Hebrew families       1    -> 67
 Latin species         7    -> 68–74
-word elements         10   -> 75–84
-notes                 2    -> 85–86
-blank notes           2    -> 87–88
-padding               3    -> 89–91
+whole names           1    -> 75
+word elements         10   -> 76–85
+notes                 2    -> 86–87
+blank notes           2    -> 88–89
+padding               2    -> 90–91
 total                      -> 96 pages
 ```
 
@@ -128,7 +130,8 @@ Order after the species list:
 | Latin families | φ | 3 | Latin family + refs | assembled 66 |
 | Hebrew families | μ | 3 | Hebrew family + refs | assembled 67 |
 | Latin species | λ | 2 | Latin binomial + refs | assembled 68–74 |
-| Word elements | ρ | 1 | element + page + Hebrew + group + refs | assembled 75–84 |
+| Whole names | σ | 1 | whole name + gloss + refs | assembled 75 |
+| Word elements | ρ | 1 | element + page + Hebrew + group + refs | assembled 76–85 |
 
 - μ is provisional (mnemonic: *mishpacha*). Easy to change.
 - English is two columns because long names do not fit three: at 8.8 pt only
@@ -139,8 +142,9 @@ Order after the species list:
 - Latin and Hebrew family indexes are deliberately **separate**: a mixed
   Latin+Hebrew family row is data, not an index. Separate also makes three
   columns work; each family index is one page.
-- Indexes are pure: name + page reference only. Do not add explanations or
-  translations that belong to the data.
+- Name indexes and the word-element index are pure: name + page reference
+  only. The whole-name index is the one exception: it is a small glossary of
+  non-decomposed names with a gloss and its source.
 - References point to the first page of a family/species in the list
   (8–53).
 - Letter headings repeat at the top of each column/page. The box shows the
@@ -148,7 +152,7 @@ Order after the species list:
 - Word-element entries use the agreed format **glossary page first, then the
   list occurrence pages in parentheses**. The themed list of elements is
   content, separate from this index.
-- The element index is one column and ten pages (75–84). The fixed row is
+- The element index is one column and ten pages (76–85). The fixed row is
   Latin element (first letter aligned, leading hyphen hanging) · themed page ·
   Hebrew meaning · short group label · occurrence pages. Consecutive pages
   are compressed into ranges (`19–21`). Column titles run on every page:
@@ -172,14 +176,15 @@ Order after the species list:
 ## How to read this book
 
 The key page (v) is organized under `סדר`, `סימונים`, `סימוני מינים` and
-`מפתחות`. It carries the six-index order, the data-versus-index distinction
+`מפתחות`. It carries the seven-index order, the data-versus-index distinction
 and the grouped Latin forms. A short `רשימת חלופות` section after the species
 markers explains that each line in the themed section gathers all the Latin
-forms of one Hebrew meaning. The Greek
+forms of one Hebrew meaning; the `סימונים` block explains the small
+asterisk after a whole name. The Greek
 letter in the margin is described as the index tag, with the page's first and
 last letters below it. Each index row carries its mnemonic in parentheses —
-אלפא, אתא, פי, מו, למבדא, רו — with the initial of the matching word bolded
-(אלף־בית, אנגלית, family, משפחה, לטינית, רכיבים). The old taxonomic note was
+אלפא, אתא, פי, מו, למבדא, סיגמא, רו — with the initial of the matching word bolded
+(אלף־בית, אנגלית, family, משפחה, לטינית, שלם, רכיבים). The old taxonomic note was
 condensed into the opening section; the Clements source remains on the
 copyright page.
 
@@ -189,7 +194,7 @@ One box per index, not a wide range box:
 
 - **19 mm tall × 4.2 mm wide**, left fore-edge, 5 mm inside the trim.
 - One **20 mm slot** per index: α at the top, each following marker 20 mm
-  lower. Six indexes fit in 120 mm.
+  lower. Seven indexes fit in 140 mm.
 - Contents of the box: Greek letter at the top, a small gap, then the page's
   first and last letter in single letters (e.g. η / S / Z). If the page has one
   letter, it appears once.
@@ -230,6 +235,10 @@ One box per index, not a wide range box:
 - The old printed book tried to use a non-alphabetical list as an index; it did
   not work. Indexes must be alphabetical and pure. The themed element list is
   content and stays separate from the element index.
+- A whole name that is exactly an element form (e.g. `alba`, `Anser`) is still
+  a split and is set grey; exact matches were previously skipped and printed
+  black. The source table now keeps only forms that occur in a name, and the
+  build rejects unused forms; `Etymology.form_rows()` filters as a guard.
 - Full-page-per-letter pagination is not acceptable: it wastes pages and
   creates many partial pages. Let large letters split; keep the marker simple.
 - A combined Latin+Hebrew family row needed two columns because the row reached
