@@ -10,11 +10,18 @@
    - Page 1 is the title page; the last four pages are intentionally blank
      (two note blanks and two printer blanks).
 
-2. **`out/book/cover_spread.pdf`** — cover.
+2. **`out/book/cover_spread.pdf`** — cover, as one spread.
    - One page, 307.28 × 216 mm including 3 mm bleed.
    - Back + spine + front, outside only.
    - Spine 5.28 mm.
    - **Full colour.**
+
+   If the shop prefers two separate cover panels, use:
+
+   - **`out/book/cover_front_print.pdf`** — front only.
+   - **`out/book/cover_back_print.pdf`** — back only.
+   - Each is 154 × 216 mm including 3 mm bleed, full colour, with **no spine
+     band and no brown centre part**. Spine remains 5.28 mm.
 
 If the shop asks for a single file in reading order, run `./render.sh
 --one-file`. It writes `out/book/israel_birds_one_file.pdf`: 98 A5 pages —
@@ -34,9 +41,10 @@ is not written by the normal build.
 - **Interior paper:** 90 gsm uncoated book paper. White gives the best contrast for the K-only text; cream/ivory is acceptable. Duplex. Grain parallel to the spine.
 - **Cover paper:** 250 gsm white matte/silk card. 300 gsm is possible if the binder prefers it, but 250 gsm is easier to score at this spine. Print the outside only. Matte lamination outside recommended.
 - **Colour:** interior **black only** — the PDF is K-only CMYK (C=M=Y=0), so print it on a B/W device; do not run it as colour. The cover is **full colour** and the PDF is RGB; convert it to CMYK with the profile for the chosen stock and provide a proof.
-- **Cover press:** the cover sheet is 307.28 mm wide, so the press sheet must be
-  at least 308 mm wide. SRA3 (320 × 450 mm) works; A3 (297 mm) and 12 × 18 in
-  (304.8 mm) are too narrow. Print at 100%; do not scale or mirror.
+- **Cover press:** the full spread is 307.28 mm wide, so its press sheet must
+  be at least 308 mm wide. SRA3 (320 × 450 mm) works; A3 (297 mm) and
+  12 × 18 in (304.8 mm) are too narrow. The split panels are 154 × 216 mm
+  each. Print at 100%; do not scale or mirror.
 - **Cover orientation:** back on the left, spine in the middle, front on the right, as supplied.
 - **Fonts:** embedded; nothing to install.
 - **Logo:** 869–1412 ppi, transparent background. The interior uses a grayscale copy; the cover logo is colour. If your RIP does not handle PDF transparency, ask for a flattened version.
@@ -97,6 +105,7 @@ Please quote and print this A5 perfect-bound paperback:
 
  - **Interior:** `israel_birds_pocket.pdf` — 96 pages, A5 148 × 210 mm, 90 gsm uncoated white (cream acceptable), duplex, **black only**.
  - **Cover:** `cover_spread.pdf` — 307.28 × 216 mm including 3 mm bleed, spine 5.28 mm, 250 gsm white matte/silk, matte lamination outside, **full colour**.
+   - If you prefer separate panels: `cover_front_print.pdf` and `cover_back_print.pdf`, each 154 × 216 mm with 3 mm bleed, no spine band.
  - Perfect bound, no spine text. Grain parallel to the spine. Please provide a physical proof.
  - The cover needs SRA3 or larger (A3 is too narrow). Print at 100%; do not scale or mirror.
  - If you use a different paper, please tell me its caliper before printing; the spine must be recalculated, not scaled.

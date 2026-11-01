@@ -50,10 +50,15 @@ Outputs:
 |---|---|
 | `out/book/israel_birds_pocket.pdf` | interior, A5, 96 pages, numbered from the themed-element pages |
 | `out/book/cover_spread.pdf` | back + spine + front, spine computed from the interior |
+| `out/book/cover_front_print.pdf` | front-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
+| `out/book/cover_back_print.pdf` | back-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
 | `out/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 98 pages |
 
 The one-file sequence uses A5 trim cover panels without bleed, so every page
 is the same size; the print-ready cover with bleed is still `cover_spread.pdf`.
+For a shop that wants the cover split, run `./render.sh --split` or
+`python3 book/make_cover.py --split`; it writes the two 154 × 216 mm print
+panels with no spine band.
 
 The front panel alone is a proof, not a build artifact: write it on demand
 with `python3 book/make_cover.py --front-only` (it lands in

@@ -118,6 +118,9 @@ formula is `(pages / 2) × 0.11 mm`; 96 pages give 5.28 mm.
 - Author in Hebrew on the front. Back cover has Hebrew and Latin copy.
 - The cover reads the interior page count and computes the spine; rebuild it
   after the interior is final.
+- For a bindery that wants two cover files, `--split` writes
+  `cover_front_print.pdf` and `cover_back_print.pdf`: 154 × 216 mm with 3 mm
+  bleed, no spine band. The spread remains the primary cover file.
 
 ## Index system
 

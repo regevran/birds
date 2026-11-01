@@ -26,6 +26,9 @@ Build the A5 pocket edition (interior + cover) into out/book/.
   render.sh --cover-only     cover only, from the existing interior
   render.sh --one-file       front cover + interior + back cover, one PDF
                              (out/book/israel_birds_one_file.pdf, all A5)
+  render.sh --split          cover as two print panels, 154 x 216 mm
+                             (out/book/cover_front_print.pdf,
+                              out/book/cover_back_print.pdf)
 
 Options passed to the builders:
   --base PT      interior base type size (default 10)
@@ -58,6 +61,10 @@ while (($#)); do
             ;;
         --one-file)
             one_file=1
+            shift
+            ;;
+        --split)
+            cover_args+=("--split")
             shift
             ;;
         --base)

@@ -12,6 +12,8 @@ columns of the bird row.  There are no invented equals signs.
 
 Output (3 mm bleed):
   out/book/cover_spread.pdf      (back + spine + front)
+  out/book/cover_front_print.pdf (front only, no spine, --split)
+  out/book/cover_back_print.pdf  (back only, no spine, --split)
 
 ``--front-only`` writes the front panel alone to
 out/book/cover_front_draft.pdf as a proof; the normal build does not.
@@ -342,6 +344,9 @@ def main():
     ap.add_argument("--panels", action="store_true",
                     help="also write A5 trim panels cover_front.pdf and "
                          "cover_back.pdf for a single-file sequence")
+    ap.add_argument("--split", action="store_true",
+                    help="write separate print-ready front and back panels "
+                         "(154 x 216 mm with 3 mm bleed, no spine)")
     args = ap.parse_args()
 
     register()
@@ -364,6 +369,25 @@ def main():
             c.showPage()
             c.save()
             print(f"Wrote {path}  (A5 trim, no bleed)")
+
+    # Separate print panels: trim + 3 mm bleed, no spine band.
+    if args.split:
+        pw, ph = TRIM_W + 2 * BLEED, TRIM_H + 2 * BLEED
+        for name, draw, title in (
+                ("cover_front_print.pdf", draw_front,
+                 "Birds of Israel — front cover, print panel"),
+                ("cover_back_print.pdf", draw_back,
+                 "Birds of Israel — back cover, print panel")):
+            path = os.path.join(args.out, name)
+            c = canvas.Canvas(path, pagesize=(pw, ph),
+                              initialFontName="BirdLatin", initialFontSize=10)
+            c.setTitle(title)
+            c.setAuthor(AUTHOR)
+            draw(c, BLEED, BLEED, etym)
+            c.showPage()
+            c.save()
+            print(f"Wrote {path}  ({pw / mm:.0f} x {ph / mm:.0f} mm, "
+                  f"3 mm bleed, no spine)")
 
     # Front panel alone, trim + bleed — a proof, written only when asked.
     if args.front_only:
