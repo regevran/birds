@@ -1,8 +1,10 @@
 """Merge the parsed list with Hebrew names, flag anything that looks untrustworthy."""
 import json, re, collections
 
-raw = json.load(open("data/israel_birds_raw.json", encoding="utf-8"))
-he = json.load(open("data/hebrew_names.json", encoding="utf-8"))
+import data_paths
+
+raw = json.load(open(data_paths.BIRDS_RAW, encoding="utf-8"))
+he = json.load(open(data_paths.HEBREW_NAMES, encoding="utf-8"))
 
 SUSPECT = re.compile(r"[()\[\]]|סוג|משפחה|שבט")
 merged, flags = [], collections.Counter()
@@ -26,7 +28,7 @@ for r in raw:
     r["flags"] = kinds
     merged.append(r)
 
-json.dump(merged, open("data/israel_birds_merged.json", "w", encoding="utf-8"),
+json.dump(merged, open(data_paths.BIRDS_MERGED, "w", encoding="utf-8"),
           ensure_ascii=False, indent=1)
 
 print("total           :", len(merged))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Etymology-aware rendering helpers.
 
-A word that appears in data/etymology.json is printed as its parts, separated
+A word that appears in data/out/etymology.json is printed as its parts, separated
 by a raised dot and set in grey: grey means "this part has an entry in the
 index at the back".  A word with no entry is printed whole and black, so the
 reader can tell at a glance whether there is anything to look up.
@@ -10,6 +10,8 @@ Nothing here draws a page; make_book_family.py calls into it.
 """
 
 import json
+
+import book_paths
 
 from reportlab.lib.colors import HexColor
 from reportlab.pdfbase import pdfmetrics
@@ -23,7 +25,7 @@ ENTRY_H = 11.2
 
 
 class Etymology:
-    def __init__(self, path="data/etymology.json", part_color=None,
+    def __init__(self, path=book_paths.ETYMOLOGY, part_color=None,
                  dot_color=None, plain_color=None, whole_color=None):
         with open(path, encoding="utf-8") as f:
             data = json.load(f)

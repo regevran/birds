@@ -13,7 +13,7 @@ Split notation used in the data below:
     "Erithacus"        no |: the name is not decomposable, printed whole
 
 Run:
-    python3 tools/etymology_demo.py --out out/etymology_layout_demo.pdf
+    python3 book/src/etymology_demo.py --out build/book/etymology_layout_demo.pdf
 """
 
 import argparse
@@ -21,6 +21,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import book_paths
 
 from make_book import (BLACK, FAINT, GREY, LIGHT_RULE, MID_RULE,
                        get_display, hebrew_text, register_fonts, wrap_words, w)
@@ -434,7 +436,7 @@ def page_two(c, total):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="out/etymology_layout_demo.pdf")
+    ap.add_argument("--out", default=book_paths.DEFAULT_DEMO)
     args = ap.parse_args()
 
     register_fonts()

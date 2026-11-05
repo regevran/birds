@@ -1,8 +1,10 @@
 """Assemble the final dataset: species + Hebrew names + Hebrew family names."""
 import json, collections
 
-merged = json.load(open("data/israel_birds_merged.json", encoding="utf-8"))
-fam_he = json.load(open("data/family_hebrew.json", encoding="utf-8"))
+import data_paths
+
+merged = json.load(open(data_paths.BIRDS_MERGED, encoding="utf-8"))
+fam_he = json.load(open(data_paths.FAMILY_HEBREW, encoding="utf-8"))
 
 # The Hebrew Wikipedia article for a family sometimes redirects to the *genus*
 # article (e.g. Phylloscopidae -> עלווית = Phylloscopus), which is not a family
@@ -49,7 +51,7 @@ for r in merged:
     out.append(rec)
 
 out.sort(key=lambda r: (r["genus"], r["latin"]))
-json.dump(out, open("data/israel_birds_final.json", "w", encoding="utf-8"),
+json.dump(out, open(data_paths.BIRDS_FINAL, "w", encoding="utf-8"),
           ensure_ascii=False, indent=1)
 
 print("species           :", len(out))

@@ -1,2 +1,16 @@
-out/
+# Disposable CMake build tree
+/build/
+
+# Installed book PDFs (regenerated)
+/book/out/
+
+# Python cache
 __pycache__/
+
+# Trainer progress transient files
+/learn/data/progress/**/*.tmp
+/learn/data/progress/**/.lock
+
+# Editor / tags
+*.swp
+/tags

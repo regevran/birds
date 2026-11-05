@@ -1,7 +1,9 @@
 """Parse the English Wikipedia 'List of birds of Israel' wikitext into structured JSON."""
 import json, re, collections
 
-src = open("data/raw/en_israel.wiki", encoding="utf-8").read()
+import data_paths
+
+src = open(data_paths.RAW_WIKI, encoding="utf-8").read()
 lines = src.split("\n")
 
 SPECIES_RE = re.compile(r"^\*\s*(.+?),\s*''([A-Z][a-z]+)\s+([a-z][a-z\-]+)''\s*(?:\(([^)]*)\))?\s*$")
@@ -48,7 +50,7 @@ for r in records:
     gf[r["genus"]].add((r["order"], r["family"]))
 weird = {g: v for g, v in gf.items() if len(v) > 1}
 
-json.dump(records, open("data/israel_birds_raw.json", "w", encoding="utf-8"),
+json.dump(records, open(data_paths.BIRDS_RAW, "w", encoding="utf-8"),
           ensure_ascii=False, indent=1)
 
 print(f"species parsed : {len(records)}")

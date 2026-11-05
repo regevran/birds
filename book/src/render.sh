@@ -2,7 +2,8 @@
 # Build the A5 pocket edition: interior first, then the cover.
 #
 # The cover reads the interior's page count to compute the spine, so the order
-# matters.  Outputs land in out/book/; the A4 sheets are not touched.
+# matters.  Build outputs land in build/book/; the A4 sheets are not touched.
+# Installing the selected PDFs to book/out/ is a later --install step.
 #
 #   ./render.sh                  interior + cover
 #   ./render.sh --interior-only  interior only
@@ -15,20 +16,23 @@
 #   --caliper MM   cover: paper caliper in mm per sheet (default 0.11, 90 gsm)
 #   --spine MM     cover: final spine width in mm (overrides --caliper)
 set -euo pipefail
-cd "$(dirname "$0")"
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+BUILD_DIR="$ROOT/build/book"
+mkdir -p "$BUILD_DIR"
+cd "$ROOT"
 
 usage() {
     cat <<'EOF'
-Build the A5 pocket edition (interior + cover) into out/book/.
+Build the A5 pocket edition (interior + cover) into build/book/.
 
   render.sh                  interior + cover
   render.sh --interior-only  interior only
   render.sh --cover-only     cover only, from the existing interior
   render.sh --one-file       front cover + interior + back cover, one PDF
-                             (out/book/israel_birds_one_file.pdf, all A5)
+                             (build/book/israel_birds_one_file.pdf, all A5)
   render.sh --split          cover as two print panels, 154 x 216 mm
-                             (out/book/cover_front_print.pdf,
-                              out/book/cover_back_print.pdf)
+                             (build/book/cover_front_print.pdf,
+                              build/book/cover_back_print.pdf)
 
 Options passed to the builders:
   --base PT      interior base type size (default 10)
@@ -100,12 +104,16 @@ fi
 
 if ((interior)); then
     echo "==> interior"
-    python3 book/make_pocket.py ${pocket_args[@]+"${pocket_args[@]}"}
+    python3 "$ROOT/book/src/make_pocket.py" \
+        --out "$BUILD_DIR/israel_birds_pocket.pdf" \
+        ${pocket_args[@]+"${pocket_args[@]}"}
 fi
 
 if ((cover)); then
     echo "==> cover"
-    python3 book/make_cover.py ${cover_args[@]+"${cover_args[@]}"}
+    python3 "$ROOT/book/src/make_cover.py" \
+        --out "$BUILD_DIR" \
+        ${cover_args[@]+"${cover_args[@]}"}
 fi
 
 if ((one_file)); then
@@ -113,7 +121,7 @@ if ((one_file)); then
         echo "render: --one-file needs pdfunite (poppler-utils)" >&2
         exit 1
     }
-    out=out/book
+    out=$BUILD_DIR
     combined=$out/israel_birds_one_file.pdf
     echo "==> one file"
     pdfunite "$out/cover_front.pdf" "$out/israel_birds_pocket.pdf" \

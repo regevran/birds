@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build data/etymology.json from the reviewable source data/etymology.md.
+"""Build build/data/etymology.json from reviewable data/in/etymology.md.
 
 The Markdown file is authoritative.  This script refuses to produce a PDF
 dataset unless:
@@ -14,8 +14,8 @@ dataset unless:
      used.
 
 Run:
-    python3 tools/build_etymology.py            # build
-    python3 tools/build_etymology.py --check    # report candidates only
+    python3 data/src/pipeline/build_etymology.py            # build
+    python3 data/src/pipeline/build_etymology.py --check    # report candidates only
 """
 
 import argparse
@@ -23,7 +23,9 @@ import json
 import os
 import re
 
-MD = "data/etymology.md"
+import data_paths
+
+MD = data_paths.ETYMOLOGY_MD
 THEME_ORDER = [
     "Colour", "Body", "Size", "Shape", "Qualities", "Where it lives",
     "Food", "Behaviour", "Birds", "Mammals", "Other animals",
@@ -74,7 +76,7 @@ def main():
                     help="report missed-split candidates without writing")
     args = ap.parse_args()
 
-    records = json.load(open("data/israel_birds_final.json", encoding="utf-8"))
+    records = json.load(open(data_paths.BIRDS_FINAL, encoding="utf-8"))
     genera = {r["genus"] for r in records}
     epithets = {r["epithet"] for r in records}
     known = genera | epithets
@@ -194,7 +196,7 @@ def main():
         for word, how, form, eid, n in sorted(report):
             print(f"  line {n:4d}  {word:28s} {how} {form!r} -> {eid}")
         if not args.check:
-            print("\nFix these in data/etymology.md (split, or add '# checked').")
+            print("\nFix these in data/in/etymology.md (split, or add '# checked').")
             raise SystemExit(1)
         return
     if args.check:
@@ -210,11 +212,11 @@ def main():
         "whole_names": whole,
         "themes": THEME_ORDER,
     }
-    with open("data/etymology.json", "w", encoding="utf-8") as f:
+    with open(data_paths.ETYMOLOGY_JSON, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=1)
         f.write("\n")
 
-    print(f"Wrote data/etymology.json")
+    print(f"Wrote {data_paths.ETYMOLOGY_JSON}")
     print(f"  {len(elem)} elements, {len(payload['splits'])} split words, "
           f"{len(words) - len(payload['splits'])} whole, "
           f"{len(whole)} whole-name entries")

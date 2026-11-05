@@ -18,8 +18,8 @@ at least its first genus block. A family that is too tall for one column may
 continue in the next, and its heading is repeated there.
 
 Usage:
-  python3 tools/make_book_family.py --out out/israel_birds_by_family.pdf
-  python3 tools/make_book_family.py --regular-only --base 10.5 --out ...
+  python3 book/src/make_book_family.py --out build/book/israel_birds_by_family.pdf
+  python3 book/src/make_book_family.py --regular-only --base 10.5 --out ...
 """
 
 import argparse
@@ -29,6 +29,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import book_paths
 
 import make_book as base                                  # shared helpers
 from make_book import (BLACK, FAINT, GREY, LIGHT_RULE, MID_RULE,
@@ -508,8 +510,8 @@ def m_of(args, header_size, heights, provisional):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="data/israel_birds_final.json")
-    ap.add_argument("--out", default="out/israel_birds_by_family.pdf")
+    ap.add_argument("--data", default=book_paths.SPECIES)
+    ap.add_argument("--out", default=book_paths.DEFAULT_FAMILY)
     ap.add_argument("--base", type=float, default=10.0, help="species font size (pt)")
     ap.add_argument("--header", type=float, default=0, help="running-head size (pt)")
     ap.add_argument("--limit", type=int, default=0)
@@ -518,7 +520,7 @@ def main():
     ap.add_argument("--no-legend", action="store_true")
     ap.add_argument("--etymology", action="store_true",
                     help="split Latin names at morpheme boundaries and add the glossary")
-    ap.add_argument("--etym-data", default="data/etymology.json")
+    ap.add_argument("--etym-data", default=book_paths.ETYMOLOGY)
     args = ap.parse_args()
 
     latin_path, hebrew_path = base.register_fonts()

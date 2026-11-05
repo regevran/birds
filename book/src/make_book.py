@@ -19,14 +19,16 @@ Shared layout rules:
   * Font sizes shrink automatically when names are long, so nothing overflows.
 
 Usage:
-  python3 tools/make_book.py --mode compact --out out/israel_birds_compact.pdf
-  python3 tools/make_book.py --mode wall    --limit 2 --out out/review.pdf
+  python3 book/src/make_book.py --mode compact --out build/book/israel_birds_compact.pdf
+  python3 book/src/make_book.py --mode wall    --limit 2 --out build/book/review.pdf
 """
 
 import argparse
 import json
 import os
 import tempfile
+
+import book_paths
 
 from bidi.algorithm import get_display
 from reportlab.lib.colors import HexColor, black
@@ -524,8 +526,8 @@ def render(m, pages, out, title, legend=True):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="data/israel_birds_final.json")
-    ap.add_argument("--out", default="out/israel_birds.pdf")
+    ap.add_argument("--data", default=book_paths.SPECIES)
+    ap.add_argument("--out", default=book_paths.DEFAULT_A4)
     ap.add_argument("--mode", choices=["compact", "wall"], default="compact")
     ap.add_argument("--base", type=float, default=0, help="species font size (pt)")
     ap.add_argument("--limit", type=int, default=0, help="only first N genera")

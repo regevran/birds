@@ -2,8 +2,8 @@
 """Birds of Israel — A5 pocket edition (perfect-bound softcover).
 
 A separate work from the A4 learning sheets.  All printed prose lives in
-``book/text.md``; this file places it.  It reads the same source data
-(``data/israel_birds_final.json`` and ``data/etymology.json``) but has its own
+``book/data/text.md``; this file places it.  It reads the installed data
+(``data/out/israel_birds_final.json`` and ``data/out/etymology.json``) but has its own
 layout, front matter, monochrome palette and indexes:
 
   * A5 (148 x 210 mm), one text column, 10 pt species type;
@@ -13,7 +13,7 @@ layout, front matter, monochrome palette and indexes:
   * index of word elements (etymology), one column at A5;
   * ruled notes page and padding to a multiple of four pages.
 
-Output: out/book/israel_birds_pocket.pdf
+Output: build/book/israel_birds_pocket.pdf
 
 Run:
     python3 book/make_pocket.py
@@ -26,14 +26,12 @@ import re
 import sys
 from collections import defaultdict
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools"))
-
 from bidi.algorithm import get_display
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
+import book_paths
 import book_text
 import make_book as mb
 import make_book_family as mf
@@ -43,7 +41,7 @@ from etym import Etymology
 
 # ---------------------------------------------------------------- identity
 
-TEXT_PATH = os.path.join(ROOT, "book", "text.md")
+TEXT_PATH = book_paths.TEXT
 T = book_text.Text(TEXT_PATH)
 
 TITLE_HE = T["book.title_he"]
@@ -69,7 +67,7 @@ KEY_INDEXES = [
     ("ρ", "key.index_elements"),
 ]
 
-LOGO = os.path.join(ROOT, "book", "assets", "logo_circle_gray.png")
+LOGO = book_paths.LOGO_GRAY
 
 
 def K(level):
@@ -2142,15 +2140,11 @@ def leaves_for_spine(total_pages):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default=os.path.join(ROOT, "data",
-                                                   "israel_birds_final.json"))
-    ap.add_argument("--etym", default=os.path.join(ROOT, "data",
-                                                   "etymology.json"))
-    ap.add_argument("--order-source", default=os.path.join(ROOT, "data",
-                                                           "israel_birds_merged.json"),
+    ap.add_argument("--data", default=book_paths.SPECIES)
+    ap.add_argument("--etym", default=book_paths.ETYMOLOGY)
+    ap.add_argument("--order-source", default=book_paths.ORDER_SOURCE,
                     help="source whose family order defines the taxonomic sequence")
-    ap.add_argument("--out", default=os.path.join(ROOT, "out", "book",
-                                                  "israel_birds_pocket.pdf"))
+    ap.add_argument("--out", default=book_paths.DEFAULT_POCKET)
     ap.add_argument("--base", type=float, default=10.0)
     ap.add_argument("--preview-hebrew", action="store_true",
                     help="write only the Hebrew index as preview-hebrew.pdf, "

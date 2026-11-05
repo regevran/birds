@@ -1,59 +1,61 @@
-# Birds of Israel — A5 pocket edition
+# Birds of Israel
 
-An A5 perfect-bound pocket book of Israel's birds: a Hebrew interior with
-Latin, English and Hebrew names, etymology indexes, and a colour cover.
+A shared data pipeline, an A5 pocket book, and an interactive trainer.
 
-## Directory
+## Layout
 
-- `book/` — the A5 builders, `text.md`, fonts, assets and print notes.
-- `data/` — species, Hebrew/English names, etymologies and source family order.
-- `tools/` — shared data-building scripts and the older A4 layout code.
-- `out/` — generated PDFs: interior, cover and index previews.
-
-The entry point is `render.sh`; design decisions and the current index plan
-are in `REFERENCE.md`.
-
-## Generate the book
-
-One-time setup:
-
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install reportlab python-bidi fonttools
+```text
+birds/
+  CMakeLists.txt          top-level build entry point
+  CMakePresets.json       Ninja presets
+  build/                  disposable build tree (ignored)
+  data/
+    src/                  pipeline scripts
+      pipeline/           default build steps
+      oneoff/             manual fetch/upgrade/maintenance
+    in/                   sources and frozen snapshots
+    out/                  installed final data (committed)
+  book/
+    src/                  book build code and render.sh
+    data/                 text.md, assets, reports
+    out/                  installed PDFs (ignored)
+  learn/
+    src/                  trainer code and web assets
+    data/                 user progress
 ```
 
-Build the interior and cover:
+- `data/in` is the source of truth. The default data build is offline; network
+  fetch/upgrade scripts are one-off tools.
+- `data/out` is the committed consumer contract. Both `book` and `learn` read
+  only from `data/out`.
+- `build/` is disposable and holds all intermediate and final build artifacts
+  for data, book and learn.
+- `book/out` is the installed book output.
+- `learn` has no `out`: it runs from `learn/src`; user data lives in
+  `learn/data/progress`.
+
+## Build
+
+The top-level CMake files and `data/CMakeLists.txt` exist; the `book` and
+`learn` per-project `CMakeLists.txt` files are still to be written.
 
 ```sh
-./render.sh
+cmake --preset default
+cmake --build build
+cmake --build build --target data
+cmake --build build --target install-data
+cmake --build build --target validate-data
+cmake --build build --target book
+cmake --build build --target install-book
+cmake --build build --target test-learn
+cmake --build build --target run-learn
 ```
 
-Build one file for the copy shop — front cover, interior, back cover:
+## Status
 
-```sh
-./render.sh --one-file
-```
+The repository was restructured on 2026-11-05. The book and data code still
+use pre-move paths, so the current build is expected to fail. The complete
+move to-do list is in `book/REFERENCE.md` under “Repository move — TODO”.
 
-Outputs land in `out/book/`:
-
-- `israel_birds_pocket.pdf` — interior
-- `cover_spread.pdf` — cover with bleed
-- `israel_birds_one_file.pdf` — the one-file sequence
-
-`--one-file` needs `pdfunite` (Poppler); the cover build uses `pdfinfo`.
-See `book/PRINT.md` for the full print brief and `book/README.md` for the
-inspector-level build notes.
-
-Index proofs, with their final folios in the new structure:
-
-```sh
-python3 book/make_pocket.py --preview-themes
-python3 book/make_pocket.py --preview-themes-hebrew
-python3 book/make_pocket.py --preview-key
-python3 book/make_pocket.py --preview-hebrew
-python3 book/make_pocket.py --preview-english
-python3 book/make_pocket.py --preview-families
-python3 book/make_pocket.py --preview-latin-species
-python3 book/make_pocket.py --preview-elements
-```
+The trainer is in design phase. No trainer code has been written; see
+`learn/IMPLEMENTATION.md` before starting.

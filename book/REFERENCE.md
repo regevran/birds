@@ -2,6 +2,74 @@
 
 Orientation notes for future sessions. Read this before changing the A5 book.
 
+## Repository move — TODO
+
+The repository was restructured on 2026-11-05 into:
+
+- `data/src` (pipeline scripts), `data/in` (sources and frozen snapshots),
+  `data/out` (installed final data, committed);
+- `book/src`, `book/data`, `book/out`;
+- `learn/src`, `learn/data`;
+- one disposable top-level `build/` for all build artifacts;
+- top-level `CMakeLists.txt` and `CMakePresets.json`; `data/CMakeLists.txt`
+  is written. The `book` and `learn` per-project CMake files are not written
+  yet.
+
+The book's Python path layer and the default data pipeline's path layer have
+been prepared for the move; the one-off data scripts are still untouched. The
+current book build is expected to work once its runtime dependencies are
+available, but the book `--install` step and the `family_order` field still
+need work.
+
+- `book/src/book_paths.py` centralizes the repository root, `book/data`,
+  `book/out`, `build/book`, `build/data`, `data/in`, `data/out`, the text and
+  asset paths, the species/etymology files, and the merged order source.
+- `book/src/make_pocket.py`, `book/src/make_cover.py`,
+  `book/src/make_book.py`, `book/src/make_book_family.py`, `book/src/etym.py`
+  and `book/src/etymology_demo.py` now use `book_paths`. The stale `ROOT` and
+  `tools/` path insert were removed from the two current A5 builders.
+- `book/src/render.sh` now finds the repository root and builds into
+  `build/book/`. It does **not** implement `--install` yet; that step should
+  copy the selected PDFs from `build/book` to `book/out`.
+- `book/README.md`, `book/PRINT.md` and the build commands below still
+  describe the old paths; update after the remaining code paths are fixed.
+- Default pipeline scripts moved to `data/src/pipeline` and now use
+  `data/src/pipeline/data_paths.py`:
+  - `parse_list.py`: `data/in/raw/en_israel.wiki` ->
+    `build/data/israel_birds_raw.json`.
+  - `merge_data.py`: `build/data/israel_birds_raw.json` +
+    `data/in/hebrew_names.json` -> `build/data/israel_birds_merged.json`.
+  - `build_final.py`: `build/data/israel_birds_merged.json` +
+    `data/in/family_hebrew.json` -> `build/data/israel_birds_final.json`.
+  - `build_etymology.py`: `data/in/etymology.md` +
+    `build/data/israel_birds_final.json` -> `build/data/etymology.json`.
+  - `data/CMakeLists.txt` defines `data`, `install-data` and `validate-data`;
+    `install-data` copies the final JSONs to `data/out`.
+- The `data` CMake target is implemented against the new `data_paths.py`; it
+  has not been run yet.
+- The one-off scripts in `data/src/oneoff` still assume the repository root
+  and use old `data/...` paths. They are not part of the default build.
+- `family_order` is not yet added to the final records. The book currently
+  ranks families from `israel_birds_merged.json`; the final JSON needs one
+  integer `family_order` per species so the book can read only `data/out`.
+- `data/in/overrides/family_hebrew_fixed.json` is a candidate override, not
+  wired into the build. Decide whether to apply or delete it.
+- `book/data/reports/etymology_mismatches.md` and
+  `book/data/assets/source/closing_on_birds_logo.png` are book-specific
+  sources/reports moved out of `data/`.
+- `data/in/raw/he_israel.html` and `data/in/jobling/jobling_djvu.txt` are
+  source snapshots but are not read by any current script.
+- `data/out` is committed; `build/` is ignored; `book/out/` is ignored.
+- The old A4 PDFs are in `book/out/legacy/`; the A5 outputs in `book/out/`.
+- `book/.PRINT.md.swp` is an ignored editor swap file; remove it when
+  convenient.
+- `learn/` is now `learn/src` + `learn/data/progress`; there is no
+  `learn/build` or `learn/out`. `learn/IMPLEMENTATION.md` was updated to the
+  new paths.
+
+The build commands below are pre-move and therefore stale; the directory map
+has been updated to the new paths.
+
 ## Status
 
 - The previous printed edition was 72 pages, perfect bound, A5 148 × 210 mm;
@@ -15,21 +83,24 @@ Orientation notes for future sessions. Read this before changing the A5 book.
 
 ## Directory map
 
-- `book/make_pocket.py` — the A5 interior builder.
-- `book/make_cover.py` — the colour cover and spine.
-- `book/text.md` — all printed prose; edit here, not in the builders.
-- `book/book_text.py` — parser for `text.md` (`key: value`, `key: |`, `\` hard
-  break).
-- `book/mixed_text.py` — mixed Hebrew/Latin bidi and font-run rendering.
-- `book/pocket_fonts.py` — font registration.
-- `tools/etym.py` — etymology splits, glossary/index data and colours.
-- `tools/make_book.py`, `tools/make_book_family.py` — shared Latin/Hebrew width
-  and family layout helpers.
-- `data/israel_birds_final.json` — species rows.
-- `data/etymology.json` — element meanings, splits and themes.
-- `data/israel_birds_merged.json` — source order used for the taxonomic list.
-- `render.sh` — one command for interior + cover; `--one-file` for the copy
-  shop sequence.
+- `book/src/make_pocket.py` — the A5 interior builder.
+- `book/src/make_cover.py` — the colour cover and spine.
+- `book/data/text.md` — all printed prose; edit here, not in the builders.
+- `book/src/book_paths.py` — central path definitions for the book.
+- `book/src/book_text.py` — parser for `text.md` (`key: value`, `key: |`, `\`
+  hard break).
+- `book/src/mixed_text.py` — mixed Hebrew/Latin bidi and font-run rendering.
+- `book/src/pocket_fonts.py` — font registration.
+- `book/src/etym.py` — etymology splits, glossary/index data and colours.
+- `book/src/make_book.py`, `book/src/make_book_family.py` — shared Latin/Hebrew
+  width and family layout helpers.
+- `data/out/israel_birds_final.json` — species rows (installed data).
+- `data/out/etymology.json` — element meanings, splits and themes (installed
+  data).
+- `build/data/israel_birds_merged.json` — build intermediate with the source
+  order; not a consumer input.
+- `book/src/render.sh` — one command for interior + cover; `--one-file` for the
+  copy shop sequence; `--install` copies to `book/out`.
 - `book/PRINT.md` — print brief for the copy shop.
 - `book/README.md` — detailed build/edit notes for the A5 edition.
 
@@ -253,6 +324,25 @@ One box per index, not a wide range box:
 ## Next work
 
 1. Read the assembled interior and cover proofs end to end.
+
+## Lessons from the printed second edition
+
+The printed, on paper, the second addition revealed the following:
+
+### Editorial
+- Some tags are in the interior part of the book, making them useless
+- Latin (including English) indexes are right-to-left as the book is.
+This might be good, at least it is not that disturbing, but we might want to
+consider left-to-right order. The meaning is that early letters in the alphabeit have
+higer page numbers than later letters: there is inconsitency. Also it means that searching
+forward or backword depends on the languge.
+A consideration should be given
+
+### Data
+- hispanionl should be ספרד and not היספניול
+- rubi- is classified as bramble פטל under מקום מחיה.
+Althogh one may be living in the bush itslef - we should check what the meaning is
+
 
 ## Don't
 

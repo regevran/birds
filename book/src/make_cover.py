@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cover for the A5 pocket edition.
 
-All printed prose lives in ``book/text.md``; this file places it.  Design: the
+All printed prose lives in ``book/data/text.md``; this file places it.  Design: the
 Closing in on Birds mark, a Hebrew-led title with its Latin counterpart, and
 the examples set in light cream frames on both panels.  The front frame holds
 the European robin; the back frame holds the Namaqua dove and Eurasian
@@ -11,12 +11,12 @@ columns, in a separate list inside the same frame, so they do not read as extra
 columns of the bird row.  There are no invented equals signs.
 
 Output (3 mm bleed):
-  out/book/cover_spread.pdf      (back + spine + front)
-  out/book/cover_front_print.pdf (front only, no spine, --split)
-  out/book/cover_back_print.pdf  (back only, no spine, --split)
+  build/book/cover_spread.pdf      (back + spine + front)
+  build/book/cover_front_print.pdf (front only, no spine, --split)
+  build/book/cover_back_print.pdf  (back only, no spine, --split)
 
 ``--front-only`` writes the front panel alone to
-out/book/cover_front_draft.pdf as a proof; the normal build does not.
+build/book/cover_front_draft.pdf as a proof; the normal build does not.
 
 The trim size is 148 x 210 mm.  Run after make_pocket.py so the page count is
 known for the spine; the count is read from the built interior, or pass
@@ -30,14 +30,12 @@ import re
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "tools"))
-
 from bidi.algorithm import get_display
 from reportlab.lib.colors import HexColor
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
+import book_paths
 import book_text
 import pocket_fonts
 from make_book import hebrew_text, w
@@ -55,16 +53,16 @@ FAINT = HexColor("#8A7A5E")
 
 SPINE_BAND = HexColor("#7A4E12")
 
-LOGO = os.path.join(ROOT, "book", "assets", "logo_circle.png")
+LOGO = book_paths.LOGO_COVER
 
-SPECIES_PATH = os.path.join(ROOT, "data", "israel_birds_final.json")
+SPECIES_PATH = book_paths.SPECIES
 with open(SPECIES_PATH, encoding="utf-8") as _f:
     SPECIES = {sp["latin"]: sp for sp in json.load(_f)}
 
 FRONT_SPECIES = "Erithacus rubecula"
 BACK_SPECIES = ("Oena capensis", "Caprimulgus europaeus")
 
-TEXT_PATH = os.path.join(ROOT, "book", "text.md")
+TEXT_PATH = book_paths.TEXT
 T = book_text.Text(TEXT_PATH)
 
 TITLE_HE = T["book.title_he"]
@@ -337,7 +335,7 @@ def main():
                          "90 gsm uncoated)")
     ap.add_argument("--spine", type=float, default=0,
                     help="final spine width in mm; overrides --caliper")
-    ap.add_argument("--out", default=os.path.join(ROOT, "out", "book"))
+    ap.add_argument("--out", default=book_paths.OUT_DIR)
     ap.add_argument("--front-only", action="store_true",
                     help="write the front panel alone as a proof "
                          "(cover_front_draft.pdf) instead of the spread")
@@ -350,7 +348,7 @@ def main():
     args = ap.parse_args()
 
     register()
-    etym = Etymology(os.path.join(ROOT, "data", "etymology.json"))
+    etym = Etymology(book_paths.ETYMOLOGY)
     os.makedirs(args.out, exist_ok=True)
     if not args.pages:
         args.pages = count_pages(os.path.join(args.out, "israel_birds_pocket.pdf"))
