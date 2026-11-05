@@ -29,6 +29,11 @@ import re as _re
 for _f, _v in list(fam_he.items()):
     fam_he[_f] = _re.sub(r"\s*\([^)]*\)\s*$", "", _v).strip()
 
+# Family rank: first appearance in the source checklist defines the order.
+family_order = {}
+for r in merged:
+    family_order.setdefault(r["family"], len(family_order) + 1)
+
 out = []
 for r in merged:
     rec = {
@@ -37,6 +42,7 @@ for r in merged:
         "epithet": r["epithet"],
         "english": r["english"],
         "family": r["family"],
+        "family_order": family_order[r["family"]],
         "family_he": fam_he.get(r["family"], ""),
         "order": r["order"],
         "status": r["status"],

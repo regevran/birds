@@ -12,7 +12,7 @@ Multiple local profiles ("this is me practising"). No sync. Everything local, in
 
 Read-only inputs:
 
-- `data/out/israel_birds_final.json` — 565 species; fields `latin`, `genus`, `epithet`, `english`, `family`, `family_he`, `order`, `status`, `hebrew`, `flags`, and the planned `family_order` integer.
+- `data/out/israel_birds_final.json` — 565 species; fields `latin`, `genus`, `epithet`, `english`, `family`, `family_order`, `family_he`, `order`, `status`, `hebrew`, `flags`.
 - `data/out/etymology.json` — `elements`, `splits`, `whole_names`, `themes`.
 - `book/` and `data/` are never mutated by the trainer. The trainer derives its own quiz dataset with validation.
 

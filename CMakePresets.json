@@ -41,9 +41,9 @@
       "targets": ["install-data"]
     },
     {
-      "name": "validate-data",
+      "name": "test-data",
       "configurePreset": "default",
-      "targets": ["validate-data"]
+      "targets": ["test-data"]
     },
     {
       "name": "book",

@@ -2,6 +2,9 @@
 
 Orientation notes for future sessions. Read this before changing the A5 book.
 
+> **Book work is paused.** Record book tasks here; do not implement them until
+> there is capacity to test the result.
+
 ## Repository move — TODO
 
 The repository was restructured on 2026-11-05 into:
@@ -18,8 +21,8 @@ The repository was restructured on 2026-11-05 into:
 The book's Python path layer and the default data pipeline's path layer have
 been prepared for the move; the one-off data scripts are still untouched. The
 current book build is expected to work once its runtime dependencies are
-available, but the book `--install` step and the `family_order` field still
-need work.
+available, but the book `--install` step and the switch to `family_order` are
+still book TODOs (do not implement them yet).
 
 - `book/src/book_paths.py` centralizes the repository root, `book/data`,
   `book/out`, `build/book`, `build/data`, `data/in`, `data/out`, the text and
@@ -43,15 +46,17 @@ need work.
     `data/in/family_hebrew.json` -> `build/data/israel_birds_final.json`.
   - `build_etymology.py`: `data/in/etymology.md` +
     `build/data/israel_birds_final.json` -> `build/data/etymology.json`.
-  - `data/CMakeLists.txt` defines `data`, `install-data` and `validate-data`;
+  - `data/CMakeLists.txt` defines `data`, `install-data` and `test-data`;
     `install-data` copies the final JSONs to `data/out`.
 - The `data` CMake target is implemented against the new `data_paths.py`; it
   has not been run yet.
 - The one-off scripts in `data/src/oneoff` still assume the repository root
   and use old `data/...` paths. They are not part of the default build.
-- `family_order` is not yet added to the final records. The book currently
-  ranks families from `israel_birds_merged.json`; the final JSON needs one
-  integer `family_order` per species so the book can read only `data/out`.
+- `data/out/israel_birds_final.json` now includes one integer `family_order`
+  per species (1..84, by first appearance in the source checklist). The book
+  still ranks families from `build/data/israel_birds_merged.json`; switching
+  `make_pocket.py` to use `family_order` and read only `data/out` is a book
+  TODO, not done.
 - `data/in/overrides/family_hebrew_fixed.json` is a candidate override, not
   wired into the build. Decide whether to apply or delete it.
 - `book/data/reports/etymology_mismatches.md` and

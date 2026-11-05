@@ -43,7 +43,7 @@ add_custom_target(birds-help
     COMMAND ${CMAKE_COMMAND} -E echo "Build all:  cmake --build build"
     COMMAND ${CMAKE_COMMAND} -E echo "Data:       cmake --build build --target data"
     COMMAND ${CMAKE_COMMAND} -E echo "Data inst:  cmake --build build --target install-data"
-    COMMAND ${CMAKE_COMMAND} -E echo "Data check: cmake --build build --target validate-data"
+    COMMAND ${CMAKE_COMMAND} -E echo "Test data:  cmake --build build --target test-data"
     COMMAND ${CMAKE_COMMAND} -E echo "Book:       cmake --build build --target book"
     COMMAND ${CMAKE_COMMAND} -E echo "Book inst:  cmake --build build --target install-book"
     COMMAND ${CMAKE_COMMAND} -E echo "Learn run:  cmake --build build --target run-learn"

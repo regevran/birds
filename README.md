@@ -44,7 +44,7 @@ cmake --preset default
 cmake --build build
 cmake --build build --target data
 cmake --build build --target install-data
-cmake --build build --target validate-data
+cmake --build build --target test-data
 cmake --build build --target book
 cmake --build build --target install-book
 cmake --build build --target test-learn

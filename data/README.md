@@ -29,6 +29,7 @@ The default pipeline scripts use `src/pipeline/data_paths.py` and the new
 layout. The one-off scripts still use the old `data/...` paths and assume the
 repository root as their working directory; they are not part of the default
 build. `data/CMakeLists.txt` is written and defines `data`, `install-data`, and
-`validate-data`. The book's `family_order` field is still pending. See the
+`test-data`. The final JSON includes `family_order`; the book still uses the
+merged order source until its TODO is implemented. See the
 “Repository move — TODO” section in `book/REFERENCE.md` for the remaining
 items.
