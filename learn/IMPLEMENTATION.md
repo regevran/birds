@@ -83,8 +83,7 @@ birds/
           __init__.py
           config.py             paths, CLI defaults, app context
           errors.py             domain errors -> HTTP errors
-          models.py             dataclasses + schema versions
-          dataset.py            load/validate data, indexes, data hash
+          dataset.py            entities + load/validate/indexes/data version
           normalize.py          Hebrew/Latin normalization
         cards/
           __init__.py
@@ -182,9 +181,9 @@ foundation: config, errors, models, dataset, normalize
   `static` serves files; `events` appends JSONL.
 - **One `AppContext`** holds the config, dataset, profile store, active session
   and locks. It is created at startup and injected into the API handlers.
-- **Dataclasses** for `Bird`, `Element`, `CardDescriptor`, `ProfileState`,
-  `SessionState`, `PassedEntry`, `Event`. Each has explicit serialization and
-  schema validation. No Pydantic.
+- **Dataclasses** for `Bird`, `Element`, `SplitPart`, `WholeName` and `Catalog`
+  live in `dataset.py`. Card and session models are deferred until those
+  layers are designed. No Pydantic.
 - **Injected clock and RNG** for tests: the scheduler takes a clock function and
   a `random.Random`; tests seed both.
 - **Errors** are domain exceptions (`NotFound`, `Conflict`, `InvalidRequest`,
@@ -414,6 +413,10 @@ The event log is for analysis, not for recovery. State files are the source of
 truth.
 
 ## 5. Card generation
+
+> The concrete card model structure (`CardDescriptor`, `CardView`, or another
+> composition) is not settled. The discussion is deferred until after the
+> dataset layer is reviewed.
 
 ### 5.1 Chain
 
@@ -866,7 +869,7 @@ Run from the repository root:
 ```sh
 cmake --build build --target learn-test
 # or
-cd learn/src && python3 -m unittest discover -v
+cd learn/src && python3 -m unittest discover -s tests -v
 ```
 
 Test layers:

@@ -8,7 +8,7 @@ implemented. The design is in `REFERENCE.md`; the implementation spec is in
 ## Layout
 
 - `src/trainer/` — Python package:
-  - `foundation/` — config, errors, models, dataset, normalization.
+  - `foundation/` — config, errors, dataset, normalization.
   - `cards/` — card rules, options, grading, card views, bridge.
   - `scheduling/` — queue and scheduler.
   - `lifecycle/` — store, events, profiles, sessions.
@@ -22,9 +22,10 @@ top-level disposable `build/`, and the trainer runs from `learn/src`.
 
 ## Status
 
-Foundation skeleton only: `trainer/` package markers and `foundation/config.py`.
-No server, dataset loader, cards, queue or lifecycle code yet. The next slice
-is the dataset loader/validator.
+Foundation data layer is in place: `Config`, domain errors, the dataset
+loader/validator with indexes, and 12 passing dataset tests. No server, cards,
+queue or lifecycle code yet. Card model structure is deferred until after the
+dataset layer is reviewed.
 
 ## Running (when implemented)
 
@@ -39,5 +40,5 @@ cd learn/src && python3 -m trainer
 ```sh
 cmake --build build --target learn-test
 # or
-cd learn/src && python3 -m unittest discover -v
+cd learn/src && python3 -m unittest discover -s tests -v
 ```
