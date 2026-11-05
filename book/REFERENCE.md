@@ -46,10 +46,10 @@ still book TODOs (do not implement them yet).
     `data/in/family_hebrew.json` -> `build/data/israel_birds_final.json`.
   - `build_etymology.py`: `data/in/etymology.md` +
     `build/data/israel_birds_final.json` -> `build/data/etymology.json`.
-  - `data/CMakeLists.txt` defines `data`, `install-data` and `test-data`;
-    `install-data` copies the final JSONs to `data/out`.
-- The `data` CMake target is implemented against the new `data_paths.py`; it
-  has not been run yet.
+  - `data/CMakeLists.txt` defines `data-build`, `data-install` and `data-test`;
+    `data-install` copies the final JSONs to `data/out`.
+- The data pipeline has been run successfully against the new `data_paths.py`;
+  the target is now `data-build`.
 - The one-off scripts in `data/src/oneoff` still assume the repository root
   and use old `data/...` paths. They are not part of the default build.
 - `data/out/israel_birds_final.json` now includes one integer `family_order`

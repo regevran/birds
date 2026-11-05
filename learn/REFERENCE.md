@@ -175,6 +175,11 @@ Chosen approach: **A — local server**.
 - Write the one-page implementation spec (file structures, exact state transitions, screen flow).
 - Out-of-scope V hand-back UX: a future "needs relearning" badge; today the bird is simply no longer passed and is available to normal sessions.
 - Optional dedicated "Review due" run/session.
+- Global search (future): `/` from anywhere opens a grouped search screen
+  (families, completed birds, elements, cards); results open read-only card
+  previews; previews do not advance the queue or the global counter. Requires
+  dataset search indexes and pure, session-independent card views from the
+  start. No family/genus pages are planned.
 - English directions (v2/v3), whole-name deck, element free-typing.
 - Typo tolerance and near-miss presentation.
 - Images/audio, cross-device sync, session export/import.

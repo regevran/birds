@@ -74,27 +74,35 @@ birds/
     TODO.md                     follow-ups
     README.md                   run/test/backup notes
     src/
-      birdtrainer/              Python package (stdlib only)
+      trainer/                  Python package (stdlib only)
         __init__.py             version
-        __main__.py             `python3 -m birdtrainer`
-        config.py               paths, CLI defaults, app context
-        rules.py                all tunable scheduling constants
-        models.py               dataclasses + schema versions
-        dataset.py              load/validate data, indexes, data hash
-        normalize.py            Hebrew/Latin normalization
-        grading.py              answer grading, near-miss, shared Hebrew
-        cards.py                card descriptors and card views
-        options.py              distractors and option seeding
-        bridge.py               heuristic Hebrew <-> Latin element bridge
-        queue.py                pure pool/queue operations
-        scheduler.py            pure state transitions
-        profiles.py             profile lifecycle
-        sessions.py             session lifecycle
-        store.py                atomic JSON/JSONL I/O, locking, migrations
-        events.py               event construction and append
+        __main__.py             `python3 -m trainer`
         api.py                  HTTP routing and JSON serialization
         static.py               safe static file serving
-        errors.py               domain errors -> HTTP errors
+        foundation/
+          __init__.py
+          config.py             paths, CLI defaults, app context
+          errors.py             domain errors -> HTTP errors
+          models.py             dataclasses + schema versions
+          dataset.py            load/validate data, indexes, data hash
+          normalize.py          Hebrew/Latin normalization
+        cards/
+          __init__.py
+          rules.py              all tunable card/scheduling constants
+          options.py            distractors and option seeding
+          grading.py            answer grading, near-miss, shared Hebrew
+          cards.py              card descriptors and card views
+          bridge.py             heuristic Hebrew <-> Latin element bridge
+        scheduling/
+          __init__.py
+          queue.py              pure pool/queue operations
+          scheduler.py          pure state transitions
+        lifecycle/
+          __init__.py
+          store.py              atomic JSON/JSONL I/O, locking, migrations
+          events.py             event construction and append
+          profiles.py           profile lifecycle
+          sessions.py           session lifecycle
       web/
         index.html
         app.js                  bootstrap and hash router
@@ -147,24 +155,25 @@ Rules:
   themselves and `data/out/` are **not** ignored; the user commits them.
 - There is no `learn/build` and no `learn/out`: all build artifacts go to the
   top-level disposable `build/`, and the trainer runs from `learn/src`.
-- The package is named `birdtrainer` and lives under `learn/src/`; `learn/` is
-  the trainer project, parallel to `book/`, not a separate `trainer/`
-  directory.
+- The package is named `trainer` and lives under `learn/src/`; `learn/` is
+  the trainer project, parallel to `book/`. The package is split into
+  `foundation`, `cards`, `scheduling` and `lifecycle`; `api.py`, `static.py`
+  and `__main__.py` sit at the package root.
 
 ## 3. Code shape
 
 The code is split into a pure domain core and thin I/O edges.
 
 ```text
-dataset ──> models
-   │
-   ├──> normalize ──> grading
-   ├──> options ────> cards
-   │
-queue ──> scheduler ──> sessions ──> api ──> web
-                 │
-                 └──> profiles
-store <──────────┘
+foundation: config, errors, models, dataset, normalize
+        │
+        ├──> cards: rules, options, grading, cards, bridge
+        │
+        ├──> scheduling: queue, scheduler
+        │
+        └──> lifecycle: store, events, profiles, sessions
+                                  │
+                                  └──> api, static, __main__
 ```
 
 - **Pure functions** for queue and scheduler: given a profile, session, card and
@@ -855,7 +864,7 @@ Security and robustness:
 Run from the repository root:
 
 ```sh
-cmake --build build --target test-learn
+cmake --build build --target learn-test
 # or
 cd learn/src && python3 -m unittest discover -v
 ```
@@ -898,11 +907,11 @@ the UI gate. Optional later: Playwright or a headless browser.
 
 ## 12. Deployment and workflow
 
-- Run: `cmake --build build --target run-learn`, or
-  `cd learn/src && python3 -m birdtrainer serve --open`.
+- Run: `cmake --build build --target learn-run`, or
+  `cd learn/src && python3 -m trainer serve --open`.
 - Default port 8765; `--port`, `--host`, `--data-dir`, `--progress-dir`,
   `--log-level`, `--no-open`, `--dev-fast-review`.
-- The `run-learn` CMake target sets `PYTHONPATH=learn/src`, passes the data
+- The `learn-run` CMake target sets `PYTHONPATH=learn/src`, passes the data
   and progress paths, prints the URL, and opens the browser.
 - No install step, no package build, no pip, no venv. The book's venv is
   independent and not required.
@@ -942,7 +951,7 @@ No slice starts before the previous one is reviewed. No commits unless asked.
 ### 13.1 Tree and package name (settled)
 
 The trainer lives under `learn/`, parallel to `book/` and `data/`:
-`learn/src/birdtrainer`, `learn/src/web`, `learn/src/tests`, and user data in
+`learn/src/trainer`, `learn/src/web`, `learn/src/tests`, and user data in
 `learn/data/progress`. There is no `learn/build` or `learn/out`; all build
 artifacts go to the top-level disposable `build/`, and the trainer runs from
 `learn/src`. There is no separate `trainer/` directory.
@@ -994,7 +1003,30 @@ Proposed: implement the heuristic in v1 behind a setting; omit uncertain
 matches. Alternative: defer to v1.1. Recommendation: implement a conservative
 version, since L is the learning card and the bridge is its main payoff.
 
-## 14. Definition of done for v1
+## 14. Global search (future)
+
+Not v1, but the core must make it additive:
+
+- Entry: `/` or a search button from any screen.
+- Results are grouped: families, completed birds, elements, cards
+  (L/E/R/C/F/V).
+- Every result opens a read-only card preview; no family or genus pages are
+  planned.
+- Search is read-only: it does not mutate the queue, increment the global
+  counter, change `passed`, or alter V levels. It is like consulting the book.
+- The dataset must expose search indexes from the start: species Latin/English/
+  Hebrew, family/order/genus, element surface/forms/English/Hebrew/theme, and
+  passed birds.
+- The card layer must expose a pure, session-independent
+  `card_view(species_id, type, seed=None)`. Search previews call that directly;
+  the scheduler is not involved.
+- API: `GET /api/search?q=...` and
+  `GET /api/cards/<species_id>/<type>`, separate from the session answer
+  endpoints.
+- UI: a `web/screens/search.js` screen plus a preview route; the `/` shortcut
+  opens it from any screen.
+
+## 15. Definition of done for v1
 
 - A profile can be created and reopened.
 - A session can be created with a family/order/genus/status/search filter,

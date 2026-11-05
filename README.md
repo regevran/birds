@@ -42,13 +42,19 @@ The top-level CMake files and `data/CMakeLists.txt` exist; the `book` and
 ```sh
 cmake --preset default
 cmake --build build
-cmake --build build --target data
-cmake --build build --target install-data
-cmake --build build --target test-data
-cmake --build build --target book
-cmake --build build --target install-book
-cmake --build build --target test-learn
-cmake --build build --target run-learn
+cmake --build build --target data-build
+cmake --build build --target data-install
+cmake --build build --target data-test
+cmake --build build --target book-build
+cmake --build build --target book-install
+cmake --build build --target learn-test
+cmake --build build --target learn-run
+```
+
+Data workflow — configure, build, test, install in one command:
+
+```sh
+cmake --workflow --preset data
 ```
 
 ## Status

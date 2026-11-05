@@ -28,8 +28,15 @@ Build intermediates and final build artifacts go to the top-level disposable
 The default pipeline scripts use `src/pipeline/data_paths.py` and the new
 layout. The one-off scripts still use the old `data/...` paths and assume the
 repository root as their working directory; they are not part of the default
-build. `data/CMakeLists.txt` is written and defines `data`, `install-data`, and
-`test-data`. The final JSON includes `family_order`; the book still uses the
+build. `data/CMakeLists.txt` is written and defines `data-build`,
+`data-install`, and `data-test`. The `data` workflow runs configure,
+`data-build`, `data-test`, then `data-install`:
+
+```sh
+cmake --workflow --preset data
+```
+
+The final JSON includes `family_order`; the book still uses the
 merged order source until its TODO is implemented. See the
 “Repository move — TODO” section in `book/REFERENCE.md` for the remaining
 items.

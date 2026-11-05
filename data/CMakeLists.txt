@@ -1,9 +1,9 @@
 # Data pipeline: data/in -> build/data -> data/out.
 #
 # Targets:
-#   data           build intermediates and final data in build/data
-#   install-data   copy the final JSONs to data/out
-#   test-data      run the etymology consistency check
+#   data-build     build intermediates and final data in build/data
+#   data-install   copy the final JSONs to data/out
+#   data-test      run the etymology consistency check
 #
 # The scripts are stdlib-only Python and use
 # data/src/pipeline/data_paths.py for every input and output location.
@@ -61,14 +61,14 @@ add_custom_command(
     COMMENT "Building the etymology dataset"
     VERBATIM)
 
-add_custom_target(data ALL
+add_custom_target(data-build ALL
     DEPENDS "${RAW_JSON}" "${MERGED_JSON}" "${FINAL_JSON}" "${ETYM_JSON}")
 
 # The final JSON includes `family_order` (1..84, by first appearance in the
 # source checklist). The book still reads build/data/israel_birds_merged.json
 # for family order; switching it to `family_order` is a book TODO.
 
-add_custom_target(install-data
+add_custom_target(data-install
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${DATA_OUT}"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${FINAL_JSON}" "${DATA_OUT}/israel_birds_final.json"
@@ -78,7 +78,7 @@ add_custom_target(install-data
     COMMENT "Installing final data into data/out"
     VERBATIM)
 
-add_custom_target(test-data
+add_custom_target(data-test
     COMMAND "${Python3_EXECUTABLE}" "${DATA_PIPELINE}/build_etymology.py" --check
     DEPENDS "${FINAL_JSON}"
             "${DATA_PIPELINE}/build_etymology.py"

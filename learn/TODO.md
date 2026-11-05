@@ -1,3 +1,4 @@
 - Bird keys should use the ringer's form: first 3 letters of the genus + first 3 letters of the epithet (e.g. Passer moabiticus → PASMOA).
 - Check 3+3 key collisions (e.g. Curruca melanocephala and Curruca melanothorax both yield CURMEL) and choose a collision rule.
 - Decide whether the ringer key is the persistent bird ID or a display/export label only. The implementation spec currently uses the Latin slug as the internal ID and never sends it to the quiz client.
+- Global search (future): grouped, read-only search over families, completed birds, elements and cards; see `IMPLEMENTATION.md` section 14. Do not build yet; keep dataset indexes and card views session-independent.

@@ -1,8 +1,8 @@
 {
-  "version": 2,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
@@ -31,39 +31,63 @@
       "configurePreset": "default"
     },
     {
+      "name": "data-build",
+      "configurePreset": "default",
+      "targets": ["data-build"]
+    },
+    {
+      "name": "data-install",
+      "configurePreset": "default",
+      "targets": ["data-install"]
+    },
+    {
+      "name": "data-test",
+      "configurePreset": "default",
+      "targets": ["data-test"]
+    },
+    {
+      "name": "book-build",
+      "configurePreset": "default",
+      "targets": ["book-build"]
+    },
+    {
+      "name": "book-install",
+      "configurePreset": "default",
+      "targets": ["book-install"]
+    },
+    {
+      "name": "learn-test",
+      "configurePreset": "default",
+      "targets": ["learn-test"]
+    },
+    {
+      "name": "learn-run",
+      "configurePreset": "default",
+      "targets": ["learn-run"]
+    }
+  ],
+  "workflowPresets": [
+    {
       "name": "data",
-      "configurePreset": "default",
-      "targets": ["data"]
-    },
-    {
-      "name": "install-data",
-      "configurePreset": "default",
-      "targets": ["install-data"]
-    },
-    {
-      "name": "test-data",
-      "configurePreset": "default",
-      "targets": ["test-data"]
-    },
-    {
-      "name": "book",
-      "configurePreset": "default",
-      "targets": ["book"]
-    },
-    {
-      "name": "install-book",
-      "configurePreset": "default",
-      "targets": ["install-book"]
-    },
-    {
-      "name": "test-learn",
-      "configurePreset": "default",
-      "targets": ["test-learn"]
-    },
-    {
-      "name": "run-learn",
-      "configurePreset": "default",
-      "targets": ["run-learn"]
+      "displayName": "Data: build, test, install",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "default"
+        },
+        {
+          "type": "build",
+          "name": "data-build"
+        },
+        {
+          "type": "build",
+          "name": "data-test"
+        },
+        {
+          "type": "build",
+          "name": "data-install"
+        }
+      ]
     }
   ],
   "testPresets": [
