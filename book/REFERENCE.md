@@ -2,10 +2,11 @@
 
 Orientation notes for future sessions. Read this before changing the A5 book.
 
-> **Book work is paused.** Record book tasks here; do not implement them until
-> there is capacity to test the result.
+> **Book work resumed.** The installed `data/out` contract is now the only data
+> input; corrections from the printed second edition are recorded at the end
+> of this file.
 
-## Repository move — TODO
+## Repository move
 
 The repository was restructured on 2026-11-05 into:
 
@@ -15,27 +16,26 @@ The repository was restructured on 2026-11-05 into:
 - `learn/src`, `learn/data`;
 - one disposable top-level `build/` for all build artifacts;
 - top-level `CMakeLists.txt` and `CMakePresets.json`; `data/CMakeLists.txt`
-  is written. The `book` and `learn` per-project CMake files are not written
-  yet.
+  and `book/CMakeLists.txt` are written. The `learn` per-project CMake file is
+  not present in this checkout.
 
 The book's Python path layer and the default data pipeline's path layer have
 been prepared for the move; the one-off data scripts are still untouched. The
-current book build is expected to work once its runtime dependencies are
-available, but the book `--install` step and the switch to `family_order` are
-still book TODOs (do not implement them yet).
+book build reads only `data/out` and uses `family_order`. `book/CMakeLists.txt`
+provides `book-build` and `book-install`; `render.sh --install` is still not
+implemented, so use the CMake target for installation.
 
 - `book/src/book_paths.py` centralizes the repository root, `book/data`,
   `book/out`, `build/book`, `build/data`, `data/in`, `data/out`, the text and
-  asset paths, the species/etymology files, and the merged order source.
+  asset paths, and the species/etymology files.
 - `book/src/make_pocket.py`, `book/src/make_cover.py`,
   `book/src/make_book.py`, `book/src/make_book_family.py`, `book/src/etym.py`
   and `book/src/etymology_demo.py` now use `book_paths`. The stale `ROOT` and
   `tools/` path insert were removed from the two current A5 builders.
-- `book/src/render.sh` now finds the repository root and builds into
-  `build/book/`. It does **not** implement `--install` yet; that step should
-  copy the selected PDFs from `build/book` to `book/out`.
-- `book/README.md`, `book/PRINT.md` and the build commands below still
-  describe the old paths; update after the remaining code paths are fixed.
+- `book/src/render.sh` finds the repository root and builds into
+  `build/book/`. It does **not** implement `--install`; use the CMake
+  `book-install` target, which copies the print PDFs to `book/out`.
+- `book/README.md` and `book/PRINT.md` use the current paths.
 - Default pipeline scripts moved to `data/src/pipeline` and now use
   `data/src/pipeline/data_paths.py`:
   - `parse_list.py`: `data/in/raw/en_israel.wiki` ->
@@ -52,11 +52,10 @@ still book TODOs (do not implement them yet).
   the target is now `data-build`.
 - The one-off scripts in `data/src/oneoff` still assume the repository root
   and use old `data/...` paths. They are not part of the default build.
-- `data/out/israel_birds_final.json` now includes one integer `family_order`
-  per species (1..84, by first appearance in the source checklist). The book
-  still ranks families from `build/data/israel_birds_merged.json`; switching
-  `make_pocket.py` to use `family_order` and read only `data/out` is a book
-  TODO, not done.
+- `data/out/israel_birds_final.json` includes one integer `family_order` per
+  species (1..84, by first appearance in the source checklist).
+  `make_pocket.py` now sorts families by `family_order` and reads only
+  `data/out`; it does not need the merged build intermediate.
 - `data/in/overrides/family_hebrew_fixed.json` is a candidate override, not
   wired into the build. Decide whether to apply or delete it.
 - `book/data/reports/etymology_mismatches.md` and
@@ -72,16 +71,18 @@ still book TODOs (do not implement them yet).
   `learn/build` or `learn/out`. `learn/IMPLEMENTATION.md` was updated to the
   new paths.
 
-The build commands below are pre-move and therefore stale; the directory map
-has been updated to the new paths.
+The build commands below use the moved paths. `book-build` writes to
+`build/book/`; `book-install` copies the print PDFs to `book/out/`.
 
 ## Status
 
-- The previous printed edition was 72 pages, perfect bound, A5 148 × 210 mm;
+- The first printed edition was 72 pages, perfect bound, A5 148 × 210 mm;
   five copies were printed.
-- The current assembled interior is 96 pages: front matter, themed elements,
-  species list, seven indexes, two notes pages and four blanks. The cover has
-  been rebuilt for the 5.28 mm spine.
+- The second printed edition was the 96-page design; its on-paper lessons are
+  recorded at the end of this file.
+- The current third edition keeps the 96-page structure: front matter, themed
+  elements, species list, seven indexes, two notes pages and four blanks. The
+  cover has been rebuilt for the 5.28 mm spine.
 - The interior is **K-only** (C=M=Y=0) and the logo is grayscale. The cover is
   full colour; colour inside was too expensive.
 - The cover reads the interior's page count and derives the spine.
@@ -103,9 +104,12 @@ has been updated to the new paths.
 - `data/out/etymology.json` — element meanings, splits and themes (installed
   data).
 - `build/data/israel_birds_merged.json` — build intermediate with the source
-  order; not a consumer input.
-- `book/src/render.sh` — one command for interior + cover; `--one-file` for the
-  copy shop sequence; `--install` copies to `book/out`.
+  order; the book no longer reads it.
+- `book/CMakeLists.txt` — `book-build` (interior, spread and split panels in
+  `build/book`) and `book-install` (copy them to `book/out`).
+- `book/src/render.sh` — manual one command for interior + cover; `--one-file`
+  for the copy shop sequence. It does not implement `--install`; use the CMake
+  target.
 - `book/PRINT.md` — print brief for the copy shop.
 - `book/README.md` — detailed build/edit notes for the A5 edition.
 
@@ -120,9 +124,19 @@ source .venv/bin/activate
 pip install reportlab python-bidi fonttools
 ```
 
-Build:
+Build and install with CMake:
 
 ```sh
+cmake --preset default
+cmake --build build --target book-build     # -> build/book
+cmake --build build --target book-install   # -> book/out
+# or: cmake --workflow --preset book
+```
+
+Manual builder, when inspecting one half:
+
+```sh
+cd book/src
 ./render.sh                 # interior + cover
 ./render.sh --one-file      # cover front + interior + cover back
 ./render.sh --interior-only
@@ -133,21 +147,21 @@ Preview the new indexes with their final folios (these do not touch the
 assembled interior):
 
 ```sh
-python3 book/make_pocket.py --preview-themes      # themed data, 1–7
-python3 book/make_pocket.py --preview-themes-hebrew  # Hebrew-sorted output
-python3 book/make_pocket.py --preview-key         # “How to read this book”
-python3 book/make_pocket.py --preview-hebrew      # 3 columns, 54–58
-python3 book/make_pocket.py --preview-hebrew --hebrew-columns 2
-python3 book/make_pocket.py --preview-english     # 2 columns, 59–65
-python3 book/make_pocket.py --preview-families    # Latin 66, Hebrew 67
-python3 book/make_pocket.py --preview-latin-species  # 2 columns, 68–74
-python3 book/make_pocket.py --preview-elements    # 1 column, 76–85
+python3 book/src/make_pocket.py --preview-themes      # themed data, 1–7
+python3 book/src/make_pocket.py --preview-themes-hebrew  # Hebrew-sorted output
+python3 book/src/make_pocket.py --preview-key         # “How to read this book”
+python3 book/src/make_pocket.py --preview-hebrew      # 3 columns, 54–58
+python3 book/src/make_pocket.py --preview-hebrew --hebrew-columns 2
+python3 book/src/make_pocket.py --preview-english     # 2 columns, 59–65
+python3 book/src/make_pocket.py --preview-families    # Latin 66, Hebrew 67
+python3 book/src/make_pocket.py --preview-latin-species  # 2 columns, 68–74
+python3 book/src/make_pocket.py --preview-elements    # 1 column, 76–85
 ```
 
 `pdfinfo`/`pdfunite` come from Poppler. `gs -sDEVICE=inkcov` is used to check
 that interior pages stay K-only.
 
-Outputs are in `out/book/`. Previews are proofs, not print files.
+Build outputs are in `build/book/`. Previews are proofs, not print files.
 
 ## Book structure (assembled)
 
@@ -212,6 +226,10 @@ Order after the species list:
 | Whole names | σ | 1 | whole name + gloss + refs | assembled 75 |
 | Word elements | ρ | 1 | element + page + Hebrew + group + refs | assembled 76–85 |
 
+- Latin-script indexes (English, Latin family, Latin species, whole names,
+  word elements) are laid out in reverse page order: the higher folio carries
+  the earlier letter, so a physical left-to-right scan reads A–Z. The Hebrew
+  indexes keep their right-to-left page order.
 - μ is provisional (mnemonic: *mishpacha*). Easy to change.
 - English is two columns because long names do not fit three: at 8.8 pt only
   65% fit, at 8.0 pt 80%; the longest English entry is about 54 mm against a
@@ -271,7 +289,8 @@ copyright page.
 
 One box per index, not a wide range box:
 
-- **19 mm tall × 4.2 mm wide**, left fore-edge, 5 mm inside the trim.
+- **19 mm tall × 4.2 mm wide**, outer fore-edge, 5 mm inside the trim: left
+  on versos, right on rectos, so every tab is visible when riffling.
 - One **20 mm slot** per index: α at the top, each following marker 20 mm
   lower. Seven indexes fit in 140 mm.
 - Contents of the box: Greek letter at the top, a small gap, then the page's
@@ -328,26 +347,40 @@ One box per index, not a wide range box:
 
 ## Next work
 
-1. Read the assembled interior and cover proofs end to end.
+1. Read the assembled interior and cover proofs end to end, checking the
+   alternating edge tabs and the left-to-right Latin/English indexes.
+2. Decide whether to implement `render.sh --install`; the CMake
+   `book-install` target already copies the print PDFs to `book/out`.
 
 ## Lessons from the printed second edition
 
-The printed, on paper, the second addition revealed the following:
+The printed second edition revealed the following on paper:
 
 ### Editorial
-- Some tags are in the interior part of the book, making them useless
+
+- Some tags are in the interior part of the book, making them useless.
+  **Fixed:** the tab now follows the outer edge — left on versos, right on
+  rectos.
 - Latin (including English) indexes are right-to-left as the book is.
-This might be good, at least it is not that disturbing, but we might want to
-consider left-to-right order. The meaning is that early letters in the alphabeit have
-higer page numbers than later letters: there is inconsitency. Also it means that searching
-forward or backword depends on the languge.
-A consideration should be given
+  This should be changed to left-to-right order. **Fixed:** Latin-script
+  indexes are now assigned to pages in reverse order, so the higher folio
+  carries the earlier letter and a physical left-to-right scan reads A–Z.
+  This applies to the English species, Latin family, Latin species,
+  whole-name and word-element indexes; the Hebrew indexes keep their
+  right-to-left page order.
 
 ### Data
-- hispanionl should be ספרד and not היספניול
-- rubi- is classified as bramble פטל under מקום מחיה.
-Althogh one may be living in the bush itslef - we should check what the meaning is
 
+- `hispaniol` should be ספרד and not היספניול. **Fixed:** `hispaniol` is now
+  `Spain` / `ספרד` in `data/in/etymology.md` (Jobling: *Hispaniolensis*
+  Spanish, from L. *Hispania*, Spain).
+- rubi- is classified as bramble פטל under מקום מחיה. Although one may be
+  living in the bush itself — we should check what the meaning is.
+  **Checked:** Jobling gives L. *rubus, rubi* bramble-bush, so the meaning is
+  right and “Where it lives” remains the correct theme. The English gloss is
+  now “bramble bush”.
+
+These corrections are incorporated in the third edition.
 
 ## Don't
 

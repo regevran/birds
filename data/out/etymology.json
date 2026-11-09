@@ -2333,7 +2333,7 @@
    ]
   },
   "rubi": {
-   "en": "bramble",
+   "en": "bramble bush",
    "he": "פטל",
    "origin": "Latin",
    "theme": "Where it lives",
@@ -2728,8 +2728,8 @@
    ]
   },
   "hispaniol": {
-   "en": "Hispaniola",
-   "he": "היספניולה",
+   "en": "Spain",
+   "he": "ספרד",
    "origin": "place name",
    "theme": "Places",
    "display": "hispaniol",

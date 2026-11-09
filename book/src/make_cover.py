@@ -322,8 +322,10 @@ def count_pages(path):
         out = subprocess.run(["pdfinfo", path], capture_output=True,
                              text=True, check=True).stdout
         return int(re.search(r"^Pages:\s+(\d+)", out, re.M).group(1))
-    except Exception:
-        return 72
+    except Exception as exc:
+        raise SystemExit(
+            f"cover: cannot read the page count from {path}: {exc}\n"
+            "Build the interior first, or pass --pages.")
 
 
 def main():

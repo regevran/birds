@@ -3,7 +3,8 @@
 #
 # The cover reads the interior's page count to compute the spine, so the order
 # matters.  Build outputs land in build/book/; the A4 sheets are not touched.
-# Installing the selected PDFs to book/out/ is a later --install step.
+# Installing the selected PDFs to book/out/ is handled by the CMake
+# book-install target.
 #
 #   ./render.sh                  interior + cover
 #   ./render.sh --interior-only  interior only

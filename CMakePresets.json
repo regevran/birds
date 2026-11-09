@@ -88,6 +88,24 @@
           "name": "data-install"
         }
       ]
+    },
+    {
+      "name": "book",
+      "displayName": "Book: build, install",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "default"
+        },
+        {
+          "type": "build",
+          "name": "book-build"
+        },
+        {
+          "type": "build",
+          "name": "book-install"
+        }
+      ]
     }
   ],
   "testPresets": [

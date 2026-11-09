@@ -27,7 +27,6 @@ LOGO_GRAY = str(BOOK_DATA / "assets" / "logo_circle_gray.png")
 
 SPECIES = str(DATA_OUT / "israel_birds_final.json")
 ETYMOLOGY = str(DATA_OUT / "etymology.json")
-ORDER_SOURCE = str(BUILD_DATA / "israel_birds_merged.json")
 
 OUT_DIR = str(BUILD_BOOK)
 INSTALL_DIR = str(BOOK_OUT)

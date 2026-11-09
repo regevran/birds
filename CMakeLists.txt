@@ -49,5 +49,6 @@ add_custom_target(birds-help
     COMMAND ${CMAKE_COMMAND} -E echo "Learn run:   cmake --build build --target learn-run"
     COMMAND ${CMAKE_COMMAND} -E echo "Learn test:  cmake --build build --target learn-test"
     COMMAND ${CMAKE_COMMAND} -E echo "Data flow:   cmake --workflow --preset data"
+    COMMAND ${CMAKE_COMMAND} -E echo "Book flow:   cmake --workflow --preset book"
     COMMAND ${CMAKE_COMMAND} -E echo "Tests:       ctest --test-dir build"
     VERBATIM)

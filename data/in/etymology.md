@@ -1043,7 +1043,7 @@ rodia | heron | אנפה | Greek | Birds
 roseo | pink | ורוד | Latin | Colour
 rostris, rostra, Rostrat | bill | מקור | Latin | Body
 rubec | red | אדום | Latin | Colour
-rubi | bramble | פטל | Latin | Where it lives
+rubi | bramble bush | פטל | Latin | Where it lives  # Jobling: L. rubus, rubi bramble-bush
 ruf, rufi | reddish | אדמדם | Latin | Colour
 rusti | countryside | כפר | Latin | Where it lives
 Saxi, sax | rock | סלע | Latin | Where it lives
@@ -1083,7 +1083,7 @@ xantho | yellow | צהוב | Greek | Colour
 bengal, benghal | Bengal | בנגל | place name | Places
 cap | the Cape | כף התקווה הטובה | place name | Places
 chin | China | סין | place name | Places
-hispaniol | Hispaniola | היספניולה | place name | Places
+hispaniol | Spain | ספרד | place name | Places  # Jobling: hispaniolensis Spanish (L. Hispania Spain)
 madagascari | Madagascar | מדגסקר | place name | Places
 nipal | Nepal | נפאל | place name | Places
 sandvic | the Sandwich Islands | איי סנדוויץ | place name | Places

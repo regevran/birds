@@ -65,8 +65,8 @@ add_custom_target(data-build ALL
     DEPENDS "${RAW_JSON}" "${MERGED_JSON}" "${FINAL_JSON}" "${ETYM_JSON}")
 
 # The final JSON includes `family_order` (1..84, by first appearance in the
-# source checklist). The book still reads build/data/israel_birds_merged.json
-# for family order; switching it to `family_order` is a book TODO.
+# source checklist). Consumers such as the book use that field and read only
+# data/out; the merged JSON is a build intermediate.
 
 add_custom_target(data-install
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${DATA_OUT}"

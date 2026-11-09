@@ -24,15 +24,15 @@
 
 title_he: ציפורי ישראל
 subtitle_he: שמות לטיניים ומשמעותם
-edition_he: מהדורה שנייה · 2026
+edition_he: מהדורה שלישית · 2026
 author_he: רן רגב
 author: Ran Regev
-logo_credit: נועה שוורצון רגב
+logo_credit: נועה רגב שורצון
 
 # Cover only.
 title_lat: AVES ISRAELIS
 subtitle_lat: Nomina Latina eorumque significationes
-edition_lat: Editio secunda · MMXXVI
+edition_lat: Editio tertia · MMXXVI
 
 ## dedication
 # The dedication page (page iii), after the copyright page. Two lines.

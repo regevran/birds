@@ -8,7 +8,8 @@ layout, front matter, monochrome palette and indexes:
 
   * A5 (148 x 210 mm), one text column, 10 pt species type;
   * front matter: title, copyright, contents, key (unnumbered);
-  * body: families alphabetical, genus blocks, Latin · English · Hebrew;
+  * body: families in taxonomic order (``family_order``), genus blocks,
+    Latin · English · Hebrew;
   * Hebrew name index, alphabetised in Hebrew, with page references;
   * index of word elements (etymology), one column at A5;
   * ruled notes page and padding to a multiple of four pages.
@@ -16,7 +17,7 @@ layout, front matter, monochrome palette and indexes:
 Output: build/book/israel_birds_pocket.pdf
 
 Run:
-    python3 book/make_pocket.py
+    python3 book/src/make_pocket.py
 """
 
 import argparse
@@ -91,6 +92,7 @@ ETYM_EN_GAP = 27 * mm          # English right edge, clear of the longest Hebrew
 HEB_ROW, HEB_LETTER = 10.8, 20.0
 HEB_TOP_INSET = 32          # points from the top margin to the first column
 HEB_COLUMNS = 3             # established for index pages where the width fits
+FRONT_PAGES = 5             # roman pages before the first Arabic folio
 ENG_ROW, ENG_LETTER = 10.4, 20.0
 ENG_COLUMNS = 2             # long English names do not fit three columns
 
@@ -182,30 +184,35 @@ class Metrics:
 
 # ---------------------------------------------------------------- grouping
 
-def load(path, order_source=None):
-    """Load records and group them; when given, restore the source's order.
+def load(path):
+    """Load the installed dataset and group it for the species list.
 
-    The final dataset is alphabetised, but ``israel_birds_merged.json`` keeps
-    the sequence of the source checklist (Clements 2022): families are yielded
-    in taxonomic order and each family knows its order.
+    The installed file is alphabetised by genus, so the taxonomic sequence
+    comes from ``family_order``: one integer per family (1..84), assigned by
+    first appearance in the source checklist (Clements 2022).  The order name
+    is read from the same rows.  No build-time intermediate is needed.
     """
     records = json.load(open(path, encoding="utf-8"))
     records = [r for r in records if r.get("latin")]
     families = mf.group_by_family(records)
 
-    fam_order = {}
+    ranks, orders = {}, {}
     for r in records:
-        fam_order.setdefault(r["family"], r.get("order", ""))
-    for fam in families:
-        fam["order"] = fam_order.get(fam["family"], "")
+        fam = r["family"]
+        rank = r.get("family_order")
+        if not isinstance(rank, int):
+            raise ValueError(
+                f"{path}: family {fam!r} has no integer family_order")
+        if fam in ranks and ranks[fam] != rank:
+            raise ValueError(
+                f"{path}: family {fam!r} has inconsistent family_order")
+        ranks[fam] = rank
+        orders.setdefault(fam, r.get("order", ""))
 
-    if order_source and os.path.exists(order_source):
-        raw = json.load(open(order_source, encoding="utf-8"))
-        rank = {}
-        for r in raw:
-            rank.setdefault(r["family"], len(rank))
-        families.sort(key=lambda f: (rank.get(f["family"], 10 ** 6),
-                                     f["family"]))
+    for fam in families:
+        fam["order"] = orders.get(fam["family"], "")
+        fam["family_order"] = ranks[fam["family"]]
+    families.sort(key=lambda f: (f["family_order"], f["family"]))
     return records, families
 
 
@@ -317,6 +324,18 @@ def flow2(items, cap, height, ncols=2):
     if any(page):
         pages.append(page)
     return pages
+
+
+def ltr_index_pages(pages):
+    """Order flowed pages for a Latin-alphabet index in this RTL book.
+
+    Physical pages run right-to-left: the first folio of an index section is
+    the rightmost page, and folios increase towards the left.  Reversing the
+    flowed pages puts the start of the alphabet on the highest folio, so a
+    left-to-right scan of the section reads A..Z.  Hebrew indexes keep the
+    ``flow2`` order.
+    """
+    return list(reversed(pages))
 
 
 # ---------------------------------------------------------------- etymology index
@@ -1136,7 +1155,8 @@ def draw_whole_index_page(c, m, cols, pno, letter_stack=False):
                       rng_font="BirdLatin", rng_rtl=False,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
-                      letters=latin_letter_bounds(cols))
+                      letters=latin_letter_bounds(cols),
+                      on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["whole_index.heading_he"], 13, m.right, top - 13,
@@ -1223,17 +1243,28 @@ def page_letter_range(cols):
     return a if a == b else f"{a}־{b}"
 
 
+def outer_right(pno):
+    """True when an Arabic-folio page sits on the right-hand leaf.
+
+    The interior is imposed left-to-right, so physical page 1 is a recto.
+    Arabic folio 1 starts on physical page ``FRONT_PAGES + 1``; from there
+    the parity is simply ``pno + FRONT_PAGES``.
+    """
+    return (pno + FRONT_PAGES) % 2 == 1
+
+
 def draw_index_marker(c, m, rng, title, greek, slot=0,
                       rng_font="BirdHebrew", rng_rtl=True,
                       title_font="BirdHebrewBold", title_rtl=True,
-                      letter_stack=False, letters=None):
+                      letter_stack=False, letters=None, on_right=False):
     """Running line and edge tab shared by the indexes.
 
     ``slot`` staggers the marker down the fore-edge: the Hebrew index is slot
     0 (α), the English index slot 1 (η), and so on.  The marker stays 5 mm
-    inside the trim so the copy shop's cut cannot eat it.  ``letter_stack``
-    puts the page's first and last letters inside the same box, below the
-    Greek letter, so one 20 mm slot holds all three.
+    inside the trim so the copy shop's cut cannot eat it.  ``on_right`` puts
+    the tab on the outer edge of a recto page; on versos it stays on the left.
+    ``letter_stack`` puts the page's first and last letters inside the same
+    box, below the Greek letter, so one 20 mm slot holds all three.
     """
     y = m.page_h - 9 * mm
 
@@ -1264,7 +1295,8 @@ def draw_index_marker(c, m, rng, title, greek, slot=0,
     c.setLineWidth(0.4)
     c.line(m.margin_x, y - 2 * mm, m.right, y - 2 * mm)
 
-    tab_x, tab_w = 5 * mm, 4.2 * mm
+    tab_w = 4.2 * mm
+    tab_x = (m.page_w - 5 * mm - tab_w) if on_right else 5 * mm
     box_top = 8 * mm + slot * 20 * mm
     box_h = (19 if (letter_stack and letters) else 14) * mm
     box_y = m.page_h - box_top - box_h
@@ -1290,16 +1322,18 @@ def draw_index_marker(c, m, rng, title, greek, slot=0,
                                     box_y + centre - 2.5, shown)
 
 
-def draw_hebrew_marker(c, m, cols, letter_stack=False):
+def draw_hebrew_marker(c, m, cols, letter_stack=False, on_right=False):
     """Top line and edge tab for the Hebrew index: range, α, title."""
     draw_index_marker(c, m, page_letter_range(cols),
                       T["hebrew_index.heading_he"], "α",
                       letter_stack=letter_stack,
-                      letters=page_letter_bounds(cols))
+                      letters=page_letter_bounds(cols),
+                      on_right=on_right)
 
 
 def draw_hebrew_page(c, m, cols, pno, ncols=2, letter_stack=False):
-    draw_hebrew_marker(c, m, cols, letter_stack=letter_stack)
+    draw_hebrew_marker(c, m, cols, letter_stack=letter_stack,
+                       on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["hebrew_index.heading_he"], 13, m.right, top - 13,
@@ -1350,7 +1384,8 @@ def draw_english_page(c, m, cols, pno, letter_stack=False):
                       rng_font="BirdLatin", rng_rtl=False,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
-                      letters=latin_letter_bounds(cols))
+                      letters=latin_letter_bounds(cols),
+                      on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["english_index.heading_he"], 13, m.right, top - 13,
@@ -1397,7 +1432,8 @@ def draw_latin_family_page(c, m, cols, pno, ncols=3, letter_stack=False):
                       rng_font="BirdLatin", rng_rtl=False,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
-                      letters=latin_letter_bounds(cols))
+                      letters=latin_letter_bounds(cols),
+                      on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["latin_family_index.heading_he"], 13, m.right, top - 13,
@@ -1405,6 +1441,7 @@ def draw_latin_family_page(c, m, cols, pno, ncols=3, letter_stack=False):
 
     gutter = 5 * mm
     col_w = (m.col_w - (ncols - 1) * gutter) / ncols
+    # Latin reads left-to-right: the first column is the leftmost one.
     col_x = [m.margin_x + i * (col_w + gutter) for i in range(ncols)]
     y = top - HEB_TOP_INSET
 
@@ -1442,7 +1479,8 @@ def draw_hebrew_family_page(c, m, cols, pno, ncols=3, letter_stack=False):
                       T["hebrew_family_index.heading_he"], "μ", slot=3,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
-                      letters=page_letter_bounds(cols))
+                      letters=page_letter_bounds(cols),
+                      on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["hebrew_family_index.heading_he"], 13, m.right, top - 13,
@@ -1489,7 +1527,8 @@ def draw_latin_species_page(c, m, cols, pno, ncols=2, letter_stack=False):
                       rng_font="BirdLatin", rng_rtl=False,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
-                      letters=latin_letter_bounds(cols))
+                      letters=latin_letter_bounds(cols),
+                      on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["latin_species_index.heading_he"], 13, m.right, top - 13,
@@ -1497,6 +1536,7 @@ def draw_latin_species_page(c, m, cols, pno, ncols=2, letter_stack=False):
 
     gutter = 6 * mm
     col_w = (m.col_w - gutter) / 2
+    # Latin reads left-to-right: the first column is the leftmost one.
     col_x = [m.margin_x, m.margin_x + col_w + gutter]
     y = top - HEB_TOP_INSET
 
@@ -1536,7 +1576,8 @@ def draw_element_index_page(c, m, cols, pno, ncols=1, letter_stack=False,
                       rng_font="BirdLatin", rng_rtl=False,
                       title_font="BirdHebrewBold", title_rtl=True,
                       letter_stack=letter_stack,
-                      letters=latin_letter_bounds(cols))
+                      letters=latin_letter_bounds(cols),
+                      on_right=outer_right(pno))
     top = m.page_h - m.margin_top
     c.setFillColor(ACCENT)
     draw_rich(c, T["element_index.heading_he"], 13, m.right, top - 13,
@@ -1648,7 +1689,7 @@ def draw_body_page(c, m, page, pno, etym):
 def render(args):
     latin_font, hebrew_font = register_fonts()
     m = Metrics(args.base)
-    records, families = load(args.data, args.order_source)
+    records, families = load(args.data)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
                      plain_color=K(1.00), whole_color=K(0.60))
 
@@ -1667,30 +1708,35 @@ def render(args):
                          ncols=args.hebrew_columns)
     heb_start = list_start + n_body
 
-    eng_pages = flow2(english_items(records, shifted), cap_h, eng_height,
-                      ncols=ENG_COLUMNS)
+    eng_pages = ltr_index_pages(
+        flow2(english_items(records, shifted), cap_h, eng_height,
+              ncols=ENG_COLUMNS))
     eng_start = heb_start + len(hebrew_pages)
 
-    lat_fam_pages = flow2(latin_family_items(families, shifted_fam), cap_h,
-                          latin_family_height, ncols=3)
+    lat_fam_pages = ltr_index_pages(
+        flow2(latin_family_items(families, shifted_fam), cap_h,
+              latin_family_height, ncols=3))
     lat_fam_start = eng_start + len(eng_pages)
 
     heb_fam_pages = flow2(hebrew_family_items(families, shifted_fam), cap_h,
                           hebrew_family_height, ncols=3)
     heb_fam_start = lat_fam_start + len(lat_fam_pages)
 
-    lat_species_pages = flow2(latin_species_items(records, shifted), cap_h,
-                              latin_species_height, ncols=2)
+    lat_species_pages = ltr_index_pages(
+        flow2(latin_species_items(records, shifted), cap_h,
+              latin_species_height, ncols=2))
     lat_species_start = heb_fam_start + len(heb_fam_pages)
 
     whole_cap = (m.page_h - m.margin_top - WHOLE_TOP_INSET) - m.margin_bot
     whole_items = whole_index_items(etym, records, shifted)
-    whole_pages = flow2(whole_items, whole_cap, whole_index_height, ncols=1)
+    whole_pages = ltr_index_pages(
+        flow2(whole_items, whole_cap, whole_index_height, ncols=1))
     whole_start = lat_species_start + len(lat_species_pages)
 
     el_cap = (m.page_h - m.margin_top - EL_TOP_INSET) - m.margin_bot
     el_items = element_index_items(etym, records, shifted, etym_capacity(m))
-    el_pages = flow2(el_items, el_cap, element_index_height, ncols=1)
+    el_pages = ltr_index_pages(
+        flow2(el_items, el_cap, element_index_height, ncols=1))
     el_start = whole_start + len(whole_pages)
 
     notes_start = el_start + len(el_pages)
@@ -1711,8 +1757,7 @@ def render(args):
         (T["notes.heading_he"], notes_start),
     ]
 
-    front = 5
-    total = front + notes_start + notes_pages - 1 + tail_blank
+    total = FRONT_PAGES + notes_start + notes_pages - 1 + tail_blank
     pad = (-total) % 4
     total += pad
 
@@ -1723,7 +1768,7 @@ def render(args):
     c.setTitle("Birds of Israel — pocket edition")
     c.setAuthor(AUTHOR)
     c.setSubject("Latin names, Hebrew names and etymology for bird ringers")
-    c.setCreator("book/make_pocket.py")
+    c.setCreator("book/src/make_pocket.py")
 
     draw_title_page(c, m)
     c.showPage()
@@ -1817,7 +1862,7 @@ def render_hebrew_preview(args):
     """
     register_fonts()
     m = Metrics(args.base)
-    records, families = load(args.data, args.order_source)
+    records, families = load(args.data)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
                      plain_color=K(1.00), whole_color=K(0.60))
 
@@ -1842,7 +1887,7 @@ def render_hebrew_preview(args):
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle(f"Birds of Israel — Hebrew index {ncols}-column preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-hebrew")
+    c.setCreator("book/src/make_pocket.py --preview-hebrew")
 
     for i, cols in enumerate(hebrew_pages):
         draw_hebrew_page(c, m, cols, heb_start + i, ncols=ncols,
@@ -1862,7 +1907,7 @@ def render_english_preview(args):
     """Proof of the English name index, two columns, after the Hebrew one."""
     register_fonts()
     m = Metrics(args.base)
-    records, families = load(args.data, args.order_source)
+    records, families = load(args.data)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
                      plain_color=K(1.00), whole_color=K(0.60))
 
@@ -1880,8 +1925,9 @@ def render_english_preview(args):
                          ncols=args.hebrew_columns)
     eng_start = heb_start + len(hebrew_pages)
 
-    eng_pages = flow2(english_items(records, shifted), cap_h, eng_height,
-                      ncols=ENG_COLUMNS)
+    eng_pages = ltr_index_pages(
+        flow2(english_items(records, shifted), cap_h, eng_height,
+              ncols=ENG_COLUMNS))
 
     out = os.path.join(os.path.dirname(args.out), "preview-english.pdf")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
@@ -1889,7 +1935,7 @@ def render_english_preview(args):
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle("Birds of Israel — English index preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-english")
+    c.setCreator("book/src/make_pocket.py --preview-english")
 
     for i, cols in enumerate(eng_pages):
         draw_english_page(c, m, cols, eng_start + i, letter_stack=True)
@@ -1908,7 +1954,7 @@ def render_families_preview(args):
     """Proof of the two separate family indexes: Latin then Hebrew."""
     register_fonts()
     m = Metrics(args.base)
-    records, families = load(args.data, args.order_source)
+    records, families = load(args.data)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
                      plain_color=K(1.00), whole_color=K(0.60))
 
@@ -1929,8 +1975,9 @@ def render_families_preview(args):
                       ncols=ENG_COLUMNS)
 
     lat_start = heb_start + len(hebrew_pages) + len(eng_pages)
-    lat_pages = flow2(latin_family_items(families, shifted_fam), cap_h,
-                      latin_family_height, ncols=3)
+    lat_pages = ltr_index_pages(
+        flow2(latin_family_items(families, shifted_fam), cap_h,
+              latin_family_height, ncols=3))
     heb_fam_start = lat_start + len(lat_pages)
     heb_fam_pages = flow2(hebrew_family_items(families, shifted_fam), cap_h,
                           hebrew_family_height, ncols=3)
@@ -1941,7 +1988,7 @@ def render_families_preview(args):
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle("Birds of Israel — family indexes preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-families")
+    c.setCreator("book/src/make_pocket.py --preview-families")
 
     for i, cols in enumerate(lat_pages):
         draw_latin_family_page(c, m, cols, lat_start + i, letter_stack=True)
@@ -1965,7 +2012,7 @@ def render_latin_species_preview(args):
     """Proof of the Latin species index, two columns."""
     register_fonts()
     m = Metrics(args.base)
-    records, families = load(args.data, args.order_source)
+    records, families = load(args.data)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
                      plain_color=K(1.00), whole_color=K(0.60))
 
@@ -1992,8 +2039,9 @@ def render_latin_species_preview(args):
                           hebrew_family_height, ncols=3)
     lat_species_start = heb_fam_start + len(heb_fam_pages)
 
-    lat_species_pages = flow2(latin_species_items(records, shifted), cap_h,
-                              latin_species_height, ncols=2)
+    lat_species_pages = ltr_index_pages(
+        flow2(latin_species_items(records, shifted), cap_h,
+              latin_species_height, ncols=2))
 
     out = os.path.join(os.path.dirname(args.out),
                        "preview-latin-species.pdf")
@@ -2002,7 +2050,7 @@ def render_latin_species_preview(args):
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle("Birds of Israel — Latin species index preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-latin-species")
+    c.setCreator("book/src/make_pocket.py --preview-latin-species")
 
     for i, cols in enumerate(lat_species_pages):
         draw_latin_species_page(c, m, cols, lat_species_start + i,
@@ -2035,7 +2083,7 @@ def render_themes_preview(args, sort_hebrew=True,
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle("Birds of Israel — themed word elements preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-themes"
+    c.setCreator("book/src/make_pocket.py --preview-themes"
                  + ("-hebrew" if sort_hebrew else ""))
 
     for i, items in enumerate(pages, start=1):
@@ -2060,7 +2108,7 @@ def render_key_preview(args):
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle("Birds of Israel — key page preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-key")
+    c.setCreator("book/src/make_pocket.py --preview-key")
 
     draw_key_page(c, m, etym)
     draw_roman_folio(c, m, 5)
@@ -2071,10 +2119,10 @@ def render_key_preview(args):
 
 
 def render_elements_preview(args):
-    """Proof of the alphabetical word-element index, three columns."""
+    """Proof of the alphabetical word-element index, one column."""
     register_fonts()
     m = Metrics(args.base)
-    records, families = load(args.data, args.order_source)
+    records, families = load(args.data)
     etym = Etymology(args.etym, part_color=K(0.70), dot_color=K(0.70),
                      plain_color=K(1.00), whole_color=K(0.60))
 
@@ -2109,7 +2157,8 @@ def render_elements_preview(args):
 
     items = element_index_items(etym, records, shifted, cap)
     el_cap = (m.page_h - m.margin_top - EL_TOP_INSET) - m.margin_bot
-    el_pages = flow2(items, el_cap, element_index_height, ncols=1)
+    el_pages = ltr_index_pages(
+        flow2(items, el_cap, element_index_height, ncols=1))
 
     out = os.path.join(os.path.dirname(args.out), "preview-elements.pdf")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
@@ -2117,7 +2166,7 @@ def render_elements_preview(args):
                       initialFontName="BirdLatin", initialFontSize=10)
     c.setTitle("Birds of Israel — word elements index preview")
     c.setAuthor(AUTHOR)
-    c.setCreator("book/make_pocket.py --preview-elements")
+    c.setCreator("book/src/make_pocket.py --preview-elements")
 
     for i, cols in enumerate(el_pages):
         draw_element_index_page(c, m, cols, el_start + i,
@@ -2142,8 +2191,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default=book_paths.SPECIES)
     ap.add_argument("--etym", default=book_paths.ETYMOLOGY)
-    ap.add_argument("--order-source", default=book_paths.ORDER_SOURCE,
-                    help="source whose family order defines the taxonomic sequence")
     ap.add_argument("--out", default=book_paths.DEFAULT_POCKET)
     ap.add_argument("--base", type=float, default=10.0)
     ap.add_argument("--preview-hebrew", action="store_true",

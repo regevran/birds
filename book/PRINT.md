@@ -1,8 +1,8 @@
-# Print brief — A5 pocket edition
+# Print brief — A5 pocket edition (third edition)
 
 ## Files to send
 
-1. **`out/book/israel_birds_pocket.pdf`** — interior.
+1. **`book/out/israel_birds_pocket.pdf`** — interior.
    - 96 pages / 48 sheets.
    - A5, 148 × 210 mm.
    - **Black only** (K-only CMYK); print on a B/W device.
@@ -10,26 +10,27 @@
    - Page 1 is the title page; the last four pages are intentionally blank
      (two note blanks and two printer blanks).
 
-2. **`out/book/cover_spread.pdf`** — cover, as one spread.
+2. **`book/out/cover_spread.pdf`** — cover, as one spread.
    - One page, 307.28 × 216 mm including 3 mm bleed.
    - Back + spine + front, outside only.
    - Spine 5.28 mm.
    - **Full colour.**
 
-   If the shop prefers two separate cover panels, use:
+   The normal CMake build installs these two panels as well. If building
+   manually, run `book/src/render.sh --split` and use:
 
-   - **`out/book/cover_front_print.pdf`** — front only.
-   - **`out/book/cover_back_print.pdf`** — back only.
+   - **`book/out/cover_front_print.pdf`** — front only.
+   - **`book/out/cover_back_print.pdf`** — back only.
    - Each is 154 × 216 mm including 3 mm bleed, full colour, with **no spine
      band and no brown centre part**. Spine remains 5.28 mm.
 
-If the shop asks for a single file in reading order, run `./render.sh
---one-file`. It writes `out/book/israel_birds_one_file.pdf`: 98 A5 pages —
+If the shop asks for a single file in reading order, run `book/src/render.sh
+--one-file`. It writes `build/book/israel_birds_one_file.pdf`: 98 A5 pages —
 front cover, the 96-page interior, then the back cover. Its cover panels are
 trimmed (no bleed); use `cover_spread.pdf` above for the actual cover printing.
 
 A front panel alone (`cover_front_draft.pdf`) is a proof, produced only with
-`python3 book/make_cover.py --front-only`; it is not part of the print set and
+`python3 book/src/make_cover.py --front-only`; it is not part of the print set and
 is not written by the normal build.
 
 ## Specification
@@ -68,13 +69,13 @@ If the shop uses a different stock, ask for its caliper and recalculate. Do not 
 Actual caliper varies by paper. The bindery should confirm the final spine with the actual text block and cover stock. If they give a final spine, regenerate with:
 
 ```sh
-python3 book/make_cover.py --pages 96 --spine 5.28
+python3 book/src/make_cover.py --pages 96 --spine 5.28
 ```
 
 or, if working from caliper:
 
 ```sh
-python3 book/make_cover.py --pages 96 --caliper 0.12
+python3 book/src/make_cover.py --pages 96 --caliper 0.12
 ```
 
 - **Interior colour:** print black only. White uncoated gives the best contrast for the K-only text; cream/ivory is acceptable. Avoid glossy interior stock.

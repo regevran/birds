@@ -1,6 +1,9 @@
 # Learning tool — design reference
 
-Status: design phase. No code has been written. This file is the durable record of the design conversation; use it to continue next session. `learn/TODO.md` holds follow-ups.
+Status: foundation implemented (`Config`, dataset loader/validator/indexes,
+and dataset tests). Cards, scheduling, lifecycle and the web UI are still
+design-only. This file is the durable record of the design conversation; use
+it to continue next session. `learn/TODO.md` holds follow-ups.
 
 ## Purpose
 
@@ -168,7 +171,8 @@ Chosen approach: **A — local server**.
 - Out-of-scope V cards on by default with skip; global due count.
 - Look-ahead 5 cards, Hebrew name + card type, no Latin.
 - Collect events now; analyse later.
-- No code until the spec is agreed; implement in small user-reviewed slices.
+- Implement in small, user-reviewed slices; the foundation data layer is in
+  place, the remaining components are still design-only.
 
 ## Open / later
 

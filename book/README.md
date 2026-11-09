@@ -1,12 +1,23 @@
-# Birds of Israel — A5 pocket edition
+# Birds of Israel — A5 pocket edition (third edition)
 
 A separate work from the A4 learning sheets.  It reuses the same source data but
-has its own layout, front matter, colour, indexes and cover.  Nothing in
-`tools/` or `data/` is modified by the build; only `book/` and `out/book/` are.
+has its own layout, front matter, colour, indexes and cover.  The build reads
+the installed `data/out` files, writes intermediates to `build/book/`, and
+installs the print PDFs to `book/out/`.
 
 ## Build
 
 ```sh
+cmake --preset default
+cmake --build build --target book-build     # -> build/book
+cmake --build build --target book-install   # -> book/out
+# or: cmake --workflow --preset book
+```
+
+Manual builder:
+
+```sh
+cd book/src
 ./render.sh
 ./render.sh --one-file   # front cover + interior + back cover in one PDF
 ```
@@ -20,49 +31,50 @@ For proofs of the indexes in the new structure, with their final folios and
 page references:
 
 ```sh
-python3 book/make_pocket.py --preview-themes
-python3 book/make_pocket.py --preview-themes-hebrew
-python3 book/make_pocket.py --preview-key
-python3 book/make_pocket.py --preview-hebrew
-python3 book/make_pocket.py --preview-hebrew --hebrew-columns 2
-python3 book/make_pocket.py --preview-english
-python3 book/make_pocket.py --preview-families
-python3 book/make_pocket.py --preview-latin-species
-python3 book/make_pocket.py --preview-elements
+python3 book/src/make_pocket.py --preview-themes
+python3 book/src/make_pocket.py --preview-themes-hebrew
+python3 book/src/make_pocket.py --preview-key
+python3 book/src/make_pocket.py --preview-hebrew
+python3 book/src/make_pocket.py --preview-hebrew --hebrew-columns 2
+python3 book/src/make_pocket.py --preview-english
+python3 book/src/make_pocket.py --preview-families
+python3 book/src/make_pocket.py --preview-latin-species
+python3 book/src/make_pocket.py --preview-elements
 ```
 
-These write `out/book/preview-themes.pdf` (the themed data pages, one line per
-Hebrew meaning), `out/book/preview-themes-hebrew.pdf` (the Hebrew-meaning
-sorting used by the book), `out/book/preview-key.pdf` (the “How to read this book”
-page), `out/book/preview-hebrew-3col.pdf` (the established
-three-column setting), `out/book/preview-hebrew.pdf` (two-column comparison),
-`out/book/preview-english.pdf` (two columns, because long English names do not
-fit three), `out/book/preview-families.pdf` (separate Latin and Hebrew family
-indexes, one page each), `out/book/preview-latin-species.pdf` (two columns,
-because long binomials do not fit three), and `out/book/preview-elements.pdf`
+These write `build/book/preview-themes.pdf` (the themed data pages, one line per
+Hebrew meaning), `build/book/preview-themes-hebrew.pdf` (the Hebrew-meaning
+sorting used by the book), `build/book/preview-key.pdf` (the “How to read this book”
+page), `build/book/preview-hebrew-3col.pdf` (the established
+three-column setting), `build/book/preview-hebrew.pdf` (two-column comparison),
+`build/book/preview-english.pdf` (two columns, because long English names do not
+fit three), `build/book/preview-families.pdf` (separate Latin and Hebrew family
+indexes, one page each), `build/book/preview-latin-species.pdf` (two columns,
+because long binomials do not fit three), and `build/book/preview-elements.pdf`
 (one column, with fixed columns for element, page, Hebrew meaning, group and
 occurrence pages). They are proofs, not print files; the assembled interior
 uses the structure described below.
 
-Outputs:
+Installed outputs (`book-build` creates them in `build/book/`; `book-install`
+copies them to `book/out/`):
 
 | File | What it is |
 |---|---|
-| `out/book/israel_birds_pocket.pdf` | interior, A5, 96 pages, numbered from the themed-element pages |
-| `out/book/cover_spread.pdf` | back + spine + front, spine computed from the interior |
-| `out/book/cover_front_print.pdf` | front-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
-| `out/book/cover_back_print.pdf` | back-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
-| `out/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 98 pages |
+| `book/out/israel_birds_pocket.pdf` | interior, A5, 96 pages, numbered from the themed-element pages |
+| `book/out/cover_spread.pdf` | back + spine + front, spine computed from the interior |
+| `book/out/cover_front_print.pdf` | front-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
+| `book/out/cover_back_print.pdf` | back-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
+| `build/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 98 pages |
 
 The one-file sequence uses A5 trim cover panels without bleed, so every page
 is the same size; the print-ready cover with bleed is still `cover_spread.pdf`.
-For a shop that wants the cover split, run `./render.sh --split` or
-`python3 book/make_cover.py --split`; it writes the two 154 × 216 mm print
-panels with no spine band.
+It is a manual builder output and is not installed.
+The split cover panels are built by `book-build` and installed; the manual
+equivalent is `book/src/render.sh --split`.
 
 The front panel alone is a proof, not a build artifact: write it on demand
-with `python3 book/make_cover.py --front-only` (it lands in
-`out/book/cover_front_draft.pdf`, 154 × 216 mm).
+with `python3 book/src/make_cover.py --front-only` (it lands in
+`build/book/cover_front_draft.pdf`, 154 × 216 mm).
 
 The cover script reads the interior's page count with `pdfinfo`, so rebuilding
 after a content change keeps the spine correct.
@@ -180,18 +192,18 @@ Data — species, names, etymologies and order names — stays in `data/`.
 - If the paper changes, regenerate the cover rather than scaling it:
 
   ```sh
-  python3 book/make_cover.py --pages 96 --caliper 0.12   # 100 gsm
-  python3 book/make_cover.py --pages 96 --spine 5.28     # bindery's final spine
+  python3 book/src/make_cover.py --pages 96 --caliper 0.12   # 100 gsm
+  python3 book/src/make_cover.py --pages 96 --spine 5.28     # bindery's final spine
   ```
 
 - Fonts: Noto Sans Mono (Latin) and Droid Sans Hebrew, both subset-embedded.
 
 ## Credits and text
 
-The title page, copyright page and cover read their text from `book/text.md`.
-The cover birds are selected in `make_cover.py` and drawn from
-`data/israel_birds_final.json` and `data/etymology.json`; change the Latin names
-there to change an example.
+The title page, copyright page and cover read their text from
+`book/data/text.md`. The cover birds are selected in `make_cover.py` and drawn
+from `data/out/israel_birds_final.json` and `data/out/etymology.json`; change
+the Latin names there to change an example.
 
 - © 2026 Ran Regev
 - Logo: Noa Shvartsun Regev
@@ -200,4 +212,5 @@ there to change an example.
   including the English and Hebrew Wikipedias.
 - Sequence of orders and families after the *Clements Checklist of Birds of the
   World*, 2022 edition, as presented in the Wikipedia list of birds of Israel.
-  The source order is read from `data/israel_birds_merged.json`.
+  Family order is read from the integer `family_order` field in
+  `data/out/israel_birds_final.json`.
