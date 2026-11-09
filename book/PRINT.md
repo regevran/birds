@@ -16,18 +16,17 @@
    - Spine 5.28 mm.
    - **Full colour.**
 
-   The normal CMake build installs these two panels as well. If building
-   manually, run `book/src/render.sh --split` and use:
+   The normal CMake build installs these two panels as well:
 
    - **`book/out/cover_front_print.pdf`** — front only.
    - **`book/out/cover_back_print.pdf`** — back only.
    - Each is 154 × 216 mm including 3 mm bleed, full colour, with **no spine
      band and no brown centre part**. Spine remains 5.28 mm.
 
-If the shop asks for a single file in reading order, run `book/src/render.sh
---one-file`. It writes `build/book/israel_birds_one_file.pdf`: 98 A5 pages —
-front cover, the 96-page interior, then the back cover. Its cover panels are
-trimmed (no bleed); use `cover_spread.pdf` above for the actual cover printing.
+If the shop asks for a single file in reading order, use
+**`book/out/israel_birds_one_file.pdf`** — 98 A5 pages: front cover, the
+96-page interior, then the back cover. Its cover panels are trimmed (no
+bleed); use `cover_spread.pdf` above for the actual cover printing.
 
 A front panel alone (`cover_front_draft.pdf`) is a proof, produced only with
 `python3 book/src/make_cover.py --front-only`; it is not part of the print set and

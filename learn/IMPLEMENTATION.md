@@ -62,7 +62,7 @@ birds/
       israel_birds_final.json
       etymology.json
   book/                         A5 pocket book
-    src/                        book code and render.sh
+    src/                        book code
     data/                       text.md, assets/, reports/
     out/                        installed PDFs (ignored)
     README.md

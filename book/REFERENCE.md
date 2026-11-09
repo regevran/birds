@@ -22,8 +22,8 @@ The repository was restructured on 2026-11-05 into:
 The book's Python path layer and the default data pipeline's path layer have
 been prepared for the move; the one-off data scripts are still untouched. The
 book build reads only `data/out` and uses `family_order`. `book/CMakeLists.txt`
-provides `book-build` and `book-install`; `render.sh --install` is still not
-implemented, so use the CMake target for installation.
+provides `book-build`, `book-one-file` and `book-install`; the CMake path is
+the supported build, including the combined one-file PDF.
 
 - `book/src/book_paths.py` centralizes the repository root, `book/data`,
   `book/out`, `build/book`, `build/data`, `data/in`, `data/out`, the text and
@@ -32,10 +32,8 @@ implemented, so use the CMake target for installation.
   `book/src/make_book.py`, `book/src/make_book_family.py`, `book/src/etym.py`
   and `book/src/etymology_demo.py` now use `book_paths`. The stale `ROOT` and
   `tools/` path insert were removed from the two current A5 builders.
-- `book/src/render.sh` finds the repository root and builds into
-  `build/book/`. It does **not** implement `--install`; use the CMake
-  `book-install` target, which copies the print PDFs to `book/out`.
-- `book/README.md` and `book/PRINT.md` use the current paths.
+- CMake is the only supported build path; `book/README.md` and
+  `book/PRINT.md` use the current paths.
 - Default pipeline scripts moved to `data/src/pipeline` and now use
   `data/src/pipeline/data_paths.py`:
   - `parse_list.py`: `data/in/raw/en_israel.wiki` ->
@@ -105,11 +103,9 @@ The build commands below use the moved paths. `book-build` writes to
   data).
 - `build/data/israel_birds_merged.json` — build intermediate with the source
   order; the book no longer reads it.
-- `book/CMakeLists.txt` — `book-build` (interior, spread and split panels in
-  `build/book`) and `book-install` (copy them to `book/out`).
-- `book/src/render.sh` — manual one command for interior + cover; `--one-file`
-  for the copy shop sequence. It does not implement `--install`; use the CMake
-  target.
+- `book/CMakeLists.txt` — `book-build` (interior, spread, split panels and
+  one-file book in `build/book`), `book-one-file` (just the combined PDF) and
+  `book-install` (copy all print PDFs to `book/out`).
 - `book/PRINT.md` — print brief for the copy shop.
 - `book/README.md` — detailed build/edit notes for the A5 edition.
 
@@ -129,18 +125,9 @@ Build and install with CMake:
 ```sh
 cmake --preset default
 cmake --build build --target book-build     # -> build/book
+cmake --build build --target book-one-file  # just the combined book
 cmake --build build --target book-install   # -> book/out
 # or: cmake --workflow --preset book
-```
-
-Manual builder, when inspecting one half:
-
-```sh
-cd book/src
-./render.sh                 # interior + cover
-./render.sh --one-file      # cover front + interior + cover back
-./render.sh --interior-only
-./render.sh --cover-only
 ```
 
 Preview the new indexes with their final folios (these do not touch the
@@ -349,8 +336,6 @@ One box per index, not a wide range box:
 
 1. Read the assembled interior and cover proofs end to end, checking the
    alternating edge tabs and the left-to-right Latin/English indexes.
-2. Decide whether to implement `render.sh --install`; the CMake
-   `book-install` target already copies the print PDFs to `book/out`.
 
 ## Lessons from the printed second edition
 

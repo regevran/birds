@@ -9,23 +9,15 @@ installs the print PDFs to `book/out/`.
 
 ```sh
 cmake --preset default
-cmake --build build --target book-build     # -> build/book
+cmake --build build --target book-build     # all book PDFs -> build/book
+cmake --build build --target book-one-file  # only the combined book
 cmake --build build --target book-install   # -> book/out
 # or: cmake --workflow --preset book
 ```
 
-Manual builder:
-
-```sh
-cd book/src
-./render.sh
-./render.sh --one-file   # front cover + interior + back cover in one PDF
-```
-
-`render.sh` builds the interior and then the cover, in that order; the cover
-reads the interior's page count to compute the spine. Use `--interior-only` or
-`--cover-only` to run just one half, and see `./render.sh --help` for the
-builder options (`--base`, `--pages`, `--caliper`, `--spine`).
+The CMake build is the supported build path. It runs the interior first, then
+the cover (which reads the interior's page count for the spine), then combines
+the front cover, interior and back cover into the one-file PDF.
 
 For proofs of the indexes in the new structure, with their final folios and
 page references:
@@ -64,13 +56,11 @@ copies them to `book/out/`):
 | `book/out/cover_spread.pdf` | back + spine + front, spine computed from the interior |
 | `book/out/cover_front_print.pdf` | front-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
 | `book/out/cover_back_print.pdf` | back-only print panel, 154 × 216 mm with 3 mm bleed, no spine |
-| `build/book/israel_birds_one_file.pdf` | with `--one-file`: front cover, interior, back cover — all A5 trim, 98 pages |
+| `book/out/israel_birds_one_file.pdf` | front cover, interior, back cover — all A5 trim, 98 pages |
 
 The one-file sequence uses A5 trim cover panels without bleed, so every page
 is the same size; the print-ready cover with bleed is still `cover_spread.pdf`.
-It is a manual builder output and is not installed.
-The split cover panels are built by `book-build` and installed; the manual
-equivalent is `book/src/render.sh --split`.
+The split cover panels are built by `book-build` and installed as well.
 
 The front panel alone is a proof, not a build artifact: write it on demand
 with `python3 book/src/make_cover.py --front-only` (it lands in

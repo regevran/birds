@@ -16,7 +16,7 @@ birds/
     in/                   sources and frozen snapshots
     out/                  installed final data (committed)
   book/
-    src/                  book build code and render.sh
+    src/                  book build code
     data/                 text.md, assets, reports
     out/                  installed PDFs (ignored)
   learn/
@@ -48,6 +48,7 @@ cmake --build build --target data-build
 cmake --build build --target data-install
 cmake --build build --target data-test
 cmake --build build --target book-build
+cmake --build build --target book-one-file
 cmake --build build --target book-install
 cmake --build build --target learn-test
 cmake --build build --target learn-run
@@ -65,10 +66,19 @@ Book workflow — configure, build, install in one command:
 cmake --workflow --preset book
 ```
 
+After configuring, print the command list with:
+
+```sh
+cmake --build --preset help
+```
+
+CMake reserves `help` as a built-in target name; the preset gives the same
+short command without a custom target.
+
 ## Status
 
 The data pipeline and the A5 book use the post-move layout. `data-build`,
-`data-install`, `data-test`, `book-build` and `book-install` work; the book
+`data-install`, `data-test`, `book-build`, `book-one-file` and `book-install` work; the book
 build writes to `build/book` and installs its print PDFs to `book/out`. The
 `learn` per-project CMake file is not present in this checkout. See
 `book/REFERENCE.md` for the book state.

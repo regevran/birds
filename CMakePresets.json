@@ -31,6 +31,11 @@
       "configurePreset": "default"
     },
     {
+      "name": "help",
+      "configurePreset": "default",
+      "targets": ["usage"]
+    },
+    {
       "name": "data-build",
       "configurePreset": "default",
       "targets": ["data-build"]

@@ -38,13 +38,15 @@ foreach(subproject data book learn)
     endif()
 endforeach()
 
-add_custom_target(birds-help
+add_custom_target(usage
+    COMMAND ${CMAKE_COMMAND} -E echo "Help alias:  cmake --build --preset help"
     COMMAND ${CMAKE_COMMAND} -E echo "Configure:  cmake -S . -B build -G Ninja"
     COMMAND ${CMAKE_COMMAND} -E echo "Build all:  cmake --build build"
     COMMAND ${CMAKE_COMMAND} -E echo "Data build:  cmake --build build --target data-build"
     COMMAND ${CMAKE_COMMAND} -E echo "Data install: cmake --build build --target data-install"
     COMMAND ${CMAKE_COMMAND} -E echo "Data test:   cmake --build build --target data-test"
     COMMAND ${CMAKE_COMMAND} -E echo "Book build:  cmake --build build --target book-build"
+    COMMAND ${CMAKE_COMMAND} -E echo "Book one-file: cmake --build build --target book-one-file"
     COMMAND ${CMAKE_COMMAND} -E echo "Book install: cmake --build build --target book-install"
     COMMAND ${CMAKE_COMMAND} -E echo "Learn run:   cmake --build build --target learn-run"
     COMMAND ${CMAKE_COMMAND} -E echo "Learn test:  cmake --build build --target learn-test"

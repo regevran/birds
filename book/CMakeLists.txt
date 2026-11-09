@@ -1,8 +1,9 @@
 # A5 book: book/data + data/out -> build/book -> book/out.
 #
 # Targets:
-#   book-build     build the interior and the cover PDFs in build/book
-#   book-install   copy the print PDFs to book/out
+#   book-build     build the interior, cover PDFs and full one-file book
+#   book-one-file  build only the combined front-cover + interior + back-cover PDF
+#   book-install   copy all print PDFs to book/out
 #
 # The builders are Python/reportlab scripts; data/out is the installed data
 # contract. The cover reads the interior's page count, so it is built after
@@ -17,6 +18,9 @@ set(POCKET_PDF      "${BOOK_BUILD}/israel_birds_pocket.pdf")
 set(COVER_PDF       "${BOOK_BUILD}/cover_spread.pdf")
 set(COVER_FRONT_PDF "${BOOK_BUILD}/cover_front_print.pdf")
 set(COVER_BACK_PDF  "${BOOK_BUILD}/cover_back_print.pdf")
+set(COVER_FRONT_TRIM "${BOOK_BUILD}/cover_front.pdf")
+set(COVER_BACK_TRIM  "${BOOK_BUILD}/cover_back.pdf")
+set(ONE_FILE_PDF     "${BOOK_BUILD}/israel_birds_one_file.pdf")
 
 file(MAKE_DIRECTORY "${BOOK_BUILD}")
 
@@ -52,11 +56,13 @@ add_custom_command(
     COMMENT "Building the A5 interior"
     VERBATIM)
 
-# --split writes the two 154 x 216 mm print panels as well as the spread.
+# --panels writes the A5 trim cover panels for the one-file sequence;
+# --split writes the two 154 x 216 mm print panels; both share the spread.
 add_custom_command(
     OUTPUT  "${COVER_PDF}" "${COVER_FRONT_PDF}" "${COVER_BACK_PDF}"
+            "${COVER_FRONT_TRIM}" "${COVER_BACK_TRIM}"
     COMMAND "${Python3_EXECUTABLE}" "${BOOK_SRC}/make_cover.py"
-            --out "${BOOK_BUILD}" --split
+            --out "${BOOK_BUILD}" --panels --split
     DEPENDS "${POCKET_PDF}"
             "${BOOK_SRC}/make_cover.py"
             ${BOOK_PY}
@@ -65,9 +71,25 @@ add_custom_command(
     COMMENT "Building the colour cover"
     VERBATIM)
 
+find_program(PDFUNITE_EXECUTABLE pdfunite REQUIRED)
+
+add_custom_command(
+    OUTPUT  "${ONE_FILE_PDF}"
+    COMMAND "${PDFUNITE_EXECUTABLE}"
+            "${COVER_FRONT_TRIM}" "${POCKET_PDF}" "${COVER_BACK_TRIM}"
+            "${ONE_FILE_PDF}"
+    DEPENDS "${COVER_FRONT_TRIM}" "${POCKET_PDF}" "${COVER_BACK_TRIM}"
+    COMMENT "Building the one-file book"
+    VERBATIM)
+
+add_custom_target(book-one-file
+    DEPENDS "${ONE_FILE_PDF}")
+
 add_custom_target(book-build ALL
     DEPENDS "${POCKET_PDF}" "${COVER_PDF}"
-            "${COVER_FRONT_PDF}" "${COVER_BACK_PDF}")
+            "${COVER_FRONT_PDF}" "${COVER_BACK_PDF}"
+            "${COVER_FRONT_TRIM}" "${COVER_BACK_TRIM}"
+            "${ONE_FILE_PDF}")
 
 add_custom_target(book-install
     COMMAND "${CMAKE_COMMAND}" -E make_directory "${BOOK_OUT}"
@@ -79,7 +101,10 @@ add_custom_target(book-install
             "${COVER_FRONT_PDF}" "${BOOK_OUT}/cover_front_print.pdf"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${COVER_BACK_PDF}" "${BOOK_OUT}/cover_back_print.pdf"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${ONE_FILE_PDF}" "${BOOK_OUT}/israel_birds_one_file.pdf"
     DEPENDS "${POCKET_PDF}" "${COVER_PDF}"
             "${COVER_FRONT_PDF}" "${COVER_BACK_PDF}"
+            "${ONE_FILE_PDF}"
     COMMENT "Installing book PDFs into book/out"
     VERBATIM)

@@ -7,7 +7,7 @@
 # rename the keys. Lines beginning with `#` are notes
 # for you, not printed.
 #
-# After editing, rebuild with:  ./render.sh
+# After editing, rebuild with:  cmake --build build --target book-build
 #
 # Hebrew values may contain ASCII punctuation, digits and Latin names: the
 # layout draws those from the Latin font and orders the line right to left.
