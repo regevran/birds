@@ -68,6 +68,9 @@ Date: 2026-11-11
   `card_view` and affects option order only. A Latin segment is called `latin`
   (`latin_forms` for several), not `surface`.
 - The text client is a thin adapter over the same views; the web UI comes last.
+  Its commands are `card L|E ...` with `L`/`E` aliases, `/<text>` for bird
+  search, and multi-word Latin/English species names. Readline history is
+  persisted in `~/.birds_trainer_history`.
 
 ## Deferred items
 

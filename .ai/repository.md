@@ -83,4 +83,7 @@ short command without a custom target.
   loader/validator with indexes.
 - The trainer card layer implements the pure L and E views plus a text
   renderer and text client. All 31 tests pass through `learn-test`.
+- The text client supports `/<text>` search, `card L|E ...` and their
+  `L`/`E` aliases, multi-word species names, `--seed`, `--reveal`, and
+  readline history at `~/.birds_trainer_history`.
 - The R/C/F/V cards, scheduling, lifecycle and web UI are still design-only.
