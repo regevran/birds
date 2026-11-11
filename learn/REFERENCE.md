@@ -187,7 +187,6 @@ Chosen approach: **A — local server**.
 - English directions (v2/v3), whole-name deck, element free-typing.
 - Typo tolerance and near-miss presentation.
 - Images/audio, cross-device sync, session export/import.
-- Ringer keys (`learn/TODO.md`).
 
 ## Working agreement
 

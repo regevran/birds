@@ -148,12 +148,6 @@ class DatasetTests(unittest.TestCase):
         self.assertTrue(version.startswith("sha256:"))
         self.assertEqual(len(version), len("sha256:") + 64)
 
-    def test_ringer_key(self) -> None:
-        self.assertEqual(
-            self.catalog.bird("passer-moabiticus").ringer_key,
-            "PASMOA",
-        )
-
     def test_not_found(self) -> None:
         with self.assertRaises(NotFound):
             self.catalog.bird("no-such-bird")

@@ -119,15 +119,6 @@ class Bird:
     def has_parts(self) -> bool:
         return bool(self.genus_parts or self.epithet_parts)
 
-    @property
-    def ringer_key(self) -> str:
-        """Display label: first 3 letters of genus + first 3 of epithet.
-
-        Collisions such as CURMEL are not resolved here; the ringer-key rule
-        is still an open item in ``learn/TODO.md``.
-        """
-        return f"{self.genus[:3]}{self.epithet[:3]}".upper()
-
     def parts_for(self, word: str) -> tuple[SplitPart, ...]:
         if word == self.genus:
             return self.genus_parts

@@ -206,8 +206,6 @@ From `data/out/israel_birds_final.json`:
   `historical`, `extinct` (a status may map to more than one, e.g. `Ex/A`).
 - `has_hebrew` — false for the five species with no Hebrew; they are excluded
   from H→L.
-- `ringer_key` — computed label `first 3 genus + first 3 epithet` (`PASMOA`).
-  Display/export only; collision rule is still `learn/TODO.md`.
 
 From `data/out/etymology.json`:
 
@@ -962,9 +960,8 @@ artifacts go to the top-level disposable `build/`, and the trainer runs from
 ### 13.2 Internal bird ID
 
 Proposed: `species_id` = lowercase `genus-epithet` slug. It is human-readable in
-progress files and stable for v1. The ringer key (`PASMOA`) is a computed
-display/export label; it is not the persistent ID until the collision rule in
-`learn/TODO.md` is settled. The species ID is never sent to the quiz client.
+progress files and stable for v1. The species ID is never sent to the quiz
+client.
 Alternative: an opaque hash, which hides taxonomy but makes progress files
 unreadable and still changes if the Latin name changes. Recommendation: slug.
 
