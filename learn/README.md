@@ -23,7 +23,7 @@ top-level disposable `build/`, and the trainer runs from `learn/src`.
 ## Status
 
 Foundation data layer is in place: `Config`, domain errors, the dataset
-loader/validator with indexes, and 12 passing dataset tests. No server, cards,
+loader/validator with indexes, and 13 passing dataset tests. No server, cards,
 queue or lifecycle code yet. Card model structure is deferred until after the
 dataset layer is reviewed.
 

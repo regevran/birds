@@ -26,7 +26,7 @@ Data facts that shape the design:
 - 29 families have no `family_he` (`no-family-hebrew`, `family-hebrew-unverified`).
 - Statuses: 381 unmarked (regular), 167 `A`, 11 `I`, 2 `Ex`, 3 `Ex/A`, 1 `X`.
 - Etymology: 95 species fully split, 232 partially split, 238 with no split. 113 of 249 genera have a split.
-- 308 elements, 312 split words, 15 whole names. 195 elements occur in only one word; the top 20 cover 31.5% of element occurrences.
+- 308 elements, 312 split words, 16 whole names. 195 elements occur in only one word; the top 20 cover 31.5% of element occurrences.
 - No niqqud in the Hebrew names. 124 Hebrew names use ASCII `-` rather than maqaf. 155 English names contain hyphens, 42 apostrophes, 2 diacritics (`Rüppell`).
 
 Defaults:

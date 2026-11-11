@@ -809,6 +809,7 @@ Podiceps | rump-foot (podex + pes) | רגל־שת | Jobling 2010
 rufescens | reddish | אדמדם | Jobling 2010
 rufina | golden-red | אדמדם־זהוב | Jobling 2010
 rufinus | golden-red | אדמדם־זהוב | Jobling 2010
+syriacus | Syrian | סורי | Jobling 2010
 vanellus | lapwing (little fan) | סייפן | Jobling 2010
 
 ## Elements

@@ -26,7 +26,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(len(catalog.by_genus), 249)
         self.assertEqual(len(catalog.elements), 308)
         self.assertEqual(len(catalog.splits), 312)
-        self.assertEqual(len(catalog.whole_names), 15)
+        self.assertEqual(len(catalog.whole_names), 16)
         self.assertEqual(len(catalog.themes), 13)
 
     def test_species_ids_and_latin_names(self) -> None:
@@ -115,6 +115,10 @@ class DatasetTests(unittest.TestCase):
                 for element in self.catalog.elements_for_form("cephalus")
             )
         )
+
+    def test_syriacus_whole_name(self) -> None:
+        whole = self.catalog.whole_names["syriacus"]
+        self.assertEqual(whole.en, "Syrian")
 
     def test_status_categories(self) -> None:
         self.assertEqual(

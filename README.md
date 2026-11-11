@@ -84,6 +84,6 @@ build writes to `build/book` and installs its print PDFs to `book/out`. The
 `book/REFERENCE.md` for the book state.
 
 The trainer foundation is implemented: `Config`, domain errors, the dataset
-loader/validator with indexes, and 12 passing dataset tests. No server, cards,
+loader/validator with indexes, and 13 passing dataset tests. No server, cards,
 queue or lifecycle code yet; see `learn/REFERENCE.md` and
 `learn/IMPLEMENTATION.md`.
