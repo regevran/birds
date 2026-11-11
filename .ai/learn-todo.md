@@ -1,0 +1,1 @@
+- Global search (future): grouped, read-only search over families, completed birds, elements and cards; see `learn-implementation.md` section 14. Do not build yet; keep dataset indexes and card views session-independent.

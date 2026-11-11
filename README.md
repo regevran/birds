@@ -6,6 +6,7 @@ A shared data pipeline, an A5 pocket book, and an interactive trainer.
 
 ```text
 birds/
+  .ai/                    durable AI/project context
   CMakeLists.txt          top-level build entry point
   CMakePresets.json       Ninja presets
   build/                  disposable build tree (ignored)
@@ -37,9 +38,9 @@ birds/
 
 ## Build
 
-The top-level CMake files and `data/CMakeLists.txt` / `book/CMakeLists.txt`
-exist; the `learn` per-project `CMakeLists.txt` is not present in this
-checkout.
+The top-level CMake files and the `data/CMakeLists.txt`,
+`book/CMakeLists.txt` and `learn/CMakeLists.txt` per-project files are in
+place.
 
 ```sh
 cmake --preset default
@@ -80,10 +81,11 @@ short command without a custom target.
 The data pipeline and the A5 book use the post-move layout. `data-build`,
 `data-install`, `data-test`, `book-build`, `book-one-file` and `book-install` work; the book
 build writes to `build/book` and installs its print PDFs to `book/out`. The
-`learn` per-project CMake file is not present in this checkout. See
-`book/REFERENCE.md` for the book state.
+`learn` CMake targets work too. See
+`.ai/book-reference.md` for the book state.
 
 The trainer foundation is implemented: `Config`, domain errors, the dataset
-loader/validator with indexes, and 12 passing dataset tests. No server, cards,
-queue or lifecycle code yet; see `learn/REFERENCE.md` and
-`learn/IMPLEMENTATION.md`.
+loader/validator with indexes. The card layer has pure L and E views and a
+text client, with 31 passing tests. The R, C, F and V cards, scheduling,
+lifecycle and the web UI are still design-only; see `.ai/learn-reference.md`
+and `.ai/learn-implementation.md`.

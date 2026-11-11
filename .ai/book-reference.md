@@ -15,9 +15,9 @@ The repository was restructured on 2026-11-05 into:
 - `book/src`, `book/data`, `book/out`;
 - `learn/src`, `learn/data`;
 - one disposable top-level `build/` for all build artifacts;
-- top-level `CMakeLists.txt` and `CMakePresets.json`; `data/CMakeLists.txt`
-  and `book/CMakeLists.txt` are written. The `learn` per-project CMake file is
-  not present in this checkout.
+- top-level `CMakeLists.txt` and `CMakePresets.json`; `data/CMakeLists.txt`,
+  `book/CMakeLists.txt` and `learn/CMakeLists.txt` are present. The learn
+  project provides `learn-test` and `learn-run`.
 
 The book's Python path layer and the default data pipeline's path layer have
 been prepared for the move; the one-off data scripts are still untouched. The
@@ -66,8 +66,8 @@ the supported build, including the combined one-file PDF.
 - `book/.PRINT.md.swp` is an ignored editor swap file; remove it when
   convenient.
 - `learn/` is now `learn/src` + `learn/data/progress`; there is no
-  `learn/build` or `learn/out`. `learn/IMPLEMENTATION.md` was updated to the
-  new paths.
+  `learn/build` or `learn/out`. `.ai/learn-implementation.md` was updated to
+  the new paths.
 
 The build commands below use the moved paths. `book-build` writes to
 `build/book/`; `book-install` copies the print PDFs to `book/out/`.

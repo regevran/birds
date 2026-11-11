@@ -92,7 +92,7 @@ class DatasetTests(unittest.TestCase):
 
         genus_parts = with_parts.parts_for("Acrocephalus")
         self.assertEqual(
-            [part.surface for part in genus_parts],
+            [part.latin for part in genus_parts],
             ["Acro", "cephalus"],
         )
         self.assertEqual(
@@ -102,7 +102,7 @@ class DatasetTests(unittest.TestCase):
 
         epithet_parts = self.catalog.parts_for("melanocephala")
         self.assertEqual(
-            [part.surface for part in epithet_parts],
+            [part.latin for part in epithet_parts],
             ["melano", "cephala"],
         )
         self.assertEqual(

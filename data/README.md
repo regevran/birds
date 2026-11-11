@@ -36,7 +36,6 @@ build. `data/CMakeLists.txt` is written and defines `data-build`,
 cmake --workflow --preset data
 ```
 
-The final JSON includes `family_order`; the book still uses the
-merged order source until its TODO is implemented. See the
-“Repository move — TODO” section in `book/REFERENCE.md` for the remaining
-items.
+The final JSON includes `family_order`; the book sorts families by it and
+reads only `data/out`. See `../.ai/book-reference.md` for the remaining
+repository-move notes.

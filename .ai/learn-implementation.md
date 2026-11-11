@@ -1,7 +1,9 @@
 # Learning tool — implementation spec (draft)
 
-Status: draft for review. No application code has been written. This file is the
-implementation-level companion to `learn/REFERENCE.md`; where the two differ,
+Status: draft for review. The foundation data layer and the L/E card views are
+implemented in `learn/src/trainer/`; the remaining card types, scheduling,
+lifecycle and web UI are still proposals. This file is the
+implementation-level companion to `learn-reference.md`; where the two differ,
 this file is the proposal and the difference is listed under **Open decisions**.
 
 ## 1. Technology
@@ -44,6 +46,14 @@ birds/
     data/
     book/
     learn/
+  .ai/                          AI context and design records
+    README.md
+    decisions.md
+    repository.md
+    book-reference.md
+    learn-reference.md
+    learn-implementation.md
+    learn-todo.md
   data/                         shared data project
     CMakeLists.txt              data targets
     README.md
@@ -66,12 +76,8 @@ birds/
     data/                       text.md, assets/, reports/
     out/                        installed PDFs (ignored)
     README.md
-    REFERENCE.md
     PRINT.md
   learn/                        interactive trainer
-    REFERENCE.md                agreed design
-    IMPLEMENTATION.md           this file
-    TODO.md                     follow-ups
     README.md                   run/test/backup notes
     src/
       trainer/                  Python package (stdlib only)
@@ -210,7 +216,7 @@ From `data/out/israel_birds_final.json`:
 From `data/out/etymology.json`:
 
 - `elements`: element ID -> `{en, he, theme, origin, display, forms}`.
-- `splits`: Latin word -> ordered `[(surface, element_id)]`.
+- `splits`: Latin word -> ordered `[(latin, element_id)]`.
 - `whole_names`, `themes`.
 - Per species: `genus_parts`, `epithet_parts`, `has_parts`, `whole_name`.
   A card chain gets an **E** card only if `has_parts`.
@@ -412,9 +418,11 @@ truth.
 
 ## 5. Card generation
 
-> The concrete card model structure (`CardDescriptor`, `CardView`, or another
-> composition) is not settled. The discussion is deferred until after the
-> dataset layer is reviewed.
+> Implemented for L and E: `CardDescriptor` identifies the card,
+> `LearnCardView` and `ElementsCardView` are the pure views, and
+> `card_view(catalog, descriptor, *, seed=0)` builds them. `cards/text.py`
+> renders them and `trainer/cli.py` is the text client. The R, C, F and V view
+> structures remain to be settled.
 
 ### 5.1 Chain
 
@@ -429,11 +437,11 @@ The server generates a card view per type. Answer fields are only included
 after submission.
 
 **L — Learn (display only).** Family/order/status, Hebrew name, English name,
-full Latin, every split part with its surface, English and Hebrew meaning and
+full Latin, every split part with its Latin form, English and Hebrew meaning and
 theme, whole-name note if any, and the bridge line. One action: next.
 
-**E — Elements.** One row per distinct element in the name (not per surface
-occurrence), showing the surface(s) as they appear, the theme, and 4–5 Hebrew
+**E — Elements.** One row per distinct element in the name (not per Latin-form
+occurrence), showing the Latin form(s) as they appear, the theme, and 4–5 Hebrew
 gloss options. The user chooses a gloss for each row. Check reveals the correct
 pairings and then continues. E is not a gate; wrong answers do not fail the
 bird. Options are deduplicated by Hebrew gloss because 54 glosses are shared by
@@ -874,7 +882,7 @@ Test layers:
 
 1. **Dataset tests** against the real files:
    - 565 species, all Latin names two-word ASCII, genus+epithet match.
-   - All splits reference existing elements; surfaces concatenate to the word
+   - All splits reference existing elements; Latin forms concatenate to the word
      case-insensitively; elements have en/he/theme; themes list is consistent.
    - Five no-Hebrew species; one shared Hebrew name; 29 families without
      Hebrew; 54 duplicate Hebrew glosses.
@@ -975,7 +983,7 @@ Recommendation: soft target, cap 7.
 
 ### 13.4 Resume with newly passed birds
 
-Proposed refinement of `REFERENCE.md`: on open, prune birds that are now in
+Proposed refinement of `learn-reference.md`: on open, prune birds that are now in
 `passed` from the session's pool and queue, then refill. The rest of the queue
 is preserved. This matches "passed birds are excluded" and avoids a learning
 card and a V card for the same bird. Alternative: resume exactly and require a
@@ -1015,10 +1023,10 @@ Not v1, but the core must make it additive:
 - Search is read-only: it does not mutate the queue, increment the global
   counter, change `passed`, or alter V levels. It is like consulting the book.
 - The dataset must expose search indexes from the start: species Latin/English/
-  Hebrew, family/order/genus, element surface/forms/English/Hebrew/theme, and
+  Hebrew, family/order/genus, element Latin forms/English/Hebrew/theme, and
   passed birds.
 - The card layer must expose a pure, session-independent
-  `card_view(species_id, type, seed=None)`. Search previews call that directly;
+  `card_view(catalog, descriptor, *, seed=0)`. Search previews call that directly;
   the scheduler is not involved.
 - API: `GET /api/search?q=...` and
   `GET /api/cards/<species_id>/<type>`, separate from the session answer

@@ -51,12 +51,12 @@ _WHOLE_NAME_REQUIRED = {"en", "he", "source"}
 
 @dataclass(frozen=True)
 class SplitPart:
-    """One surface form and the element it represents.
+    """One Latin form and the element it represents.
 
     Examples below are the ``Acro`` part of ``Acrocephalus``.
     """
 
-    surface: str  # "Acro"
+    latin: str  # "Acro"
     element_id: str  # "acro"
 
 
@@ -315,15 +315,15 @@ def _load_etymology(
         for index, part in enumerate(parts_raw):
             where = f"split {word!r}[{index}]"
             if not isinstance(part, list) or len(part) != 2:
-                raise DataError(f"{where} must be [surface, element_id]")
-            surface = _text(part[0], f"{where}.surface")
+                raise DataError(f"{where} must be [latin, element_id]")
+            latin = _text(part[0], f"{where}.latin")
             element_id = _text(part[1], f"{where}.element_id")
             if element_id not in elements:
                 raise DataError(
                     f"{where}: unknown element id {element_id!r}"
                 )
-            parts.append(SplitPart(surface=surface, element_id=element_id))
-        joined = "".join(part.surface for part in parts)
+            parts.append(SplitPart(latin=latin, element_id=element_id))
+        joined = "".join(part.latin for part in parts)
         if joined.lower() != word.lower():
             raise DataError(
                 f"split {word!r} reassembles to {joined!r}, not {word!r}"

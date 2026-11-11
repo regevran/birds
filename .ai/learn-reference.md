@@ -1,9 +1,10 @@
 # Learning tool — design reference
 
 Status: foundation implemented (`Config`, dataset loader/validator/indexes,
-and dataset tests). Cards, scheduling, lifecycle and the web UI are still
+and dataset tests); L and E card views plus the text client implemented. The
+R, C, F and V cards, scheduling, lifecycle and the web UI are still
 design-only. This file is the durable record of the design conversation; use
-it to continue next session. `learn/TODO.md` holds follow-ups.
+it to continue next session. `learn-todo.md` holds follow-ups.
 
 ## Purpose
 
@@ -76,6 +77,7 @@ Notes:
 - Genus and epithet are scored separately for partial credit and diagnosis.
 - Distractors should be plausible: same genus/family for names; same theme/meaning group for elements. Never a fixed option position.
 - The L card's "bridge" line (e.g. Hebrew word ↔ Latin element) is a display aid, computed where possible; omit it when there is no match.
+- History: the first sketch put the parts-matching exercise on L. That was superseded: L is display-only, followed by a separate E card with all parts (chosen option **b**).
 - No personal notes field.
 
 ## Passing F and the passed table
