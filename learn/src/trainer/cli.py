@@ -20,22 +20,17 @@ from .foundation.errors import DataError, NotFound, TrainerError
 
 _COMMANDS = """\
 Commands:
-  /<text>                             search birds, e.g. /acro
-  card L <species> [--seed N]         show a Learn card
-  card E <species> [--seed N] [--reveal]
-                                      show an Elements card
-  help                                show this message
-  quit                                leave the client
+  [/ | list | find] <text>                     search birds, e.g. /acro
+  [card L | L] <species> [--seed N]            show a Learn card
+  [card E | E] <species> [--seed N] [--reveal] show an Elements card
+  [help | ?]                                   show this message
+  [quit | exit]                                leave the client
 
-`L` and `E` are aliases for `card L` and `card E`; R, C, F and V follow the
-same pattern. The search looks in species_id, Latin, English, Hebrew, family
-and order. Every word must match somewhere; case is ignored. `/` with no text
-lists all birds. `list` and `find` are aliases for the same search.
-
-Species may be a species_id (acrocephalus-agricola), a Latin name
-(Acrocephalus agricola), an English name or a unique fragment. Hebrew is
-reversed for terminals that cannot display RTL; start with --no-reverse-hebrew
-to print it unchanged.
+The search looks in species_id, Latin, English, Hebrew, family
+and order. Every word must match somewhere; case is ignored. 
+`/` with no text lists all birds.
+Hebrew is reversed for terminals that cannot display RTL; 
+start with --no-reverse-hebrew to print it unchanged.
 """
 
 
@@ -110,7 +105,7 @@ def _dispatch(catalog: Catalog, args: list[str], reverse_hebrew: bool) -> bool:
     command = args[0].lower()
     if command in ("quit", "exit"):
         return False
-    if command == "help":
+    if command in ("help", "?"):
         print(_COMMANDS)
         return True
     if args[0].startswith("/"):
