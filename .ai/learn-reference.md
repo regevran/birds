@@ -1,10 +1,11 @@
 # Learning tool — design reference
 
 Status: foundation implemented (`Config`, dataset loader/validator/indexes,
-and dataset tests); L and E card views plus the text client implemented. The
-R, C, F and V cards, scheduling, lifecycle and the web UI are still
-design-only. This file is the durable record of the design conversation; use
-it to continue next session. `learn-todo.md` holds follow-ups.
+and dataset tests); L and E card views plus the text client implemented, and
+E is answerable with pure grading. The R, C, F and V cards, persistence,
+scheduling, lifecycle and the web UI are still design-only. This file is the
+durable record of the design conversation; use it to continue next session.
+`learn-todo.md` holds follow-ups.
 
 ## Purpose
 
@@ -64,7 +65,7 @@ Later, when due: **V** (review).
 | Card | Name | What the user does |
 |---|---|---|
 | **L** | Learn | Display only: family/order, Hebrew, English, Latin, all parts and meanings, bridge line. One button: next. No "show again", no "I know this". |
-| **E** | Elements | All parts on one card; choose each part's Hebrew meaning from options. Wrong answers reveal the correct pairs and continue. Not a gate. |
+| **E** | Elements | All parts on one card; choose each part's Hebrew meaning from options. Options stay inside the part's theme, which is shown as a hint. Wrong answers reveal the correct pairs and continue. Not a gate. |
 | **R** | Recognize | Hebrew prompt → choose the Latin from 4–5 options. No English, no family. Options shuffled each time. |
 | **C** | Construct | Hebrew prompt → type the Latin. Scaffold: part meanings + first letters (or first letters/length when there are no parts). |
 | **F** | Produce | Hebrew prompt → type the Latin. No scaffold; hint ladder on request. |
@@ -145,6 +146,26 @@ Chosen approach: **A — local server**.
 - F: typed answer; hints on request (ladder: length/first letter → 4–5 options → reveal).
 - V: typed answer; skip button.
 - No timer. No idle detection. Record open/close and card events; later analysis can infer gaps.
+
+### Text client (current practice surface)
+
+- The interactive text client is the real practice surface until the browser
+  exists. One-shot commands stay display-only unless `--answer` is given.
+- `card E`: shows the card, prompts for one option number per element, then
+  prints per-element feedback and `correct/total`. Wrong rows show the chosen
+  and correct glosses; correct rows repeat the correct gloss. Wrong answers
+  reveal and continue; E is not a gate.
+- A search command opens a read-only `search>` mode. Every line there is a
+  query (a leading `/` is optional) except `?` (help); a bare `/` opens the
+  mode without listing all birds. Exiting returns to the same element and
+  keeps answers already given.
+- Each interactive `card E` uses a fresh random option seed; `--seed N`
+  reproduces one exact card. One-shot commands stay at seed 0 so `--answer`
+  numbers are reliable.
+- `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one prompt up; from
+  `card>` they leave the client. Ctrl-C leaves the client.
+- Progress is not saved yet; the next gate adds the shared profile/session
+  store so the text and browser clients can resume the same queue.
 
 ## Data edge cases and grading
 

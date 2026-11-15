@@ -6,4 +6,5 @@
 
 ## Trainer
 
-2. [ ] Add global search to the trainer — [details](.ai/learn-todo.md)
+2. [ ] Persist trainer profiles/sessions so the text and browser clients resume the same queue — [details](.ai/learn-todo.md)
+3. [ ] Add global search to the trainer — [details](.ai/learn-todo.md)

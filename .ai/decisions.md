@@ -61,16 +61,36 @@ Date: 2026-11-11
   element-check card. This superseded the earlier idea of putting the
   parts-matching exercise on L.
 - The foundation data layer and the pure L/E card views are implemented, with
-  a text client (`python -m trainer`, CMake `learn-run`) and 31 passing tests.
+  a text client (`python -m trainer`, CMake `learn-run`) and 59 passing tests.
+  E is answerable: the client collects one gloss choice per element and grades
+  them with the pure `cards/grading.py` layer. An E row shows its theme and
+  draws every option from that same theme, so the theme is a deliberate hint.
   R/C/F/V, scheduling, lifecycle and the web UI are still design-only.
 - The card layer is pure and session-independent. `CardDescriptor` identifies
   the species and card type only; the option seed is supplied by the caller of
   `card_view` and affects option order only. A Latin segment is called `latin`
   (`latin_forms` for several), not `surface`.
+- The card layer is deterministic given a seed. The interactive client supplies
+  a fresh random seed per E card unless `--seed N` is given; one-shot commands
+  and `--answer` use seed 0 so the output and answer numbers are reproducible.
 - The text client is a thin adapter over the same views; the web UI comes last.
   Its commands are `card L|E ...` with `L`/`E` aliases, `/<text>` for bird
-  search, and multi-word Latin/English species names. Readline history is
-  persisted in `~/.birds_trainer_history`.
+  search, multi-word Latin/English species names, and `--answer` for a
+  one-shot graded E card. Readline history is persisted in
+  `~/.birds_trainer_history`.
+- Search is a nested, read-only `search>` mode. It is entered by `/text`, a
+  bare `/`, or the `list`/`find`/`birds`/`search` aliases; every input in the
+  mode is a query except `?` (help) and the up keys. From an E answer prompt,
+  exiting search returns to the same element with earlier answers kept. Search
+  never changes the card, the answers or grading.
+- `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one prompt up the
+  chain: `search>` -> its caller, an E answer prompt -> `card>` (abandoning the
+  card), and `card>` -> out of the CLI. Ctrl-C leaves the CLI. Esc is
+  implemented by a readline binding that submits a sentinel and is removed
+  from history; without readline, a line containing only ESC is treated as
+  up.
+- Progress is not persisted yet. Gate 2 adds the profile/session store so the
+  text and browser clients can resume the same saved queue.
 
 ## Deferred items
 

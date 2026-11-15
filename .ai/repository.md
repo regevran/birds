@@ -81,9 +81,17 @@ short command without a custom target.
   one-file PDF is 98 A5 pages.
 - The trainer foundation is implemented: `Config`, domain errors, the dataset
   loader/validator with indexes.
-- The trainer card layer implements the pure L and E views plus a text
-  renderer and text client. All 31 tests pass through `learn-test`.
+- The trainer card layer implements the pure L and E views, E answer grading
+  and a text renderer, plus a text client. All 59 tests pass through
+  `learn-test`.
 - The text client supports `/<text>` search, `card L|E ...` and their
   `L`/`E` aliases, multi-word species names, `--seed`, `--reveal`, and
-  readline history at `~/.birds_trainer_history`.
-- The R/C/F/V cards, scheduling, lifecycle and web UI are still design-only.
+  readline history at `~/.birds_trainer_history`. E is answerable: it prompts
+  for one option per element and reports a score; `--answer` grades a one-shot
+  card. Interactive E picks a fresh random seed per card; `--seed N` reproduces
+  one, and one-shot commands stay at seed 0.
+- A search opens a nested, read-only `search>` mode; `exit`, `quit`, Ctrl-D
+  and Esc (Esc then Enter) go one prompt up, and from `card>` leave the
+  client.
+- The R/C/F/V cards, persistence, scheduling, lifecycle and web UI are still
+  design-only.

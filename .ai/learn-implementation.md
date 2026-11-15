@@ -1,8 +1,8 @@
 # Learning tool — implementation spec (draft)
 
-Status: draft for review. The foundation data layer and the L/E card views are
-implemented in `learn/src/trainer/`; the remaining card types, scheduling,
-lifecycle and web UI are still proposals. This file is the
+Status: draft for review. The foundation data layer, the L/E card views and
+E answer grading are implemented in `learn/src/trainer/`; the remaining card
+types, scheduling, lifecycle and web UI are still proposals. This file is the
 implementation-level companion to `learn-reference.md`; where the two differ,
 this file is the proposal and the difference is listed under **Open decisions**.
 
@@ -419,10 +419,13 @@ truth.
 ## 5. Card generation
 
 > Implemented for L and E: `CardDescriptor` identifies the card,
-> `LearnCardView` and `ElementsCardView` are the pure views, and
-> `card_view(catalog, descriptor, *, seed=0)` builds them. `cards/text.py`
-> renders them and `trainer/cli.py` is the text client. The R, C, F and V view
-> structures remain to be settled.
+> `LearnCardView` and `ElementsCardView` are the pure views,
+> `card_view(catalog, descriptor, *, seed=0)` builds them, and
+> `cards/grading.py` grades E choices. `cards/text.py` renders the views and
+> `trainer/cli.py` is the interactive text client with an answerable E card,
+> nested search mode and up-one-level navigation. The interactive client gives
+> each E card a fresh random seed unless `--seed N` is supplied; one-shot
+> commands use seed 0. The R, C, F and V view structures remain to be settled.
 
 ### 5.1 Chain
 
@@ -445,7 +448,9 @@ occurrence), showing the Latin form(s) as they appear, the theme, and 4–5 Hebr
 gloss options. The user chooses a gloss for each row. Check reveals the correct
 pairings and then continues. E is not a gate; wrong answers do not fail the
 bird. Options are deduplicated by Hebrew gloss because 54 glosses are shared by
-more than one element. Distractors come from the same theme first.
+more than one element. Distractors come only from the same theme; the row shows
+the theme as a hint. In the text client each row is prompted in turn and the
+card ends with per-element feedback and a correct/total score.
 
 **R — Recognize.** Hebrew prompt only; 4–5 full Latin options, shuffled with
 the card seed. No English, family or status. Distractors are chosen by
@@ -505,7 +510,8 @@ The card's species is the one that passes. This is the agreed edge-case rule.
 
 **Elements.** The user picks a Hebrew gloss; the correct gloss is the element's
 `he`. Because glosses are not unique, any element with that gloss is accepted;
-options are deduplicated by gloss. Wrong answers reveal and continue.
+options are deduplicated by gloss. Wrong answers reveal and continue. This is
+implemented in `cards/grading.py` for E; R/C/F/V grading comes with those cards.
 
 **Hebrew/English (later).** Hebrew prompt matching normalizes ASCII hyphen,
 maqaf, space, geresh/gershayim and whitespace. English grading will be
@@ -889,10 +895,12 @@ Test layers:
    - Data hash is stable and changes when content changes.
 2. **Normalization/grading tests:** case, whitespace, maqaf/hyphen, geresh,
    near-miss thresholds, genus/epithet flags, shared Hebrew accepts either,
-   element gloss deduplication.
+   element gloss deduplication; E per-element grading, missing/extra/unknown
+   choices, and shared-gloss acceptance.
 3. **Card tests:** chain with/without parts; E targets only split words; R
    option count and taxonomy; no answer leakage; option determinism by seed;
-   hint ladder; C/F scaffolds; L bridge.
+   hint ladder; C/F scaffolds; L bridge. Text client: E answer prompts and
+   score, nested search mode, up-one-level keys, and one-shot `--answer`.
 4. **Queue tests:** insertion order, chain order, failure distance, fallback
    chain, active cap, pool/queue disjointness, V injection spacing, skip
    snooze, counter increments.
@@ -940,7 +948,9 @@ the UI gate. Optional later: Playwright or a headless browser.
 1. **Skeleton + data:** tree, config, dataset loader/validation, `validate`
    CLI, static "hello" server, test harness. Review.
 2. **Cards + grading (no persistence):** models, normalize, grading, options,
-   card views, scaffolds, hints, bridge. Review.
+   card views, scaffolds, hints, bridge. Review. Implemented for L/E views and
+   E grading, with the interactive text client; R/C/F/V, scaffolds and hints
+   remain.
 3. **Queue + scheduler (pure):** pool, queue, failure moves, V scheduling,
    worked example, randomized invariants. Review.
 4. **Profiles + sessions + store:** atomic JSON/JSONL, events, create/open/

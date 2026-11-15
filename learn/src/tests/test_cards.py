@@ -64,6 +64,12 @@ class CardViewTests(unittest.TestCase):
             self.assertEqual(len(row.options), len(set(row.options)))
             self.assertGreaterEqual(len(row.options), 2)
             self.assertLessEqual(len(row.options), 5)
+            theme_glosses = {
+                element.he
+                for element in self.catalog.elements.values()
+                if element.theme == row.theme
+            }
+            self.assertTrue(set(row.options) <= theme_glosses)
 
     def test_elements_options_are_seeded(self) -> None:
         first = self._view("acrocephalus-agricola", CardType.E, seed=7)
@@ -100,7 +106,8 @@ class CardViewTests(unittest.TestCase):
             },
         )
         self.assertIn("[E] Acrocephalus agricola", text)
-        self.assertIn("options:", text)
+        self.assertIn("theme:", text)
+        self.assertIn("1) ", text)
         self.assertIn("correct:", text)
 
     def test_unknown_bird(self) -> None:

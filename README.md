@@ -85,7 +85,9 @@ build writes to `build/book` and installs its print PDFs to `book/out`. The
 `.ai/book-reference.md` for the book state.
 
 The trainer foundation is implemented: `Config`, domain errors, the dataset
-loader/validator with indexes. The card layer has pure L and E views and a
-text client, with 31 passing tests. The R, C, F and V cards, scheduling,
-lifecycle and the web UI are still design-only; see `.ai/learn-reference.md`
-and `.ai/learn-implementation.md`.
+loader/validator with indexes. The card layer has pure L and E views, E answer
+grading and an interactive text client, with 59 passing tests. The text client
+supports answerable E cards, nested search mode and one-prompt-up navigation.
+The R, C, F and V cards, persistence, scheduling, lifecycle and the web UI are
+still design-only; see `.ai/learn-reference.md` and
+`.ai/learn-implementation.md`.

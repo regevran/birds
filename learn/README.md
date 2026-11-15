@@ -25,9 +25,11 @@ top-level disposable `build/`, and the trainer runs from `learn/src`.
 
 Foundation data layer is in place: `Config`, domain errors, the dataset
 loader/validator with indexes. The card layer implements the pure L and E
-card views and a text renderer, and `src/trainer/cli.py` exposes them through
-a small text client. The R, C, F and V cards, scheduling, lifecycle and the
-web UI are still design-only. There are 31 passing tests.
+card views, E answer grading and a text renderer, and `src/trainer/cli.py`
+exposes them through an interactive text client. The E card is answerable:
+the client prompts for one option per element and reports a score. The R, C,
+F and V cards, scheduling, lifecycle and the web UI are still design-only.
+There are 59 passing tests.
 
 ## Running the text client
 
@@ -42,7 +44,8 @@ Inside the client:
 ```text
 /paddyfield
 /acro
-card L paddyfield warbler
+card L acrocephalus-agricola
+card E acrocephalus-agricola
 card E acrocephalus-agricola --seed 1 --reveal
 help
 quit
@@ -50,16 +53,33 @@ quit
 
 `card L` and `card E` are the commands; `L` and `E` are aliases, and R, C, F
 and V follow the same pattern. `/<text>` searches species_id, Latin, English,
-Hebrew, family and order. Every word must match; `/` with no text lists all
-birds. The list shows species_id, Latin, English, Hebrew, family and Hebrew
-family. `list` and `find` are aliases for the same search. Up and down arrows
-scroll the command history; it is kept in `~/.birds_trainer_history`.
+Hebrew, family and order. Every word must match; `list`, `find`, `birds` and
+`search` are aliases. The list shows species_id, Latin, English, Hebrew,
+family and Hebrew family.
+
+In the interactive client, a search opens `search>` mode. Type text there to
+search again; `?` shows help. A bare `/` opens search mode without listing
+every bird. `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one
+prompt up: from `search>` back to the card, from an Elements prompt back to
+`card>`, and from `card>` out of the client. Ctrl-C leaves the client.
+
+At an Elements prompt, enter an option number. Each row shows its theme, and
+the options are drawn only from that theme, so the theme is a hint. `/text`
+and the search aliases also work there and return to the same element with
+earlier answers kept. Wrong answers reveal the correct glosses and continue;
+correct rows repeat the correct gloss. E is not a gate. Each interactive
+`card E` gets a fresh random option order; `--seed N` reproduces one. Up and
+down arrows scroll the command history, kept in `~/.birds_trainer_history`.
 
 A one-shot command also works:
 
 ```sh
 cd learn/src && python3 -m trainer card L acrocephalus-agricola
+cd learn/src && python3 -m trainer card E acrocephalus-agricola --answer "1 3 5 1"
 ```
+
+One-shot commands are display-only unless `--answer` is given. The answer
+string has one option number per element; commas or spaces separate them.
 
 ## Testing
 

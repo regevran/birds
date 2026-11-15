@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .grading import ElementResult
 from .models import CardView, ElementsCardView, LearnCardView
 
 
@@ -78,13 +79,51 @@ def _render_elements(
         f"[E] {view.latin}",
         "  Choose the Hebrew meaning for each element.",
     ]
-    for index, row in enumerate(view.rows, start=1):
-        latin_forms = ", ".join(row.latin_forms)
-        options = " | ".join(_he(option, reverse) for option in row.options)
-        lines.append(
-            f"  {index}. {latin_forms} ({row.element_id}) · theme: {row.theme}"
-        )
-        lines.append(f"     options: {options}")
+    for index, row in enumerate(view.rows):
+        lines.append(render_element_row(view, index, reverse_hebrew=reverse))
         if reveal and row.element_id in answers:
             lines.append(f"     correct: {_he(answers[row.element_id], reverse)}")
+    return "\n".join(lines)
+
+
+def render_element_row(
+    view: ElementsCardView, index: int, *, reverse_hebrew: bool = True
+) -> str:
+    """Render one numbered element row and a vertical numbered option list."""
+    row = view.rows[index]
+    latin_forms = ", ".join(row.latin_forms)
+    options = "\n".join(
+        f"       {number}) {_he(option, reverse_hebrew)}"
+        for number, option in enumerate(row.options, start=1)
+    )
+    return (
+        f"  {index + 1}. {latin_forms} ({row.element_id}) · theme: {row.theme}\n"
+        f"{options}"
+    )
+
+
+def render_element_results(
+    view: ElementsCardView,
+    results: tuple[ElementResult, ...],
+    *,
+    reverse_hebrew: bool = True,
+) -> str:
+    """Render per-element feedback and the correct/total score."""
+    labels = {
+        row.element_id: ", ".join(row.latin_forms) for row in view.rows
+    }
+    lines: list[str] = []
+    for result in results:
+        label = labels.get(result.element_id, result.element_id)
+        answer = _he(result.expected, reverse_hebrew)
+        if result.correct:
+            lines.append(f"  {label:<14} correct: {answer!r}")
+        else:
+            chosen = _he(result.chosen, reverse_hebrew)
+            lines.append(
+                f"  {label:<14} wrong: chose {chosen!r}, "
+                f"correct {answer!r}"
+            )
+    correct = sum(result.correct for result in results)
+    lines.append(f"  {correct}/{len(results)} correct.")
     return "\n".join(lines)

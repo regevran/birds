@@ -147,7 +147,12 @@ def _whole_names(bird: Bird, catalog: Catalog) -> tuple[WholeNameNote, ...]:
 def _element_options(
     catalog: Catalog, element: Element, seed: int
 ) -> tuple[str, ...]:
-    """Correct gloss plus distractors, same theme first, unique by gloss."""
+    """Correct gloss plus same-theme distractors, unique by gloss.
+
+    The row shows the element's theme, so the options deliberately stay inside
+    that theme: the theme is a hint, not decoration.  Small themes simply yield
+    fewer than five options.
+    """
     correct = element.he
     same_theme = sorted(
         (
@@ -157,22 +162,14 @@ def _element_options(
         ),
         key=lambda other: other.element_id,
     )
-    other_themes = sorted(
-        (
-            other for other in catalog.elements.values()
-            if other.theme != element.theme
-        ),
-        key=lambda other: other.element_id,
-    )
 
     distractors: list[str] = []
     seen = {correct}
-    for pool in (same_theme, other_themes):
-        for other in pool:
-            if other.he in seen:
-                continue
-            seen.add(other.he)
-            distractors.append(other.he)
+    for other in same_theme:
+        if other.he in seen:
+            continue
+        seen.add(other.he)
+        distractors.append(other.he)
 
     # Seeding with a string is deterministic across runs (SHA-512 based).
     rng = random.Random(f"{seed}:{element.element_id}")
