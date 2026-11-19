@@ -12,12 +12,24 @@ import shlex
 import sys
 from pathlib import Path
 
-from .cards.grading import grade_elements
-from .cards.models import CardDescriptor, CardType, ElementsCardView
+from .cards.grading import (
+    ElementResult,
+    grade_elements,
+    grade_recognize,
+)
+from .cards.models import (
+    CardDescriptor,
+    CardType,
+    CardView,
+    ElementsCardView,
+    LearnCardView,
+    RecognizeCardView,
+)
 from .cards.text import (
     render_card,
     render_element_results,
     render_element_row,
+    render_recognize_result,
 )
 from .cards.views import card_view
 from .foundation.config import Config
@@ -30,14 +42,17 @@ _UP_SENTINEL = "<UP>"
 
 _COMMANDS = """\
 Commands:
-  /<text>                             search birds, e.g. /acro
-  list|find|birds|search <text>       same search
-  card L <species>                    show a Learn card
-  card E <species> [--seed N]         practise an Elements card
-  card E <species> --answer "1 3 5 1" grade an Elements card in one shot
-  card E <species> --reveal           show an Elements card with answers
-  help, ?                             show this message
-  quit, exit                          leave the client
+  /<text>                                       search birds, e.g. /acro
+  list|find|birds|search <text>                 search birds, e.g. search acro
+  card L|L|l <species|search>                   show a Learn card
+  card E|E|e <species|search> [--seed N]        practise an Elements card
+  card E|E|e <species|search> --answer "..."    grade an Elements card in one shot
+  card E|E|e <species|search> --reveal          show an Elements card with answers
+  card R|R|r <species|search> [--seed N]        practise a Recognize card
+  card R|R|r <species|search> --answer "2"      grade a Recognize card in one shot
+  card R|R|r <species|search> --reveal          show a Recognize card with the answer
+  help, ?                                       show this message
+  quit, exit                                    leave the client
 
 In the interactive client, a search opens search mode. Type text there to
 search again; ? shows help; exit/quit/Ctrl-D/Esc (press Esc, then Enter)
@@ -48,6 +63,16 @@ theme, which is a hint. Each interactive card gets a fresh option order;
 --seed N reproduces one. /text and the search aliases are also accepted there
 and return to the same element. One-shot commands are display-only unless
 --answer is given.
+
+A Recognize card shows the Hebrew name and asks for the matching Latin name.
+A wrong choice lets you try once more; a second wrong reveals the answer.
+
+<species|search> is the same query as /<text>. One match shows one card;
+several matches run through all of them in search order. Press Enter between
+cards; exit/quit/Ctrl-D/Esc stops the run. R runs skip birds without Hebrew;
+E runs skip birds without split elements. A run is an ephemeral study tool,
+not saved progress. --answer needs a single match; plain display or --reveal
+prints every matching card.
 
 Species may be a species_id (acrocephalus-agricola), a Latin name
 (Acrocephalus agricola), an English name or a unique fragment. Hebrew is
@@ -67,6 +92,15 @@ Search mode:
 _E_HELP = """\
 Elements card:
   1-N         choose an option
+  /text       search birds; list/find/birds/search <text> also work
+  ?           show this message
+  exit, quit, Ctrl-D, Esc (press Esc, then Enter)
+              abandon this card and return to card>
+"""
+
+_R_HELP = """\
+Recognize card:
+  1-N         choose the Latin name
   /text       search birds; list/find/birds/search <text> also work
   ?           show this message
   exit, quit, Ctrl-D, Esc (press Esc, then Enter)
@@ -268,15 +302,15 @@ def _card_command(
 ) -> None:
     if len(args) < 2:
         print(
-            'usage: card L|E <species> [--seed N] [--reveal|--answer "1 2"] '
-            "(or L|E ...)"
+            'usage: card L|E|R <species|search> [--seed N] '
+            '[--reveal|--answer "1 2"] (or L|E|R ...)'
         )
         return
 
     try:
         card_type = CardType(args[0].upper())
     except ValueError:
-        choices = ", ".join(card_type.value for card_type in CardType)
+        choices = ", ".join(member.value for member in CardType)
         print(f"unknown card type {args[0]!r}; choose {choices}")
         return
 
@@ -319,27 +353,80 @@ def _card_command(
         print("choose either --answer or --reveal")
         return
 
-    species_text = " ".join(species_words).strip()
-    if not species_text:
+    query = " ".join(species_words).strip()
+    if query.startswith("/"):
+        query = query[1:].strip()
+    if not query:
         print(
-            'usage: card L|E <species> [--seed N] [--reveal|--answer "1 2"] '
-            "(or L|E ...)"
+            'usage: card L|E|R <species|search> [--seed N] '
+            '[--reveal|--answer "1 2"] (or L|E|R ...)'
+        )
+        return
+
+    if card_type not in (CardType.L, CardType.E, CardType.R):
+        print(f"card type {card_type.value} is not implemented yet")
+        return
+
+    matches = _matching_birds(catalog, query)
+    if not matches:
+        print(f"bird {query!r} not found")
+        return
+
+    if answer_text is not None and len(matches) != 1:
+        print(
+            f"--answer needs a single match; "
+            f"{len(matches)} birds match {query!r}"
         )
         return
 
     # The card layer is deterministic given a seed.  In the interactive client
-    # a fresh seed per card gives the expected variety; --seed reproduces an
-    # exact card.  One-shot and --answer keep seed 0 so the numbers match.
+    # a fresh seed gives the expected variety; --seed reproduces an exact card
+    # or run.  One-shot and --answer keep seed 0 so the numbers match.
     if (
         interactive
         and not seed_given
-        and card_type is CardType.E
+        and card_type in (CardType.E, CardType.R)
         and answer_text is None
     ):
         seed = secrets.randbelow(1_000_000_000)
 
+    if len(matches) == 1:
+        _single_card(
+            catalog,
+            matches[0],
+            card_type,
+            seed,
+            reverse_hebrew,
+            interactive=interactive,
+            reveal=reveal,
+            answer_text=answer_text,
+        )
+        return
+
+    _run_cards(
+        catalog,
+        card_type,
+        query,
+        matches,
+        seed,
+        reverse_hebrew,
+        interactive=interactive,
+        reveal=reveal,
+    )
+
+
+def _single_card(
+    catalog: Catalog,
+    bird: Bird,
+    card_type: CardType,
+    seed: int,
+    reverse_hebrew: bool,
+    *,
+    interactive: bool,
+    reveal: bool,
+    answer_text: str | None,
+) -> None:
     try:
-        bird = _find_bird(catalog, species_text)
         view = card_view(
             catalog,
             CardDescriptor(
@@ -359,25 +446,263 @@ def _card_command(
         if interactive and not reveal:
             _answer_interactively(catalog, view, reverse_hebrew)
             return
+    elif isinstance(view, RecognizeCardView):
+        if answer_text is not None:
+            _grade_recognize_text(
+                catalog, view, answer_text, reverse_hebrew
+            )
+            return
+        if interactive and not reveal:
+            _answer_recognize(catalog, view, reverse_hebrew)
+            return
 
     if answer_text is not None:
-        print("--answer is only for E cards")
+        print("--answer is only for E and R cards")
         return
 
-    answers: dict[str, str] = {}
+    element_answers: dict[str, str] = {}
     if isinstance(view, ElementsCardView) and reveal:
-        answers = {
+        element_answers = {
             row.element_id: catalog.element(row.element_id).he
             for row in view.rows
         }
+    recognize_answers: tuple[str, ...] = ()
+    if isinstance(view, RecognizeCardView) and reveal:
+        recognize_answers = tuple(
+            other.latin
+            for other in catalog.birds_with_hebrew(view.hebrew)
+        )
     print(
         render_card(
             view,
             reverse_hebrew=reverse_hebrew,
             reveal_elements=reveal,
-            element_answers=answers,
+            element_answers=element_answers,
+            reveal_recognize=reveal,
+            recognize_answers=recognize_answers,
         )
     )
+
+
+def _run_cards(
+    catalog: Catalog,
+    card_type: CardType,
+    query: str,
+    matches: list[Bird],
+    seed: int,
+    reverse_hebrew: bool,
+    *,
+    interactive: bool,
+    reveal: bool,
+) -> None:
+    eligible, skipped, skip_reason = _eligible_birds(card_type, matches)
+    if not eligible:
+        suffix = (
+            f" ({len(skipped)} skipped: {skip_reason})" if skipped else ""
+        )
+        print(
+            f"no birds matching {query!r} can make a card of type "
+            f"{card_type.value}{suffix}"
+        )
+        return
+
+    print(_run_header(card_type, query, eligible, skipped, skip_reason))
+    total = len(eligible)
+    completed = 0
+    element_correct = 0
+    element_total = 0
+    first_try = 0
+    retried = 0
+    revealed = 0
+    stopped = False
+
+    for offset, bird in enumerate(eligible):
+        position = (offset + 1, total)
+        view = card_view(
+            catalog,
+            CardDescriptor(
+                species_id=bird.species_id,
+                card_type=card_type,
+            ),
+            seed=seed + offset,
+        )
+
+        if reveal:
+            _print_revealed_card(
+                catalog, view, reverse_hebrew, position
+            )
+            print()
+            continue
+
+        if not interactive:
+            print(
+                render_card(
+                    view,
+                    reverse_hebrew=reverse_hebrew,
+                    position=position,
+                )
+            )
+            print()
+            continue
+
+        if isinstance(view, LearnCardView):
+            print(
+                render_card(
+                    view,
+                    reverse_hebrew=reverse_hebrew,
+                    position=position,
+                )
+            )
+        elif isinstance(view, ElementsCardView):
+            results = _answer_interactively(
+                catalog, view, reverse_hebrew, position=position
+            )
+            if results is None:
+                stopped = True
+                break
+            element_correct += sum(result.correct for result in results)
+            element_total += len(results)
+        else:
+            outcome = _answer_recognize(
+                catalog, view, reverse_hebrew, position=position
+            )
+            if outcome is None:
+                stopped = True
+                break
+            if outcome == "first":
+                first_try += 1
+            elif outcome == "retry":
+                retried += 1
+            else:
+                revealed += 1
+
+        completed += 1
+        if offset + 1 < total and not _wait_for_next():
+            stopped = True
+            break
+
+    if reveal:
+        print(
+            f"{card_type.value} run: {total} cards "
+            "(answers revealed)."
+        )
+        return
+    if not interactive:
+        return
+    _print_run_summary(
+        card_type,
+        total,
+        completed,
+        stopped,
+        element_correct,
+        element_total,
+        first_try,
+        retried,
+        revealed,
+    )
+
+
+def _eligible_birds(
+    card_type: CardType, matches: list[Bird]
+) -> tuple[list[Bird], list[Bird], str]:
+    if card_type is CardType.R:
+        eligible = [bird for bird in matches if bird.has_hebrew]
+        skipped = [bird for bird in matches if not bird.has_hebrew]
+        return eligible, skipped, "no Hebrew"
+    if card_type is CardType.E:
+        eligible = [bird for bird in matches if bird.has_parts]
+        skipped = [bird for bird in matches if not bird.has_parts]
+        return eligible, skipped, "no split elements"
+    return list(matches), [], ""
+
+
+def _run_header(
+    card_type: CardType,
+    query: str,
+    eligible: list[Bird],
+    skipped: list[Bird],
+    skip_reason: str,
+) -> str:
+    count = len(eligible)
+    line = (
+        f"{card_type.value} run: {count} "
+        f"bird{'s' if count != 1 else ''} matching {query!r}"
+    )
+    if skipped:
+        line += f" ({len(skipped)} skipped: {skip_reason})"
+    return line
+
+
+def _print_revealed_card(
+    catalog: Catalog,
+    view: CardView,
+    reverse_hebrew: bool,
+    position: tuple[int, int],
+) -> None:
+    element_answers: dict[str, str] = {}
+    if isinstance(view, ElementsCardView):
+        element_answers = {
+            row.element_id: catalog.element(row.element_id).he
+            for row in view.rows
+        }
+    recognize_answers: tuple[str, ...] = ()
+    if isinstance(view, RecognizeCardView):
+        recognize_answers = tuple(
+            bird.latin for bird in catalog.birds_with_hebrew(view.hebrew)
+        )
+    print(
+        render_card(
+            view,
+            reverse_hebrew=reverse_hebrew,
+            reveal_elements=True,
+            element_answers=element_answers,
+            reveal_recognize=True,
+            recognize_answers=recognize_answers,
+            position=position,
+        )
+    )
+
+
+def _wait_for_next() -> bool:
+    while True:
+        try:
+            raw = _read_line("  [Enter] next, exit to stop: ")
+        except _Up:
+            return False
+        if not raw.strip():
+            return True
+        print("press Enter for the next card, or exit to stop")
+
+
+def _print_run_summary(
+    card_type: CardType,
+    total: int,
+    completed: int,
+    stopped: bool,
+    element_correct: int,
+    element_total: int,
+    first_try: int,
+    retried: int,
+    revealed: int,
+) -> None:
+    if stopped:
+        print(
+            f"{card_type.value} run stopped after {completed} "
+            f"of {total} cards."
+        )
+        return
+    if card_type is CardType.E:
+        print(
+            f"E run complete: {total} cards, "
+            f"{element_correct}/{element_total} elements correct."
+        )
+    elif card_type is CardType.R:
+        print(
+            f"R run complete: {total} cards, first try {first_try}, "
+            f"retry {retried}, revealed {revealed}."
+        )
+    else:
+        print(f"L run complete: {total} cards.")
 
 
 def _grade_answer_text(
@@ -423,12 +748,115 @@ def _parse_element_answers(
     return numbers
 
 
+def _grade_recognize_text(
+    catalog: Catalog,
+    view: RecognizeCardView,
+    answer_text: str,
+    reverse_hebrew: bool,
+) -> None:
+    number = _parse_recognize_answer(answer_text, view)
+    if number is None:
+        return
+    print(render_card(view, reverse_hebrew=reverse_hebrew))
+    result = grade_recognize(
+        catalog, view, view.options[number - 1].species_id
+    )
+    print()
+    print(render_recognize_result(result))
+
+
+def _parse_recognize_answer(
+    text: str, view: RecognizeCardView
+) -> int | None:
+    parts = text.replace(",", " ").split()
+    if len(parts) != 1:
+        print(f"expected 1 answer, got {len(parts)}")
+        return None
+    try:
+        number = int(parts[0])
+    except ValueError:
+        print(f"answer is not a number: {parts[0]!r}")
+        return None
+    if not 1 <= number <= len(view.options):
+        print(f"answer must be between 1 and {len(view.options)}")
+        return None
+    return number
+
+
+def _answer_recognize(
+    catalog: Catalog,
+    view: RecognizeCardView,
+    reverse_hebrew: bool,
+    *,
+    position: tuple[int, int] | None = None,
+) -> str | None:
+    print(
+        render_card(
+            view, reverse_hebrew=reverse_hebrew, position=position
+        )
+    )
+    wrong_attempts = 0
+    while True:
+        try:
+            raw = _read_line(f"  choice [1-{len(view.options)}]: ")
+        except _Up:
+            print("card cancelled.")
+            return None
+        text = raw.strip()
+        if text == "?":
+            print(_R_HELP)
+            print(
+                render_card(
+                    view, reverse_hebrew=reverse_hebrew, position=position
+                )
+            )
+            continue
+        query = _search_request(text)
+        if query is not None:
+            _search_mode(catalog, query, reverse_hebrew)
+            print(
+                render_card(
+                    view, reverse_hebrew=reverse_hebrew, position=position
+                )
+            )
+            continue
+        try:
+            number = int(text)
+        except ValueError:
+            print(
+                "enter an option number, /text to search, "
+                "? for help, or exit"
+            )
+            continue
+        if not 1 <= number <= len(view.options):
+            print(f"choose 1-{len(view.options)}")
+            continue
+        result = grade_recognize(
+            catalog, view, view.options[number - 1].species_id
+        )
+        if result.correct:
+            print(render_recognize_result(result))
+            return "first" if wrong_attempts == 0 else "retry"
+        wrong_attempts += 1
+        if wrong_attempts == 1:
+            print(f"  wrong: chose {result.chosen.latin!r}; try again.")
+            continue
+        print(render_recognize_result(result))
+        return "revealed"
+
+
 def _answer_interactively(
     catalog: Catalog,
     view: ElementsCardView,
     reverse_hebrew: bool,
-) -> None:
-    print(render_card(view, reverse_hebrew=reverse_hebrew))
+    *,
+    position: tuple[int, int] | None = None,
+) -> tuple[ElementResult, ...] | None:
+    print(
+        render_card(
+            view, reverse_hebrew=reverse_hebrew, position=position
+        )
+    )
     answers: dict[str, str] = {}
     for index, row in enumerate(view.rows):
         label = ", ".join(row.latin_forms)
@@ -437,7 +865,7 @@ def _answer_interactively(
                 raw = _read_line(f"  {label} [1-{len(row.options)}]: ")
             except _Up:
                 print("card cancelled.")
-                return
+                return None
             text = raw.strip()
             if text == "?":
                 print(_E_HELP)
@@ -472,6 +900,7 @@ def _answer_interactively(
     results = grade_elements(catalog, view, answers)
     print()
     print(render_element_results(view, results, reverse_hebrew=reverse_hebrew))
+    return results
 
 
 def _search_request(text: str) -> str | None:
@@ -543,26 +972,3 @@ def _matching_birds(catalog: Catalog, text: str) -> list[Bird]:
     return sorted(
         matches, key=lambda bird: (bird.family_order, bird.genus, bird.latin)
     )
-
-
-def _find_bird(catalog: Catalog, text: str) -> Bird:
-    text = text.strip()
-    try:
-        return catalog.bird(text.lower())
-    except NotFound:
-        pass
-
-    folded = text.casefold()
-    exact = [bird for bird in catalog.birds if bird.latin.casefold() == folded]
-    if len(exact) == 1:
-        return exact[0]
-
-    matches = _matching_birds(catalog, text)
-    if len(matches) == 1:
-        return matches[0]
-    if matches:
-        names = ", ".join(bird.species_id for bird in matches[:8])
-        if len(matches) > 8:
-            names += f", ... ({len(matches)} total)"
-        raise NotFound(f"ambiguous species {text!r}: {names}; use 'list {text}'")
-    raise NotFound(f"bird {text!r} not found")

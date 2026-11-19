@@ -9,6 +9,7 @@ from trainer.cards.models import (
     CardType,
     ElementsCardView,
     LearnCardView,
+    RecognizeCardView,
 )
 from trainer.cards.text import render_card
 from trainer.cards.views import card_view
@@ -85,7 +86,7 @@ class CardViewTests(unittest.TestCase):
 
     def test_unsupported_card_type(self) -> None:
         with self.assertRaises(InvalidRequest):
-            self._view("acrocephalus-agricola", CardType.R)
+            self._view("acrocephalus-agricola", CardType.C)
 
     def test_text_render_learn(self) -> None:
         view = self._view("acrocephalus-agricola", CardType.L)
@@ -113,6 +114,81 @@ class CardViewTests(unittest.TestCase):
     def test_unknown_bird(self) -> None:
         with self.assertRaises(NotFound):
             self._view("no-such-bird", CardType.L)
+
+
+class RecognizeViewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        config = Config.default()
+        cls.catalog = load_catalog(
+            config.species_path, config.etymology_path
+        )
+
+    def _view(self, species_id: str, seed: int = 0):
+        return card_view(
+            self.catalog,
+            CardDescriptor(
+                species_id=species_id,
+                card_type=CardType.R,
+            ),
+            seed=seed,
+        )
+
+    def test_recognize_view(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        self.assertIsInstance(view, RecognizeCardView)
+        self.assertEqual(view.hebrew, "קנית אורז")
+        self.assertEqual(len(view.options), 5)
+        latins = [option.latin for option in view.options]
+        self.assertEqual(len(latins), len(set(latins)))
+        self.assertIn("Acrocephalus agricola", latins)
+        for option in view.options:
+            bird = self.catalog.bird(option.species_id)
+            self.assertEqual(option.latin, bird.latin)
+            self.assertEqual(bird.genus, "Acrocephalus")
+
+    def test_options_are_seeded(self) -> None:
+        first = self._view("acrocephalus-agricola", seed=7)
+        second = self._view("acrocephalus-agricola", seed=7)
+        self.assertEqual(first.options, second.options)
+
+    def test_no_hebrew_is_rejected(self) -> None:
+        with self.assertRaises(InvalidRequest):
+            self._view("butorides-striata")
+
+    def test_shared_hebrew_includes_both_species(self) -> None:
+        view = self._view("oenanthe-lugens")
+        latins = {option.latin for option in view.options}
+        self.assertIn("Oenanthe lugens", latins)
+        self.assertIn("Oenanthe warriae", latins)
+        self.assertEqual(len(view.options), 5)
+
+    def test_render_hides_latin_header(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        text = render_card(view, reverse_hebrew=False)
+        self.assertTrue(text.startswith("[R] Which Latin name matches"))
+        self.assertNotIn("[R] Acrocephalus agricola", text)
+        self.assertIn("Hebrew:", text)
+        self.assertIn("Acrocephalus agricola", text)
+
+    def test_render_reveal(self) -> None:
+        view = self._view("oenanthe-lugens")
+        text = render_card(
+            view,
+            reverse_hebrew=False,
+            reveal_recognize=True,
+            recognize_answers=("Oenanthe lugens", "Oenanthe warriae"),
+        )
+        self.assertIn("correct:", text)
+        self.assertIn("Oenanthe lugens", text)
+        self.assertIn("Oenanthe warriae", text)
+
+    def test_render_position(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        text = render_card(
+            view, reverse_hebrew=False, position=(2, 5)
+        )
+        self.assertTrue(text.startswith("[R 2/5]"))
 
 
 if __name__ == "__main__":

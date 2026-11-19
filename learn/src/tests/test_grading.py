@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from trainer.cards.grading import grade_elements
+from trainer.cards.grading import grade_elements, grade_recognize
 from trainer.cards.models import (
     CardDescriptor,
     CardType,
@@ -109,6 +109,76 @@ class ElementGradingTests(unittest.TestCase):
         )
 
         self.assertTrue(results[0].correct)
+
+
+class RecognizeGradingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        config = Config.default()
+        cls.catalog = load_catalog(
+            config.species_path, config.etymology_path
+        )
+        cls.view = card_view(
+            cls.catalog,
+            CardDescriptor(
+                species_id="acrocephalus-agricola",
+                card_type=CardType.R,
+            ),
+            seed=0,
+        )
+        cls.shared_view = card_view(
+            cls.catalog,
+            CardDescriptor(
+                species_id="oenanthe-lugens",
+                card_type=CardType.R,
+            ),
+            seed=0,
+        )
+
+    def test_correct_choice(self) -> None:
+        chosen = next(
+            option
+            for option in self.view.options
+            if option.species_id == "acrocephalus-agricola"
+        )
+        result = grade_recognize(
+            self.catalog, self.view, chosen.species_id
+        )
+        self.assertTrue(result.correct)
+        self.assertEqual(result.chosen, chosen)
+        self.assertEqual(result.accepted, ("Acrocephalus agricola",))
+
+    def test_wrong_choice(self) -> None:
+        chosen = next(
+            option
+            for option in self.view.options
+            if option.species_id != "acrocephalus-agricola"
+        )
+        result = grade_recognize(
+            self.catalog, self.view, chosen.species_id
+        )
+        self.assertFalse(result.correct)
+        self.assertEqual(result.chosen, chosen)
+        self.assertEqual(result.accepted, ("Acrocephalus agricola",))
+
+    def test_shared_hebrew_accepts_either(self) -> None:
+        chosen = next(
+            option
+            for option in self.shared_view.options
+            if option.species_id == "oenanthe-warriae"
+        )
+        result = grade_recognize(
+            self.catalog, self.shared_view, chosen.species_id
+        )
+        self.assertTrue(result.correct)
+        self.assertEqual(
+            set(result.accepted),
+            {"Oenanthe lugens", "Oenanthe warriae"},
+        )
+
+    def test_choice_must_be_an_option(self) -> None:
+        with self.assertRaises(InvalidRequest):
+            grade_recognize(self.catalog, self.view, "no-such-bird")
 
 
 if __name__ == "__main__":

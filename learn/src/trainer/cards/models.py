@@ -1,7 +1,7 @@
 """Card identities and pure client-facing views.
 
-Only L and E views are implemented so far.  The remaining card types are
-listed now so the identity type does not change when they are added.
+L, E and R views are implemented so far.  The remaining card types are listed
+now so the identity type does not change when they are added.
 """
 
 from __future__ import annotations
@@ -98,4 +98,24 @@ class ElementsCardView:
     rows: tuple[ElementRow, ...]  # e.g. (ElementRow("acro", ("Acro",), "Shape", ("פטל", ...)),)
 
 
-CardView = LearnCardView | ElementsCardView  # e.g. LearnCardView(...) or ElementsCardView(...)
+@dataclass(frozen=True)
+class RecognizeOption:
+    """One Latin-name choice on an R card."""
+
+    latin: str  # e.g. "Acrocephalus arundinaceus"
+    species_id: str  # e.g. "acrocephalus-arundinaceus"
+
+
+@dataclass(frozen=True)
+class RecognizeCardView:
+    """A complete R-card display: a Hebrew prompt and Latin-name options."""
+
+    card_type: CardType  # e.g. CardType.R
+    species_id: str  # e.g. "acrocephalus-agricola"
+    hebrew: str  # e.g. "קנית אורז"
+    options: tuple[RecognizeOption, ...]  # e.g. (RecognizeOption("Acrocephalus arundinaceus", "acrocephalus-arundinaceus"),)
+
+
+CardView = (
+    LearnCardView | ElementsCardView | RecognizeCardView
+)  # e.g. LearnCardView(...) or ElementsCardView(...) or RecognizeCardView(...)

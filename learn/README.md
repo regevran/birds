@@ -24,12 +24,12 @@ top-level disposable `build/`, and the trainer runs from `learn/src`.
 ## Status
 
 Foundation data layer is in place: `Config`, domain errors, the dataset
-loader/validator with indexes. The card layer implements the pure L and E
-card views, E answer grading and a text renderer, and `src/trainer/cli.py`
-exposes them through an interactive text client. The E card is answerable:
-the client prompts for one option per element and reports a score. The R, C,
-F and V cards, scheduling, lifecycle and the web UI are still design-only.
-There are 59 passing tests.
+loader/validator with indexes. The card layer implements the pure L, E and R
+card views, E/R answer grading and a text renderer, and `src/trainer/cli.py`
+exposes them through an interactive text client. E and R are answerable: E
+prompts for one option per element and reports a score; R asks for the Latin
+name. The C, F and V cards, scheduling, lifecycle and the web UI are still
+design-only. There are 96 passing tests.
 
 ## Running the text client
 
@@ -47,21 +47,26 @@ Inside the client:
 card L acrocephalus-agricola
 card E acrocephalus-agricola
 card E acrocephalus-agricola --seed 1 --reveal
+card R acrocephalus-agricola
+card R acrocephalus-agricola --seed 1 --reveal
+card R cormorant
+card E cormorant --seed 1
 help
 quit
 ```
 
-`card L` and `card E` are the commands; `L` and `E` are aliases, and R, C, F
-and V follow the same pattern. `/<text>` searches species_id, Latin, English,
-Hebrew, family and order. Every word must match; `list`, `find`, `birds` and
-`search` are aliases. The list shows species_id, Latin, English, Hebrew,
-family and Hebrew family.
+`card L`, `card E` and `card R` are the commands; `L`, `E` and `R` are
+aliases, and C, F and V follow the same pattern. `/<text>` searches
+species_id, Latin, English, Hebrew, family and order. Every word must match;
+`list`, `find`, `birds` and `search` are aliases. The list shows species_id,
+Latin, English, Hebrew, family and Hebrew family.
 
 In the interactive client, a search opens `search>` mode. Type text there to
 search again; `?` shows help. A bare `/` opens search mode without listing
 every bird. `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one
-prompt up: from `search>` back to the card, from an Elements prompt back to
-`card>`, and from `card>` out of the client. Ctrl-C leaves the client.
+prompt up: from `search>` back to the card, from an E or R prompt or between
+run cards back to `card>`, and from `card>` out of the client. Ctrl-C leaves
+the client.
 
 At an Elements prompt, enter an option number. Each row shows its theme, and
 the options are drawn only from that theme, so the theme is a hint. `/text`
@@ -71,15 +76,32 @@ correct rows repeat the correct gloss. E is not a gate. Each interactive
 `card E` gets a fresh random option order; `--seed N` reproduces one. Up and
 down arrows scroll the command history, kept in `~/.birds_trainer_history`.
 
+At a Recognize prompt, choose the Latin name that matches the Hebrew name. A
+wrong choice lets you try once more without revealing the answer; a second
+wrong reveals the correct Latin. The shared Hebrew name accepts either
+*Oenanthe* species, and both are shown in the feedback. Interactive R cards
+also get a fresh random option order.
+
+A card command also accepts a search query. `card R cormorant` runs R for
+every matching bird in search order; one match behaves as a single card.
+Press Enter between cards; `exit`, `quit`, Ctrl-D or Esc stops the run. R
+runs skip birds without Hebrew and E runs skip birds without splits,
+reporting the count. This is an ephemeral, one-pass study tool ("search with
+benefits"), not saved progress. `--seed N` reproduces the run. `--answer`
+needs a single match; one-shot display and `--reveal` print every matching
+card.
+
 A one-shot command also works:
 
 ```sh
 cd learn/src && python3 -m trainer card L acrocephalus-agricola
 cd learn/src && python3 -m trainer card E acrocephalus-agricola --answer "1 3 5 1"
+cd learn/src && python3 -m trainer card R acrocephalus-agricola --answer "5"
 ```
 
-One-shot commands are display-only unless `--answer` is given. The answer
-string has one option number per element; commas or spaces separate them.
+One-shot commands are display-only unless `--answer` is given. The E answer
+string has one option number per element; commas or spaces separate them. The
+R answer is one option number.
 
 ## Testing
 

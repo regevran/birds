@@ -1,7 +1,18 @@
 """Card layer: identities, pure views, grading and the text renderer."""
 
-from .grading import ElementResult, grade_elements
-from .models import CardDescriptor, CardType, CardView
+from .grading import (
+    ElementResult,
+    RecognizeResult,
+    grade_elements,
+    grade_recognize,
+)
+from .models import (
+    CardDescriptor,
+    CardType,
+    CardView,
+    RecognizeCardView,
+    RecognizeOption,
+)
 from .views import card_view
 
 __all__ = [
@@ -9,6 +20,10 @@ __all__ = [
     "CardType",
     "CardView",
     "ElementResult",
+    "RecognizeCardView",
+    "RecognizeOption",
+    "RecognizeResult",
     "card_view",
     "grade_elements",
+    "grade_recognize",
 ]

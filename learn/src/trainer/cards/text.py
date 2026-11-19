@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
-from .grading import ElementResult
-from .models import CardView, ElementsCardView, LearnCardView
+from .grading import ElementResult, RecognizeResult
+from .models import (
+    CardView,
+    ElementsCardView,
+    LearnCardView,
+    RecognizeCardView,
+)
 
 
 def render_card(
@@ -12,26 +17,43 @@ def render_card(
     reverse_hebrew: bool = True,
     reveal_elements: bool = False,
     element_answers: dict[str, str] | None = None,
+    reveal_recognize: bool = False,
+    recognize_answers: tuple[str, ...] = (),
+    position: tuple[int, int] | None = None,
 ) -> str:
+    label = _card_label(view, position)
     if isinstance(view, LearnCardView):
-        return _render_learn(view, reverse_hebrew)
+        return _render_learn(view, reverse_hebrew, label)
     if isinstance(view, ElementsCardView):
         return _render_elements(
-            view, reverse_hebrew, reveal_elements, element_answers or {}
+            view, reverse_hebrew, reveal_elements, element_answers or {}, label
+        )
+    if isinstance(view, RecognizeCardView):
+        return _render_recognize(
+            view,
+            reverse_hebrew,
+            reveal_recognize,
+            recognize_answers,
+            label,
         )
     raise TypeError(f"cannot render {type(view).__name__}")
+
+
+def _card_label(view: CardView, position: tuple[int, int] | None) -> str:
+    suffix = f" {position[0]}/{position[1]}" if position else ""
+    return f"[{view.card_type.value}{suffix}]"
 
 
 def _he(text: str, reverse: bool) -> str:
     return text[::-1] if reverse else text
 
 
-def _render_learn(view: LearnCardView, reverse: bool) -> str:
+def _render_learn(view: LearnCardView, reverse: bool, label: str) -> str:
     status = view.status or "regular"
     categories = ", ".join(view.status_categories)
     family = view.family_he
     lines = [
-        f"[L] {view.latin}",
+        f"{label} {view.latin}",
         f"  Hebrew:  {_he(view.hebrew, reverse) if view.hebrew else '-'}",
         f"  English: {view.english}",
         f"  Family:  {view.family}"
@@ -74,9 +96,10 @@ def _render_elements(
     reverse: bool,
     reveal: bool,
     answers: dict[str, str],
+    label: str,
 ) -> str:
     lines = [
-        f"[E] {view.latin}",
+        f"{label} {view.latin}",
         "  Choose the Hebrew meaning for each element.",
     ]
     for index, row in enumerate(view.rows):
@@ -127,3 +150,34 @@ def render_element_results(
     correct = sum(result.correct for result in results)
     lines.append(f"  {correct}/{len(results)} correct.")
     return "\n".join(lines)
+
+
+def _render_recognize(
+    view: RecognizeCardView,
+    reverse: bool,
+    reveal: bool,
+    answers: tuple[str, ...],
+    label: str,
+) -> str:
+    lines = [
+        f"{label} Which Latin name matches the Hebrew name?",
+        f"  Hebrew: {_he(view.hebrew, reverse)}",
+        "",
+    ]
+    for number, option in enumerate(view.options, start=1):
+        lines.append(f"  {number}) {option.latin}")
+    if reveal and answers:
+        lines.append(f"  correct: {_join_latins(answers)}")
+    return "\n".join(lines)
+
+
+def render_recognize_result(result: RecognizeResult) -> str:
+    """Render feedback for one R-card choice."""
+    answer = _join_latins(result.accepted)
+    if result.correct:
+        return f"  correct: {answer}"
+    return f"  wrong: chose {result.chosen.latin!r}, correct {answer}"
+
+
+def _join_latins(latins: tuple[str, ...]) -> str:
+    return " or ".join(repr(latin) for latin in latins)

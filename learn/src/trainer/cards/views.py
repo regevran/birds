@@ -15,6 +15,8 @@ from .models import (
     ElementsCardView,
     LearnCardView,
     LearnPart,
+    RecognizeCardView,
+    RecognizeOption,
     WholeNameNote,
 )
 
@@ -33,6 +35,8 @@ def card_view(
         return _learn_view(bird, catalog)
     if descriptor.card_type is CardType.E:
         return _elements_view(bird, catalog, seed)
+    if descriptor.card_type is CardType.R:
+        return _recognize_view(bird, catalog, seed)
     raise InvalidRequest(
         f"card type {descriptor.card_type.value} is not implemented yet"
     )
@@ -86,6 +90,58 @@ def _elements_view(
         species_id=bird.species_id,
         latin=bird.latin,
         rows=rows,
+    )
+
+
+def _recognize_view(
+    bird: Bird, catalog: Catalog, seed: int
+) -> RecognizeCardView:
+    if not bird.hebrew:
+        raise InvalidRequest(f"{bird.latin} has no Hebrew name")
+
+    accepted = catalog.birds_with_hebrew(bird.hebrew)
+    accepted_ids = {other.species_id for other in accepted}
+    wanted = max(0, _OPTION_COUNT - len(accepted))
+    rng = random.Random(f"{seed}:{bird.species_id}:R")
+
+    distractors: list[RecognizeOption] = []
+    seen = set(accepted_ids)
+    tiers = (
+        catalog.genus(bird.genus),
+        catalog.family(bird.family),
+        catalog.order(bird.order),
+        catalog.birds,
+    )
+    if wanted:
+        for tier in tiers:
+            candidates = sorted(tier, key=lambda other: other.species_id)
+            rng.shuffle(candidates)
+            for other in candidates:
+                if other.species_id in seen:
+                    continue
+                seen.add(other.species_id)
+                distractors.append(
+                    RecognizeOption(
+                        latin=other.latin,
+                        species_id=other.species_id,
+                    )
+                )
+                if len(distractors) == wanted:
+                    break
+            if len(distractors) == wanted:
+                break
+
+    options = [
+        RecognizeOption(latin=other.latin, species_id=other.species_id)
+        for other in accepted
+    ]
+    options.extend(distractors)
+    rng.shuffle(options)
+    return RecognizeCardView(
+        card_type=CardType.R,
+        species_id=bird.species_id,
+        hebrew=bird.hebrew,
+        options=tuple(options),
     )
 
 

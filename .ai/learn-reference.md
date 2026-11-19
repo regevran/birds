@@ -1,8 +1,8 @@
 # Learning tool — design reference
 
 Status: foundation implemented (`Config`, dataset loader/validator/indexes,
-and dataset tests); L and E card views plus the text client implemented, and
-E is answerable with pure grading. The R, C, F and V cards, persistence,
+and dataset tests); L, E and R card views plus the text client implemented, and
+E and R are answerable with pure grading. The C, F and V cards, persistence,
 scheduling, lifecycle and the web UI are still design-only. This file is the
 durable record of the design conversation; use it to continue next session.
 `learn-todo.md` holds follow-ups.
@@ -66,7 +66,7 @@ Later, when due: **V** (review).
 |---|---|---|
 | **L** | Learn | Display only: family/order, Hebrew, English, Latin, all parts and meanings, bridge line. One button: next. No "show again", no "I know this". |
 | **E** | Elements | All parts on one card; choose each part's Hebrew meaning from options. Options stay inside the part's theme, which is shown as a hint. Wrong answers reveal the correct pairs and continue. Not a gate. |
-| **R** | Recognize | Hebrew prompt → choose the Latin from 4–5 options. No English, no family. Options shuffled each time. |
+| **R** | Recognize | Hebrew prompt → choose the Latin from 4–5 options. No English, no family. Options shuffled each time. A wrong choice gets one retry; a second wrong reveals the Latin. |
 | **C** | Construct | Hebrew prompt → type the Latin. Scaffold: part meanings + first letters (or first letters/length when there are no parts). |
 | **F** | Produce | Hebrew prompt → type the Latin. No scaffold; hint ladder on request. |
 | **V** | Review | Same as F, presented when due. V cards are the only cards that can be skipped. |
@@ -155,13 +155,23 @@ Chosen approach: **A — local server**.
   prints per-element feedback and `correct/total`. Wrong rows show the chosen
   and correct glosses; correct rows repeat the correct gloss. Wrong answers
   reveal and continue; E is not a gate.
+- `card R`: shows the Hebrew name and numbered Latin options. A wrong choice
+  re-prompts without revealing; a second wrong reveals the correct Latin.
+  `--reveal` shows the accepted Latin name(s); the shared-Hebrew pair accepts
+  either name.
+- A card command also accepts a search query. One match is a single card;
+  several matches form a one-pass run in search order. Enter advances;
+  exit/quit/Ctrl-D/Esc stops the run. E/R runs skip ineligible birds and report
+  the count. This is a learner-driven study tool ("search with benefits"), not
+  saved progress or the scheduler. One-shot display and `--reveal` batch-print
+  all matching cards; `--answer` needs a single match.
 - A search command opens a read-only `search>` mode. Every line there is a
   query (a leading `/` is optional) except `?` (help); a bare `/` opens the
   mode without listing all birds. Exiting returns to the same element and
   keeps answers already given.
-- Each interactive `card E` uses a fresh random option seed; `--seed N`
-  reproduces one exact card. One-shot commands stay at seed 0 so `--answer`
-  numbers are reliable.
+- Each interactive `card E` or `card R` uses a fresh random option seed;
+  `--seed N` reproduces one exact card. One-shot commands stay at seed 0 so
+  `--answer` numbers are reliable.
 - `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one prompt up; from
   `card>` they leave the client. Ctrl-C leaves the client.
 - Progress is not saved yet; the next gate adds the shared profile/session

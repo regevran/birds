@@ -7,7 +7,7 @@ from typing import Mapping
 
 from ..foundation.dataset import Catalog
 from ..foundation.errors import InvalidRequest
-from .models import ElementsCardView
+from .models import ElementsCardView, RecognizeCardView, RecognizeOption
 
 
 @dataclass(frozen=True)
@@ -63,4 +63,47 @@ def grade_elements(
     return tuple(results)
 
 
-__all__ = ["ElementResult", "grade_elements"]
+@dataclass(frozen=True)
+class RecognizeResult:
+    """The graded outcome of one R-card choice."""
+
+    chosen: RecognizeOption  # e.g. RecognizeOption("Acrocephalus arundinaceus", "acrocephalus-arundinaceus")
+    accepted: tuple[str, ...]  # e.g. ("Acrocephalus agricola",)
+    correct: bool  # e.g. False
+
+
+def grade_recognize(
+    catalog: Catalog,
+    view: RecognizeCardView,
+    chosen_species_id: str,
+) -> RecognizeResult:
+    """Grade one Latin-name choice; every species with the prompt is correct."""
+    chosen = next(
+        (
+            option
+            for option in view.options
+            if option.species_id == chosen_species_id
+        ),
+        None,
+    )
+    if chosen is None:
+        raise InvalidRequest(
+            f"{chosen_species_id!r} is not an option for species "
+            f"{view.species_id!r}"
+        )
+
+    accepted_birds = catalog.birds_with_hebrew(view.hebrew)
+    accepted_ids = {bird.species_id for bird in accepted_birds}
+    return RecognizeResult(
+        chosen=chosen,
+        accepted=tuple(bird.latin for bird in accepted_birds),
+        correct=chosen_species_id in accepted_ids,
+    )
+
+
+__all__ = [
+    "ElementResult",
+    "RecognizeResult",
+    "grade_elements",
+    "grade_recognize",
+]
