@@ -1,16 +1,32 @@
-# Trainer: pure Python package, tests and the text development client.
+# Trainer: pure Python package, tests, the text development client and the
+# Cloudflare progress Worker.
 #
 # Targets:
-#   learn-test   run the unit tests
-#   learn-run    run the interactive text client
+#   learn-test          run the Python unit tests
+#   learn-test-live     run live Worker tests (requires BIRDS_TEST_* env)
+#   learn-run           run the interactive text client
+#   learn-worker-test   run the Worker tests with Node's built-in runner
+#   learn-worker-dev    run the Worker locally with wrangler
+#   learn-worker-deploy deploy the Worker with wrangler
 
 set(LEARN_SRC "${BIRDS_LEARN_SRC}")
+set(LEARN_CLOUDFLARE "${BIRDS_ROOT}/learn/cloudflare")
 
 file(GLOB_RECURSE LEARN_PY CONFIGURE_DEPENDS
     "${LEARN_SRC}/trainer/*.py"
     "${LEARN_SRC}/tests/*.py")
+file(GLOB_RECURSE LEARN_WORKER CONFIGURE_DEPENDS
+    "${LEARN_CLOUDFLARE}/src/*.js"
+    "${LEARN_CLOUDFLARE}/tests/*.js")
+
+find_program(NODE_EXECUTABLE node)
 
 message(STATUS "birds: trainer ${LEARN_SRC}")
+if(NODE_EXECUTABLE)
+    message(STATUS "birds: node    ${NODE_EXECUTABLE}")
+else()
+    message(STATUS "birds: node not found; learn-worker-test is unavailable")
+endif()
 
 add_custom_target(learn-test
     COMMAND "${Python3_EXECUTABLE}" -m unittest discover -s tests -v
@@ -19,10 +35,52 @@ add_custom_target(learn-test
     COMMENT "Running trainer tests"
     VERBATIM)
 
+add_custom_target(learn-test-live
+    COMMAND "${Python3_EXECUTABLE}" -m unittest -v tests.test_cloud_live
+    WORKING_DIRECTORY "${LEARN_SRC}"
+    DEPENDS ${LEARN_PY}
+    COMMENT "Running live Worker tests (requires BIRDS_TEST_* env)"
+    USES_TERMINAL
+    VERBATIM)
+
 add_custom_target(learn-run
     COMMAND "${Python3_EXECUTABLE}" -m trainer
     WORKING_DIRECTORY "${LEARN_SRC}"
     DEPENDS ${LEARN_PY}
     COMMENT "Running the trainer text client"
+    USES_TERMINAL
+    VERBATIM)
+
+if(NODE_EXECUTABLE)
+    add_custom_target(learn-worker-test
+        COMMAND "${NODE_EXECUTABLE}" --test
+        WORKING_DIRECTORY "${LEARN_CLOUDFLARE}"
+        DEPENDS ${LEARN_WORKER}
+        COMMENT "Running Cloudflare Worker tests"
+        VERBATIM)
+    add_test(
+        NAME learn-worker
+        COMMAND "${NODE_EXECUTABLE}" --test
+        WORKING_DIRECTORY "${LEARN_CLOUDFLARE}")
+else()
+    add_custom_target(learn-worker-test
+        COMMAND "${CMAKE_COMMAND}" -E echo
+            "Node.js is required for learn-worker-test"
+        COMMAND "${CMAKE_COMMAND}" -E false
+        COMMENT "Node.js not found"
+        VERBATIM)
+endif()
+
+add_custom_target(learn-worker-dev
+    COMMAND npx wrangler dev
+    WORKING_DIRECTORY "${LEARN_CLOUDFLARE}"
+    COMMENT "Running the progress Worker locally"
+    USES_TERMINAL
+    VERBATIM)
+
+add_custom_target(learn-worker-deploy
+    COMMAND npx wrangler deploy
+    WORKING_DIRECTORY "${LEARN_CLOUDFLARE}"
+    COMMENT "Deploying the progress Worker"
     USES_TERMINAL
     VERBATIM)

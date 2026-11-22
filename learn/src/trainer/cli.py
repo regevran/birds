@@ -7,6 +7,8 @@ renderer; this module only parses commands, reads answers and prints results.
 from __future__ import annotations
 
 import atexit
+import getpass
+import os
 import secrets
 import shlex
 import sys
@@ -37,6 +39,7 @@ from .cards.text import (
     render_recognize_result,
 )
 from .cards.views import card_view
+from .foundation import cloud
 from .foundation.config import Config
 from .foundation.dataset import Bird, Catalog, load_catalog
 from .foundation.errors import DataError, NotFound, TrainerError
@@ -62,6 +65,9 @@ Commands:
   card F|F|f <species|search>                   practise a Produce card
   card F|F|f <species|search> --answer "..."    grade a Produce card in one shot
   card F|F|f <species|search> --reveal          show a Produce card with the answer
+  login --server <url> [--username <name>]      log in to the progress store
+  logout                                        forget the stored login
+  whoami                                        show the signed-in account
   help, ?                                       show this message
   quit, exit                                    leave the client
 
@@ -88,6 +94,12 @@ A Produce card shows only the Hebrew name, with no scaffold. Type the full
 Latin name; case and spacing are ignored. A near miss shows the exact
 spelling and moves on. A wrong answer gets one retry; the second wrong
 reveals the answer.
+
+Progress lives in the Cloudflare Worker file store. `login` prompts for the
+username and password and stores the token in ~/.birds_trainer.json (mode
+0600); `logout` removes it. The server can also come from the
+BIRDS_TRAINER_SERVER environment variable. `whoami` shows the account without
+the token.
 
 <species|search> is the same query as /<text>. One match shows one card;
 several matches run through all of them in search order. Press Enter between
@@ -281,6 +293,15 @@ def _dispatch(
     if command in ("help", "?"):
         print(_COMMANDS)
         return True
+    if command == "login":
+        _login_command(args[1:])
+        return True
+    if command == "logout":
+        _logout_command()
+        return True
+    if command == "whoami":
+        _whoami_command()
+        return True
     if args[0].startswith("/"):
         query = " ".join((args[0][1:], *args[1:])).strip()
         if interactive:
@@ -307,6 +328,97 @@ def _dispatch(
     else:
         _card_command(catalog, args, reverse_hebrew, interactive=interactive)
     return True
+
+
+def _login_command(args: list[str]) -> None:
+    server: str | None = None
+    username: str | None = None
+    index = 0
+    while index < len(args):
+        option = args[index]
+        if option == "--server" and index + 1 < len(args):
+            server = args[index + 1]
+            index += 2
+        elif option == "--username" and index + 1 < len(args):
+            username = args[index + 1]
+            index += 2
+        elif option.startswith("--"):
+            print(f"unknown option: {option!r}")
+            _print_login_usage()
+            return
+        else:
+            print(f"unexpected argument: {option!r}")
+            _print_login_usage()
+            return
+
+    if server is None:
+        server = os.environ.get(cloud.SERVER_ENV)
+    if not server:
+        _print_login_usage()
+        return
+
+    if username is None:
+        try:
+            username = input("Username: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
+    if not username:
+        print("username is required")
+        return
+
+    try:
+        password = getpass.getpass("Password: ")
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return
+    if not password:
+        print("password is required")
+        return
+
+    try:
+        credentials = cloud.login(server, username, password)
+        cloud.save_credentials(credentials)
+    except (cloud.CloudError, cloud.CredentialsError, OSError, ValueError) as exc:
+        print(f"login failed: {exc}")
+        return
+
+    print(
+        f"Logged in as {credentials.username} ({credentials.scope}) "
+        f"at {credentials.server}."
+    )
+    print(f"Token expires {credentials.expires_at}.")
+
+
+def _print_login_usage() -> None:
+    print("usage: login --server <url> [--username <name>]")
+
+
+def _logout_command() -> None:
+    try:
+        removed = cloud.delete_credentials()
+    except OSError as exc:
+        print(f"logout failed: {exc}")
+        return
+    print("Logged out." if removed else "Not logged in.")
+
+
+def _whoami_command() -> None:
+    try:
+        credentials = cloud.load_credentials(require_valid=False)
+    except cloud.CredentialsError as exc:
+        print(str(exc))
+        return
+    state = (
+        "expired"
+        if cloud.credentials_expired(credentials)
+        else "valid"
+    )
+    print(
+        f"{credentials.username} ({credentials.scope}) "
+        f"at {credentials.server}"
+    )
+    print(f"Token {state}; expires {credentials.expires_at}.")
 
 
 def _search_mode(

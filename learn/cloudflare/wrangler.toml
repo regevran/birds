@@ -1,0 +1,17 @@
+name = "birds-progress"
+main = "src/index.js"
+compatibility_date = "2026-11-22"
+workers_dev = true
+preview_urls = false
+
+# Private bucket. Do not attach a public r2.dev URL to it.
+[[r2_buckets]]
+binding = "PROGRESS"
+bucket_name = "birds-progress"
+
+[vars]
+ALLOWED_ORIGINS = "https://regevran.github.io"
+TOKEN_TTL_SECONDS = "2592000"
+
+# AUTH_SECRET is a Worker secret, not a var:
+#   npx wrangler secret put AUTH_SECRET

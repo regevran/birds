@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import io
+import os
+import tempfile
 import unittest
 from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import patch
 
 from trainer.cards.models import CardDescriptor, CardType
@@ -15,6 +18,12 @@ from trainer.cli import (
     _interactive,
     _matching_birds,
     _read_line,
+)
+from trainer.foundation.cloud import (
+    CloudError,
+    Credentials,
+    CredentialsError,
+    load_credentials,
 )
 from trainer.foundation.config import Config
 from trainer.foundation.dataset import load_catalog
@@ -1303,6 +1312,106 @@ class ConstructRunTests(unittest.TestCase):
         self.assertIn("correct: 'Microcarbo pygmeus'", text)
         self.assertIn("correct: 'Phalacrocorax carbo'", text)
         self.assertIn("C run: 2 cards (answers revealed).", text)
+
+
+class CredentialCommandTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        config = Config.default()
+        cls.catalog = load_catalog(
+            config.species_path, config.etymology_path
+        )
+
+    def _run(self, args: list[str]) -> str:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            _dispatch(self.catalog, args, False)
+        return output.getvalue()
+
+    def _credentials(self) -> Credentials:
+        return Credentials(
+            server="https://worker.example",
+            username="ran",
+            scope="profile",
+            token="token-value",
+            expires_at="2999-01-01T00:00:00Z",
+        )
+
+    def test_login_whoami_logout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "credentials.json"
+            credentials = self._credentials()
+            with patch.dict(
+                os.environ, {"BIRDS_TRAINER_CREDENTIALS": str(path)}
+            ):
+                with patch(
+                    "trainer.cli.cloud.login", return_value=credentials
+                ) as login:
+                    with patch(
+                        "trainer.cli.getpass.getpass", return_value="pw"
+                    ):
+                        text = self._run(
+                            [
+                                "login",
+                                "--server",
+                                "https://worker.example",
+                                "--username",
+                                "ran",
+                            ]
+                        )
+                login.assert_called_once_with(
+                    "https://worker.example", "ran", "pw"
+                )
+                self.assertIn("Logged in as ran (profile)", text)
+                self.assertEqual(load_credentials(path=path), credentials)
+
+                self.assertIn("ran (profile)", self._run(["whoami"]))
+                self.assertIn("Logged out.", self._run(["logout"]))
+                with self.assertRaises(CredentialsError):
+                    load_credentials(path=path)
+                self.assertIn("not logged in", self._run(["whoami"]))
+
+    def test_login_failure_keeps_no_credentials(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "credentials.json"
+            with patch.dict(
+                os.environ, {"BIRDS_TRAINER_CREDENTIALS": str(path)}
+            ):
+                with patch(
+                    "trainer.cli.cloud.login",
+                    side_effect=CloudError(
+                        401,
+                        "invalid_credentials",
+                        "invalid username or password",
+                    ),
+                ):
+                    with patch(
+                        "trainer.cli.getpass.getpass", return_value="pw"
+                    ):
+                        text = self._run(
+                            [
+                                "login",
+                                "--server",
+                                "https://worker.example",
+                                "--username",
+                                "ran",
+                            ]
+                        )
+                self.assertIn("login failed:", text)
+                self.assertFalse(path.exists())
+
+    def test_login_needs_a_server(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "credentials.json"
+            with patch.dict(
+                os.environ,
+                {
+                    "BIRDS_TRAINER_CREDENTIALS": str(path),
+                    "BIRDS_TRAINER_SERVER": "",
+                },
+            ):
+                text = self._run(["login", "--username", "ran"])
+                self.assertIn("usage: login --server", text)
 
 
 if __name__ == "__main__":

@@ -7,9 +7,13 @@
 # Python cache
 __pycache__/
 
-# Trainer progress transient files
-/learn/data/progress/**/*.tmp
-/learn/data/progress/**/.lock
+# Wrangler local state (created when wrangler runs at the repo root)
+/.wrangler/
+
+# Local account provisioning (uploaded to R2; never committed)
+/learn/cloudflare/users.json
+/learn/cloudflare/.dev.vars
+/learn/cloudflare/.wrangler/
 
 # Editor / tags
 *.swp

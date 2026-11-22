@@ -1,25 +1,27 @@
 # Learn — interactive bird-name trainer
 
 This directory is the trainer project, parallel to `book/` and `data/`.
-The foundation data layer and the pure L/E card views exist, with a text
-client for inspecting them; the rest is not implemented. The design is in
-`../.ai/learn-reference.md`; the implementation spec is in
+The foundation data layer, the card layer and the text client exist. Progress
+is stored in private Cloudflare R2 through the Worker in `cloudflare/`. The
+design is in `../.ai/learn-reference.md`; the storage design is in
+`../.ai/learn-cloudflare.md`; the implementation spec is in
 `../.ai/learn-implementation.md`; follow-ups are in `../.ai/learn-todo.md`.
 
 ## Layout
 
 - `src/trainer/` — Python package:
-  - `foundation/` — config, errors, dataset, normalization.
+  - `foundation/` — config, errors, dataset, normalization, passwords.
   - `cards/` — card rules, options, grading, card views, bridge.
-  - `scheduling/` — queue and scheduler.
-  - `lifecycle/` — store, events, profiles, sessions.
-  - `api.py`, `static.py`, `__main__.py` at the package root.
-- `src/web/` — browser UI (implementation, not yet written).
-- `src/tests/` — unit, API and integration tests.
-- `data/progress/` — user saved progress, git-committable.
+  - `scheduling/` — queue and scheduler (not implemented yet).
+  - `lifecycle/` — profiles and sessions (not implemented yet).
+  - `cli.py`, `__main__.py` at the package root.
+- `src/tests/` — Python tests.
+- `cloudflare/` — progress Worker, its Node tests and wrangler config.
+- `tools/provision_user.py` — adds an account to the Worker's `users.json`.
 
 There is no `learn/build` or `learn/out`: all build artifacts go to the
-top-level disposable `build/`, and the trainer runs from `learn/src`.
+top-level disposable `build/`, and the trainer runs from `learn/src`. There is
+no local progress store; the Worker is the single source of truth.
 
 ## Status
 
@@ -30,8 +32,46 @@ and F card views, E/R/C/F answer grading and a text renderer, and
 and F are answerable: E prompts for one option per element and reports a
 score; R asks for the Latin name; C asks for a typed Latin name with a
 scaffold; F asks for a typed Latin name with no scaffold. The V card, hints,
-scheduling, lifecycle and the web UI are still design-only. There are 167
-passing tests.
+scheduling and the web UI are still design-only. There are 191 Python tests
+(two live Worker tests skip unless configured) and 22 Worker tests.
+
+## Progress Worker
+
+The Worker is an authenticated file store over R2: login, `/fs` listing and
+`GET`/`PUT`/`DELETE /fs/<path>`. The bucket is private; the Worker scopes each
+token to one user's prefix or to `tests/`. See `cloudflare/README.md` for
+setup and the API.
+
+```sh
+cmake --build build --target learn-worker-test
+cmake --build build --target learn-worker-dev
+cmake --build build --target learn-worker-deploy
+```
+
+The Worker is deployed at `https://birds-progress.regevran.workers.dev`.
+Provision accounts with:
+
+```sh
+python3 learn/tools/provision_user.py <username>
+```
+
+Sign in from the text client:
+
+```sh
+cd learn/src
+python3 -m trainer login --server https://birds-progress.regevran.workers.dev
+python3 -m trainer whoami
+python3 -m trainer logout
+```
+
+The token is stored in `~/.birds_trainer.json` with mode 0600. Live Worker
+tests use a `tests`-scoped account:
+
+```sh
+BIRDS_TEST_SERVER=https://birds-progress.regevran.workers.dev \
+BIRDS_TEST_USER=tester BIRDS_TEST_PASSWORD=... \
+cmake --build build --target learn-test-live
+```
 
 ## Running the text client
 

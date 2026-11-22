@@ -61,8 +61,9 @@ Date: 2026-11-11
   element-check card. This superseded the earlier idea of putting the
   parts-matching exercise on L.
 - The foundation data layer and the pure L/E/R/C/F card views are implemented,
-  with a text client (`python -m trainer`, CMake `learn-run`) and 167 passing
-  tests. E, R, C and F are answerable: E collects one gloss choice per element
+  with a text client (`python -m trainer`, CMake `learn-run`), 191 Python
+  tests (two live Worker tests skip unless configured) and 22 Worker tests.
+  E, R, C and F are answerable: E collects one gloss choice per element
   and grades them with the pure `cards/grading.py` layer; R grades a Latin-name
   choice; C and F grade a typed Latin name. An E row shows its theme and draws
   every option from that same theme, so the theme is a deliberate hint. R draws
@@ -114,12 +115,49 @@ Date: 2026-11-11
   implemented by a readline binding that submits a sentinel and is removed
   from history; without readline, a line containing only ESC is treated as
   up.
-- Progress is not persisted yet. Gate 2 adds the profile/session store so the
-  text and browser clients can resume the same saved queue.
+- Progress is not persisted yet. The next slice adds the profile/session
+  store so the text and browser clients can resume the same saved queue.
+
+## Progress storage and hosting (2026-11-22)
+
+- Progress lives in Cloudflare R2 behind a Cloudflare Worker that belongs to
+  this repository. The static client is published on GitHub Pages
+  (`https://regevran.github.io/birds/`); the portfolio links to it as an
+  external link.
+- Accounts are created manually: the owner adds an entry to a private
+  `users.json` in the R2 bucket. The client shows a username+password screen.
+  Password changes are not implemented yet. Standard OAuth providers are
+  considered only if the user base grows.
+- The Worker is the single source of truth for progress. The text client uses
+  the same Worker; there is no second local progress store outside tests and
+  development.
+- The hosted tool is online-only by design. Card inspection still works
+  offline, but any feature that touches progress requires the Worker.
+- R2 holds JSON documents: one profile document (settings, passed table,
+  global counter) and one document per session. There is no event log for now;
+  the earlier event-log idea is deferred and may be dropped.
+- The progress bucket is private. Progress is never served through a public
+  `r2.dev` base. The Worker authenticates a signed token and scopes every key
+  to the logged-in user.
+- The Worker exposes a file API, not a trainer API: `GET/PUT/DELETE /fs/<path>`
+  plus `/fs` prefix listing and `POST /login`. The R2 ETag is the revision;
+  writes accept `If-Match` and return `412` on a stale revision.
+- Passwords are owner-set, salted and hashed with PBKDF2-HMAC-SHA256 at 1,000
+  iterations. This is a speed bump, not a password vault; the private bucket
+  and unique passwords are the main controls. The count is stored per user so
+  it can be raised later. This fits easily in the free Worker's 10 ms CPU
+  budget.
+- A `tests`-scoped account maps its token to `tests/` in the bucket; a normal
+  account maps to `users/<name>/`. The client never supplies a username in a
+  path. Test fixtures therefore live in the same R2 store, not in a fake.
+- Worker tests use Node's built-in runner and a binding stub that implements
+  only the R2 methods the Worker calls. This is a binding stub, not a second
+  progress store; deployed-worker tests with real R2 come with the client.
 
 ## Deferred items
 
-- Trainer V card, the hint ladder, queue/scheduler, lifecycle/persistence
-  and web UI.
-- Trainer hosting and the browser UI; global search.
+- Trainer V card and the hint ladder.
+- The event log and server-side analytics; possibly dropped.
+- Standard OAuth login, if the user base grows.
+- Global search.
 

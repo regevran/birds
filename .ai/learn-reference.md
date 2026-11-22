@@ -2,8 +2,10 @@
 
 Status: foundation implemented (`Config`, dataset loader/validator/indexes,
 and dataset tests); L, E, R, C and F card views plus the text client
-implemented, and E, R, C and F are answerable with pure grading. The V card,
-persistence, scheduling, lifecycle, hints and the web UI are still design-only. This
+implemented, and E, R, C and F are answerable with pure grading. The
+Cloudflare progress Worker (file API, login, private R2) is implemented and
+tested but not deployed. The V card, the Python remote client, scheduling,
+lifecycle, hints and the web UI are still design-only. This
 file is the durable record of the design conversation; use it to continue next
 session. `learn-todo.md` holds follow-ups.
 
@@ -124,15 +126,28 @@ Notes:
 
 ## Persistence
 
-Chosen approach: **A — local server**.
+Chosen approach: **Cloudflare file store**, superseding the earlier local
+server and `learn/data/progress` plan. The current design is in
+`learn-cloudflare.md`.
 
-- A small local server (Python stdlib) serves the static UI and reads/writes progress files in the repository. Offline; `./start.sh` or `python3 app.py`; git-committable progress. The app itself is browser-based.
-- Profile data: `learn/data/progress/<profile>/profile.json` (name, settings, passed table, global counter) and `events.jsonl`.
-- Session data: `learn/data/progress/<profile>/sessions/<session-id>.json` (name, filter, seed, pool, active chains, queue, card counter).
-- Data version hash stored with the session; card content is regenerated from item IDs.
-- V cards are not persisted as part of a session queue; they are injected from the shared due pool and claimed by the active session. This prevents the same review appearing in two saved sessions.
-- Event log: timestamp, profile, session, card type, bird/item, stage, prompt, response, expected, result (`correct` / `near_miss` / `wrong` / `assisted` / `revealed` / `skipped`), hint level, options shown, latency, queue position, global counter. Snapshot analysis fields (family, genus, order, status, has-elements, themes) on the event, or rely on the data version.
-- No dashboards or progress views yet; collect raw events now.
+- A Cloudflare Worker in `learn/cloudflare/` exposes an authenticated R2 file
+  API; the static client is published on GitHub Pages and the CLI uses the same
+  Worker. The Worker is the single source of truth.
+- Logical files: `profile.json` (name, settings, passed table, global counter)
+  and `sessions/<session-id>.json` (name, filter, seed, pool, queue, card
+  counter). A normal account maps them under `users/<username>/`; a
+  test-scoped account maps them under `tests/`.
+- The R2 ETag is the revision; writes use `If-Match` and a stale write returns
+  `412`. One open session per profile.
+- Data version hash stored with the session; card content is regenerated from
+  item IDs.
+- V cards are not persisted as part of a session queue; they are injected from
+  the shared due pool and claimed by the active session. This prevents the same
+  review appearing in two saved sessions.
+- The tool is online-only. Card inspection can run offline; anything that
+  touches progress requires the Worker.
+- No event log for now; the earlier event-log idea is deferred and may be
+  dropped. No dashboards or progress views yet.
 
 ## UI
 
@@ -202,7 +217,7 @@ Chosen approach: **A — local server**.
 
 ## Decisions locked
 
-- Offline browser app with local server and file-based progress (option A).
+- Browser app published on GitHub Pages, with progress in private Cloudflare R2 behind a Worker file API. Online-only for progress; no local server and no local progress store.
 - Hebrew book-style UI; English names shown; English quizzing later.
 - No session timer; pure card-count scheduling; global counter across sessions.
 - L is display-only with only "next"; E is a reveal-and-continue element check; R is a Latin choice; C is typed with a scaffold; F is typed without one; V later.

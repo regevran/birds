@@ -1,0 +1,2 @@
+AUTH_SECRET="replace-with-a-long-random-value"
+ALLOWED_ORIGINS="http://localhost:8000"

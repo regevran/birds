@@ -20,7 +20,9 @@ birds/
     out/                  installed PDFs (ignored)
   learn/
     src/                  trainer code
-    data/                 user progress
+    cloudflare/           progress Worker and its Node tests
+    tools/                provisioning and maintenance scripts
+    data/                 local placeholders and development data
 ```
 
 - `data/in` is the source of truth. The default data build is offline;
@@ -29,8 +31,9 @@ birds/
   read only from `data/out`.
 - `build/` is disposable and holds all intermediate and final build artifacts.
 - `book/out` is the installed book output; intermediates are in `build/book/`.
-- `learn` has no `out`: it runs from `learn/src`; user data lives in
-  `learn/data/progress`.
+- `learn` has no `out`: it runs from `learn/src`. Progress lives in private
+  Cloudflare R2 behind the Worker in `learn/cloudflare/`; there is no local
+  progress store.
 - `.ai/` holds the durable AI/project context described in `.ai/README.md`.
 
 ## Data contract
@@ -82,8 +85,9 @@ short command without a custom target.
 - The trainer foundation is implemented: `Config`, domain errors, the dataset
   loader/validator with indexes.
 - The trainer card layer implements the pure L, E, R, C and F views, E/R/C/F
-  answer grading and a text renderer, plus a text client. All 167 tests pass
-  through `learn-test`.
+  answer grading and a text renderer, plus a text client and the Cloudflare
+  `CloudFiles` client. All 191 Python tests pass through `learn-test`; the two
+  live Worker tests skip unless `BIRDS_TEST_*` is set.
 - The text client supports `/<text>` search, `card L|E|R|C|F ...` and their
   `L`/`E`/`R`/`C`/`F` aliases, multi-word species names, `--seed`, `--reveal`,
   and readline history at `~/.birds_trainer_history`. E, R, C and F are
@@ -102,5 +106,9 @@ short command without a custom target.
 - A search opens a nested, read-only `search>` mode; `exit`, `quit`, Ctrl-D
   and Esc (Esc then Enter) go one prompt up, and from `card>` leave the
   client.
-- The V card, hints, persistence, scheduling, lifecycle and web UI are still
-  design-only.
+- The Cloudflare Worker in `learn/cloudflare/` implements an authenticated,
+  private R2 file store and login. Its 22 Node tests run through
+  `learn-worker-test`. It is deployed at
+  `https://birds-progress.regevran.workers.dev`; the Python remote client, CLI
+  login, the scheduler and the browser client are still to come.
+- The V card, hints, scheduling, lifecycle and web UI are still design-only.

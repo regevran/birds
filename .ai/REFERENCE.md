@@ -33,8 +33,9 @@ birds/
   for data, book and learn.
 - `book/out` is the installed book output; intermediate build files are in
   `build/book`.
-- `learn` has no `out`: it runs from `learn/src`; user data lives in
-  `learn/data/progress`.
+- `learn` has no `out`: it runs from `learn/src`. User progress lives in
+  private Cloudflare R2 through the Worker in `learn/cloudflare/`; there is no
+  local progress store.
 
 ## Build
 
@@ -86,8 +87,14 @@ build writes to `build/book` and installs its print PDFs to `book/out`. The
 
 The trainer foundation is implemented: `Config`, domain errors, the dataset
 loader/validator with indexes. The card layer has pure L, E, R, C and F views,
-E/R/C/F answer grading and an interactive text client, with 167 passing tests.
-The text client supports answerable E, R, C and F cards, multi-match card runs,
-nested search mode and one-prompt-up navigation. The V card, hints,
-persistence, scheduling, lifecycle and the web UI are still design-only; see
-`.ai/learn-reference.md` and `.ai/learn-implementation.md`.
+E/R/C/F answer grading and an interactive text client, with 191 passing Python
+tests (two live Worker tests skip unless configured). The text client supports
+answerable E, R, C and F cards, multi-match card runs, nested search mode and
+one-prompt-up navigation. The Cloudflare Worker in `learn/cloudflare/`
+implements an authenticated, private R2 file store and login, with 22 passing
+Node tests, and is deployed at
+`https://birds-progress.regevran.workers.dev`. The Python `CloudFiles` client
+and CLI `login`/`logout`/`whoami` are implemented. The V card, hints,
+scheduling, lifecycle and the web UI are still design-only; see
+`.ai/learn-reference.md`, `.ai/learn-implementation.md` and
+`.ai/learn-cloudflare.md`.

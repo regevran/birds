@@ -65,9 +65,9 @@ the supported build, including the combined one-file PDF.
 - The old A4 PDFs are in `book/out/legacy/`; the A5 outputs in `book/out/`.
 - `book/.PRINT.md.swp` is an ignored editor swap file; remove it when
   convenient.
-- `learn/` is now `learn/src` + `learn/data/progress`; there is no
-  `learn/build` or `learn/out`. `.ai/learn-implementation.md` was updated to
-  the new paths.
+- `learn/` is now `learn/src` plus `learn/cloudflare` and `learn/tools`; there
+  is no `learn/build`, `learn/out` or local progress directory. Progress lives
+  in Cloudflare R2 via the Worker; see `.ai/learn-cloudflare.md`.
 
 The build commands below use the moved paths. `book-build` writes to
 `build/book/`; `book-install` copies the print PDFs to `book/out/`.

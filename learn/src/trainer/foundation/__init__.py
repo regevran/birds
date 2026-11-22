@@ -1,4 +1,4 @@
-"""Foundation: configuration, errors, models, dataset and normalization."""
+"""Foundation: configuration, errors, dataset, normalization and passwords."""
 
 from .config import Config
 

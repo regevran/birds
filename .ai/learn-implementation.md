@@ -6,6 +6,13 @@ hints, scheduling, lifecycle and web UI are still proposals. This file is the
 implementation-level companion to `learn-reference.md`; where the two differ,
 this file is the proposal and the difference is listed under **Open decisions**.
 
+> Storage has moved: progress is a private Cloudflare R2 file store behind the
+> Worker in `learn/cloudflare/`, documented in `learn-cloudflare.md`. The
+> local file paths, local HTTP server, atomic-write and locking sections below
+> are the earlier plan and are superseded where they conflict. The profile and
+> session document shapes remain useful; their paths are now logical paths
+> (`profile.json`, `sessions/<id>.json`) under a user or test scope.
+
 ## 1. Technology
 
 ### Backend
@@ -84,14 +91,14 @@ birds/
       trainer/                  Python package (stdlib only)
         __init__.py             version
         __main__.py             `python3 -m trainer`
-        api.py                  HTTP routing and JSON serialization
-        static.py               safe static file serving
+        cli.py                  text client
         foundation/
           __init__.py
           config.py             paths, CLI defaults, app context
           errors.py             domain errors -> HTTP errors
           dataset.py            entities + load/validate/indexes/data version
           normalize.py          Hebrew/Latin normalization
+          passwords.py          PBKDF2 entries for provisioned accounts
         cards/
           __init__.py
           rules.py              all tunable card/scheduling constants
@@ -109,10 +116,10 @@ birds/
           events.py             event construction and append
           profiles.py           profile lifecycle
           sessions.py           session lifecycle
-      web/
+      web/                      browser client (not written yet)
         index.html
         app.js                  bootstrap and hash router
-        api.js                  fetch wrappers and error handling
+        api.js                  fetch wrappers for the Worker file API
         state.js                client view state
         strings.js              Hebrew UI labels
         screens/main.js
@@ -131,40 +138,41 @@ birds/
         styles/cards.css
       tests/
         __init__.py
-        fixtures/               small synthetic data for edge cases
         test_dataset.py
         test_normalize.py
         test_grading.py
         test_cards.py
-        test_queue.py
-        test_scheduler.py
-        test_store.py
-        test_api.py
-        test_integration.py
+        test_cli.py
+        test_passwords.py
+        test_queue.py            (future)
+        test_scheduler.py        (future)
+        test_integration.py      (future, against a deployed Worker)
+    cloudflare/                 progress Worker
+      src/core.js               paths, tokens, PBKDF2, CORS
+      src/index.js              HTTP routing and R2 access
+      tests/                    Node test runner
+      wrangler.toml
+    tools/
+      provision_user.py         add an account to users.json
     data/
-      README.md                 what the files are
-      progress/                 user saved data, git-committable
-        <profile-id>/
-          profile.json
-          events.jsonl
-          sessions/
-            <session-id>.json
+      README.md                 local data placeholder; progress is in R2
 ```
 
 Rules:
 
 - `data/` and `book/` are never written by the trainer except for explicit
   user actions; the trainer reads `data/out/`.
-- `learn/data/progress/` is user data, not code. The app writes only there.
-- `learn/data/progress/**/*.tmp`, `learn/data/progress/**/.lock`,
-  `build/`, `book/out/` and `__pycache__/` are ignored. The progress files
-  themselves and `data/out/` are **not** ignored; the user commits them.
+- Progress is private Cloudflare R2 data written through
+  `learn/cloudflare/`; there is no local progress directory.
+- `build/`, `book/out/`, `__pycache__/`, `learn/cloudflare/.wrangler/` and
+  `learn/cloudflare/users.json` are ignored. `data/out/` is committed.
 - There is no `learn/build` and no `learn/out`: all build artifacts go to the
   top-level disposable `build/`, and the trainer runs from `learn/src`.
 - The package is named `trainer` and lives under `learn/src/`; `learn/` is
   the trainer project, parallel to `book/`. The package is split into
-  `foundation`, `cards`, `scheduling` and `lifecycle`; `api.py`, `static.py`
-  and `__main__.py` sit at the package root.
+  `foundation`, `cards`, `scheduling` and `lifecycle`; `cli.py` and
+  `__main__.py` sit at the package root. The Worker is in
+  `learn/cloudflare/`.
 
 ## 3. Code shape
 
@@ -242,7 +250,7 @@ session and event. A mismatch triggers a warning, never a silent rewrite.
   (current card, lookahead, session summaries). Tests assert this. The event
   log may include it, plus Latin, for analysis.
 
-### 4.3 Profile file: `learn/data/progress/<profile-id>/profile.json`
+### 4.3 Profile document: logical `profile.json`
 
 ```json
 {
@@ -281,7 +289,7 @@ session and event. A mismatch triggers a warning, never a silent rewrite.
 - `global_counter` is profile-global and advances on every consumed card in any
   session, including L, E, skips and reviews.
 
-### 4.4 Session file: `learn/data/progress/<profile-id>/sessions/<session-id>.json`
+### 4.4 Session document: logical `sessions/<session-id>.json`
 
 ```json
 {
@@ -348,9 +356,11 @@ session and event. A mismatch triggers a warning, never a silent rewrite.
   due V reviews.
 - `initial_pool_size` is for progress display only (`passed / initial`).
 
-### 4.5 Event log: `learn/data/progress/<profile-id>/events.jsonl`
+### 4.5 Event log (deferred)
 
-Append-only, one JSON object per line, UTF-8. Every line is self-contained.
+Not implemented. The earlier append-only design is kept below for reference;
+R2 cannot append in place, so this would need a separate design (one object per
+event, batched objects or D1).
 
 ```json
 {
@@ -753,6 +763,13 @@ Checked in tests after every transition:
 
 ## 8. HTTP API
 
+> **Superseded for progress.** The current Worker is a file API
+> (`/login`, `/fs/<path>`, `/fs` listing) documented in
+> `learn-cloudflare.md`. The profile/session endpoints below were the earlier
+> local-server plan. The browser client now runs against the static Pages
+> bundle and the Worker file API; a future app-level API can be added on top if
+> the scheduler moves server-side.
+
 All API responses are JSON. Static files are served from `learn/src/web/` only.
 
 | Method | Path | Purpose |
@@ -860,6 +877,12 @@ Security and robustness:
 
 ## 10. Persistence, versions and operations
 
+> **Superseded for storage.** R2 object writes are atomic per object; there is
+> no rename, append or file lock. The Worker uses the R2 ETag as the revision
+> and `If-Match` for optimistic concurrency; one open session per profile is
+> the rule. The local fsync/lock/event-append details below describe the
+> earlier local-file plan and do not apply to the current store.
+
 - **Atomic writes:** write `.<name>.tmp` in the same directory, flush, fsync,
   `os.replace`. JSON is UTF-8, `ensure_ascii=False`, indent 2 for state files;
   events are compact one-line JSON.
@@ -951,24 +974,22 @@ the UI gate. Optional later: Playwright or a headless browser.
 
 ## 12. Deployment and workflow
 
-- Run: `cmake --build build --target learn-run`, or
-  `cd learn/src && python3 -m trainer serve --open`.
-- Default port 8765; `--port`, `--host`, `--data-dir`, `--progress-dir`,
-  `--log-level`, `--no-open`, `--dev-fast-review`.
-- The `learn-run` CMake target sets `PYTHONPATH=learn/src`, passes the data
-  and progress paths, prints the URL, and opens the browser.
+- Text client: `cmake --build build --target learn-run`, or
+  `cd learn/src && python3 -m trainer`. No local server, port or browser
+  launcher.
+- The browser client is a static bundle on GitHub Pages; the Worker in
+  `learn/cloudflare/` is the only progress backend.
 - No install step, no package build, no pip, no venv. The book's venv is
   independent and not required.
-- The server writes only under `learn/data/progress/`; it never modifies
-  `data/` or `book/`.
-- Git workflow: the user commits `learn/data/progress/` when desired. The app
-  never commits or pushes. Cross-device continuation is: close the app, commit,
-  push, pull on the other machine. Do not run two machines at once.
-- `.gitignore` additions: `/build/`, `/book/out/`,
-  `learn/data/progress/**/*.tmp`, `learn/data/progress/**/.lock`, and
-  `__pycache__/`. `data/out/` is committed.
-- `learn/README.md` documents run, test, backup, restore, ports, and the
-  progress file layout.
+- Clients never modify `data/` or `book/`.
+- Git workflow: progress is not in git. Cross-device continuation uses the
+  same account and Worker; the R2 ETag/revision prevents silent overwrites.
+  Do not run two clients against one profile at the same time.
+- `.gitignore` includes `/build/`, `/book/out/`, `__pycache__/`,
+  `learn/cloudflare/.wrangler/`, `learn/cloudflare/.dev.vars` and
+  `learn/cloudflare/users.json`. `data/out/` is committed.
+- `learn/README.md` documents run, test, the Worker commands and the R2
+  layout.
 
 ### Implementation slices (review gates)
 
@@ -997,10 +1018,11 @@ No slice starts before the previous one is reviewed. No commits unless asked.
 ### 13.1 Tree and package name (settled)
 
 The trainer lives under `learn/`, parallel to `book/` and `data/`:
-`learn/src/trainer`, `learn/src/web`, `learn/src/tests`, and user data in
-`learn/data/progress`. There is no `learn/build` or `learn/out`; all build
-artifacts go to the top-level disposable `build/`, and the trainer runs from
-`learn/src`. There is no separate `trainer/` directory.
+`learn/src/trainer`, `learn/src/web`, `learn/src/tests`, `learn/cloudflare`
+and `learn/tools`. User progress is in Cloudflare R2, not in the tree. There
+is no `learn/build` or `learn/out`; all build artifacts go to the top-level
+disposable `build/`, and the trainer runs from `learn/src`. There is no
+separate `trainer/` directory.
 
 ### 13.2 Internal bird ID
 
@@ -1082,9 +1104,9 @@ Not v1, but the core must make it additive:
 - V1–V4 due cards appear in any session, in-scope or marked out-of-scope;
   skip works; failure retries and hands back correctly.
 - Failures move cards, retry once, and fall back one card.
-- Closing and restarting the server resumes the same queue; reload drops passed
-  birds.
-- Progress files and `events.jsonl` are written and git-committable.
+- Closing and reopening the client resumes the same queue from R2; reload drops
+  passed birds.
+- The text client and browser read and write the same profile/session files.
 - No writes to `data/` or `book/`.
 - Tests pass, including randomized invariants and no-answer-leakage checks.
-- The user can use it offline for a real session without the developer.
+- The hosted tool works for a real session with no local clone or build.
