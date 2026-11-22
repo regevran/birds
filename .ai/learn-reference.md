@@ -1,9 +1,9 @@
 # Learning tool — design reference
 
 Status: foundation implemented (`Config`, dataset loader/validator/indexes,
-and dataset tests); L, E, R and C card views plus the text client implemented,
-and E, R and C are answerable with pure grading. The F and V cards,
-persistence, scheduling, lifecycle and the web UI are still design-only. This
+and dataset tests); L, E, R, C and F card views plus the text client
+implemented, and E, R, C and F are answerable with pure grading. The V card,
+persistence, scheduling, lifecycle, hints and the web UI are still design-only. This
 file is the durable record of the design conversation; use it to continue next
 session. `learn-todo.md` holds follow-ups.
 
@@ -164,10 +164,12 @@ Chosen approach: **A — local server**.
   even when split. The user types the full Latin; normalization is NFC,
   whitespace collapse and casefold. A near miss shows the exact spelling and
   moves on; a wrong answer gets one retry, then reveals.
+- `card F`: shows only the Hebrew name, with no scaffold; the user types the
+  full Latin. Grading and feedback are the same as C. Hints are not wired yet.
 - A card command also accepts a search query. One match is a single card;
   several matches form a one-pass run in search order. Enter advances;
-  exit/quit/Ctrl-D/Esc stops the run. E/R/C runs skip ineligible birds and
-  report the count. This is a learner-driven study tool ("search with
+  exit/quit/Ctrl-D/Esc stops the run. E, R, C and F runs skip ineligible birds
+  and report the count. This is a learner-driven study tool ("search with
   benefits"), not saved progress or the scheduler. One-shot display and
   `--reveal` batch-print all matching cards; `--answer` needs a single match.
 - A search command opens a read-only `search>` mode. Every line there is a
@@ -203,7 +205,7 @@ Chosen approach: **A — local server**.
 - Offline browser app with local server and file-based progress (option A).
 - Hebrew book-style UI; English names shown; English quizzing later.
 - No session timer; pure card-count scheduling; global counter across sessions.
-- L is display-only with only "next"; E is a reveal-and-continue element check; R is a Latin choice; C is typed with a scaffold; F later.
+- L is display-only with only "next"; E is a reveal-and-continue element check; R is a Latin choice; C is typed with a scaffold; F is typed without one; V later.
 - Pass F = unaided correct; passed birds are profile-global and excluded from new/reloaded sessions.
 - Session learning is independent; passed birds and V reviews are shared.
 - Active-chain cap 7; random bird draw from the filtered, shuffled pool; no family blocks.

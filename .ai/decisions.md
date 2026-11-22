@@ -60,15 +60,15 @@ Date: 2026-11-11
   `L → R → C → F`. `V` appears when due. L is display-only; E is a separate
   element-check card. This superseded the earlier idea of putting the
   parts-matching exercise on L.
-- The foundation data layer and the pure L/E/R/C card views are implemented,
-  with a text client (`python -m trainer`, CMake `learn-run`) and 136 passing
-  tests. E, R and C are answerable: E collects one gloss choice per element
+- The foundation data layer and the pure L/E/R/C/F card views are implemented,
+  with a text client (`python -m trainer`, CMake `learn-run`) and 167 passing
+  tests. E, R, C and F are answerable: E collects one gloss choice per element
   and grades them with the pure `cards/grading.py` layer; R grades a Latin-name
-  choice; C grades a typed Latin name. An E row shows its theme and draws every
-  option from that same theme, so the theme is a deliberate hint. R draws
+  choice; C and F grade a typed Latin name. An E row shows its theme and draws
+  every option from that same theme, so the theme is a deliberate hint. R draws
   distractors by taxonomic proximity (genus, family, order, any) and accepts
-  every species that shares the prompt's Hebrew name. F/V, scheduling,
-  lifecycle and the web UI are still design-only.
+  every species that shares the prompt's Hebrew name. V, the hint ladder,
+  scheduling, lifecycle and the web UI are still design-only.
 - R is a recognition test: Hebrew prompt, Latin options, no English or family.
   A wrong choice gets one retry without revealing the answer; a second wrong
   reveals the correct Latin. Showing the failure is also the intended
@@ -79,12 +79,16 @@ Date: 2026-11-11
   Latin is normalized with NFC, whitespace collapse and casefold. A near miss
   (distance at most 2, matching first letters) shows the exact spelling and
   moves on. A wrong answer gets one retry; the second wrong reveals the answer.
+- F is C without the scaffold: Hebrew prompt, typed Latin, the same `grade_latin`
+  grading and feedback. Hints are deferred; the request will be an input at the
+  `Latin:` prompt (for example `Latin:?`) when the shared hint ladder is built.
 - A card command may take a search query as well as one species. One match is
   the single card; several matches form an ephemeral run in search order, with
   Enter between cards and exit/quit/Ctrl-D/Esc stopping the run. This is a
   learner-driven "search with benefits" tool, not saved progress or the
   planned scheduling/skills system: one pass, no repetition, no logging.
-  E/R/C runs skip ineligible birds and report the count. `--answer` requires a
+  R/C/F runs skip birds without Hebrew, E runs skip birds without split
+  elements, and the count is reported. `--answer` requires a
   single match; one-shot display and `--reveal` batch-print all cards.
 - The card layer is pure and session-independent. `CardDescriptor` identifies
   the species and card type only; the option seed is supplied by the caller of
@@ -115,7 +119,7 @@ Date: 2026-11-11
 
 ## Deferred items
 
-- Trainer F/V cards, the hint ladder, queue/scheduler, lifecycle/persistence
+- Trainer V card, the hint ladder, queue/scheduler, lifecycle/persistence
   and web UI.
 - Trainer hosting and the browser UI; global search.
 

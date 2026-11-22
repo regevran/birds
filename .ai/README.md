@@ -14,10 +14,13 @@ Files:
 - `learn-reference.md` — trainer design and card chain.
 - `learn-implementation.md` — trainer implementation spec and open decisions.
 - `learn-todo.md` — trainer follow-ups.
+- `REFERENCE.md` — repository orientation: layout, build commands and status.
 - `whole-words.md` — open audit of whole-word meanings such as `olivetorum`.
 
-The public per-project READMEs remain in place: the root `README.md`,
-`book/README.md`, `book/PRINT.md`, `data/README.md` and `learn/README.md`.
+The public per-project READMEs remain in place: `book/README.md`,
+`book/PRINT.md`, `data/README.md` and `learn/README.md`. The root-level
+orientation notes live in `REFERENCE.md`; a human-facing root README is still
+to be written.
 
 When a decision changes, update `decisions.md`; when the repository structure
 changes, update `repository.md`. Keep this directory as the source of context

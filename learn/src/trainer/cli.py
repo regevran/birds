@@ -26,13 +26,14 @@ from .cards.models import (
     ConstructCardView,
     ElementsCardView,
     LearnCardView,
+    ProduceCardView,
     RecognizeCardView,
 )
 from .cards.text import (
     render_card,
-    render_construct_result,
     render_element_results,
     render_element_row,
+    render_latin_result,
     render_recognize_result,
 )
 from .cards.views import card_view
@@ -58,6 +59,9 @@ Commands:
   card C|C|c <species|search>                   practise a Construct card
   card C|C|c <species|search> --answer "..."    grade a Construct card in one shot
   card C|C|c <species|search> --reveal          show a Construct card with the answer
+  card F|F|f <species|search>                   practise a Produce card
+  card F|F|f <species|search> --answer "..."    grade a Produce card in one shot
+  card F|F|f <species|search> --reveal          show a Produce card with the answer
   help, ?                                       show this message
   quit, exit                                    leave the client
 
@@ -80,12 +84,17 @@ the full Latin name; case and spacing are ignored. A near miss shows the
 exact spelling and moves on. A wrong answer gets one retry; the second wrong
 reveals the answer.
 
+A Produce card shows only the Hebrew name, with no scaffold. Type the full
+Latin name; case and spacing are ignored. A near miss shows the exact
+spelling and moves on. A wrong answer gets one retry; the second wrong
+reveals the answer.
+
 <species|search> is the same query as /<text>. One match shows one card;
 several matches run through all of them in search order. Press Enter between
-cards; exit/quit/Ctrl-D/Esc stops the run. R runs skip birds without Hebrew;
-E runs skip birds without split elements. A run is an ephemeral study tool,
-not saved progress. --answer needs a single match; plain display or --reveal
-prints every matching card.
+cards; exit/quit/Ctrl-D/Esc stops the run. R, C and F runs skip birds without
+Hebrew; E runs skip birds without split elements. A run is an ephemeral
+study tool, not saved progress. --answer needs a single match; plain display
+or --reveal prints every matching card.
 
 Species may be a species_id (acrocephalus-agricola), a Latin name
 (Acrocephalus agricola), an English name or a unique fragment. Hebrew is
@@ -122,6 +131,15 @@ Recognize card:
 
 _C_HELP = """\
 Construct card:
+  type the full Latin name; case and spacing are ignored
+  /text       search birds; list/find/birds/search <text> also work
+  ?           show this message
+  exit, quit, Ctrl-D, Esc (press Esc, then Enter)
+              abandon this card and return to card>
+"""
+
+_F_HELP = """\
+Produce card:
   type the full Latin name; case and spacing are ignored
   /text       search birds; list/find/birds/search <text> also work
   ?           show this message
@@ -324,8 +342,8 @@ def _card_command(
 ) -> None:
     if len(args) < 2:
         print(
-            'usage: card L|E|R <species|search> [--seed N] '
-            '[--reveal|--answer "1 2"] (or L|E|R ...)'
+            'usage: card L|E|R|C|F <species|search> [--seed N] '
+            '[--reveal|--answer "..."] (or L|E|R|C|F ...)'
         )
         return
 
@@ -380,8 +398,8 @@ def _card_command(
         query = query[1:].strip()
     if not query:
         print(
-            'usage: card L|E|R <species|search> [--seed N] '
-            '[--reveal|--answer "1 2"] (or L|E|R ...)'
+            'usage: card L|E|R|C|F <species|search> [--seed N] '
+            '[--reveal|--answer "..."] (or L|E|R|C|F ...)'
         )
         return
 
@@ -390,6 +408,7 @@ def _card_command(
         CardType.E,
         CardType.R,
         CardType.C,
+        CardType.F,
     ):
         print(f"card type {card_type.value} is not implemented yet")
         return
@@ -482,18 +501,23 @@ def _single_card(
         if interactive and not reveal:
             _answer_recognize(catalog, view, reverse_hebrew)
             return
-    elif isinstance(view, ConstructCardView):
+    elif isinstance(view, (ConstructCardView, ProduceCardView)):
         if answer_text is not None:
-            _grade_construct_text(
-                bird, view, answer_text, reverse_hebrew
-            )
+            _grade_typed_text(bird, view, answer_text, reverse_hebrew)
             return
         if interactive and not reveal:
-            _answer_construct(catalog, bird, view, reverse_hebrew)
+            help_text = (
+                _C_HELP
+                if isinstance(view, ConstructCardView)
+                else _F_HELP
+            )
+            _answer_typed(
+                catalog, bird, view, reverse_hebrew, help_text
+            )
             return
 
     if answer_text is not None:
-        print("--answer is only for E, R and C cards")
+        print("--answer is only for E, R, C and F cards")
         return
 
     element_answers: dict[str, str] = {}
@@ -518,6 +542,8 @@ def _single_card(
             recognize_answers=recognize_answers,
             reveal_construct=reveal,
             construct_answer=bird.latin,
+            reveal_produce=reveal,
+            produce_answer=bird.latin,
         )
     )
 
@@ -620,18 +646,19 @@ def _run_cards(
                 stopped = True
                 break
             _count_recognize(stats, outcome)
-        elif isinstance(view, ConstructCardView):
-            outcome = _answer_construct(
+        elif isinstance(view, (ConstructCardView, ProduceCardView)):
+            outcome = _answer_typed(
                 catalog,
                 bird,
                 view,
                 reverse_hebrew,
+                _C_HELP if isinstance(view, ConstructCardView) else _F_HELP,
                 position=position,
             )
             if outcome is None:
                 stopped = True
                 break
-            _count_construct(stats, outcome)
+            _count_latin(stats, outcome)
         else:
             raise TypeError(f"cannot present {type(view).__name__}")
 
@@ -660,7 +687,7 @@ def _count_recognize(stats: _RunStats, outcome: str) -> None:
         stats.revealed += 1
 
 
-def _count_construct(stats: _RunStats, outcome: str) -> None:
+def _count_latin(stats: _RunStats, outcome: str) -> None:
     if outcome == "first":
         stats.first_try += 1
     elif outcome == "near_miss":
@@ -682,7 +709,7 @@ def _eligible_birds(
         eligible = [bird for bird in matches if bird.has_parts]
         skipped = [bird for bird in matches if not bird.has_parts]
         return eligible, skipped, "no split elements"
-    if card_type is CardType.C:
+    if card_type in (CardType.C, CardType.F):
         eligible = [bird for bird in matches if bird.has_hebrew]
         skipped = [bird for bird in matches if not bird.has_hebrew]
         return eligible, skipped, "no Hebrew"
@@ -711,7 +738,7 @@ def _print_revealed_card(
     view: CardView,
     reverse_hebrew: bool,
     position: tuple[int, int],
-    construct_answer: str = "",
+    latin_answer: str = "",
 ) -> None:
     element_answers: dict[str, str] = {}
     if isinstance(view, ElementsCardView):
@@ -733,7 +760,9 @@ def _print_revealed_card(
             reveal_recognize=True,
             recognize_answers=recognize_answers,
             reveal_construct=True,
-            construct_answer=construct_answer,
+            construct_answer=latin_answer,
+            reveal_produce=True,
+            produce_answer=latin_answer,
             position=position,
         )
     )
@@ -773,9 +802,9 @@ def _print_run_summary(
             f"first try {stats.first_try}, retry {stats.retry}, "
             f"revealed {stats.revealed}."
         )
-    elif card_type is CardType.C:
+    elif card_type in (CardType.C, CardType.F):
         print(
-            f"C run complete: {stats.total} cards, "
+            f"{card_type.value} run complete: {stats.total} cards, "
             f"first try {stats.first_try}, near miss {stats.near_miss}, "
             f"retry {stats.retry}, revealed {stats.revealed}."
         )
@@ -981,23 +1010,24 @@ def _answer_interactively(
     return results
 
 
-def _grade_construct_text(
+def _grade_typed_text(
     bird: Bird,
-    view: ConstructCardView,
+    view: ConstructCardView | ProduceCardView,
     answer_text: str,
     reverse_hebrew: bool,
 ) -> None:
     print(render_card(view, reverse_hebrew=reverse_hebrew))
     result = grade_latin(bird.latin, answer_text)
     print()
-    print(render_construct_result(result))
+    print(render_latin_result(result))
 
 
-def _answer_construct(
+def _answer_typed(
     catalog: Catalog,
     bird: Bird,
-    view: ConstructCardView,
+    view: ConstructCardView | ProduceCardView,
     reverse_hebrew: bool,
+    help_text: str,
     *,
     position: tuple[int, int] | None = None,
 ) -> str | None:
@@ -1017,7 +1047,7 @@ def _answer_construct(
             return None
         text = raw.strip()
         if text == "?":
-            print(_C_HELP)
+            print(help_text)
             print(
                 render_card(
                     view,
@@ -1045,16 +1075,16 @@ def _answer_construct(
             continue
         result = grade_latin(bird.latin, text)
         if result.outcome == "correct":
-            print(render_construct_result(result))
+            print(render_latin_result(result))
             return "first" if wrong_attempts == 0 else "retry"
         if result.outcome == "near_miss":
-            print(render_construct_result(result))
+            print(render_latin_result(result))
             return "near_miss"
         wrong_attempts += 1
         if wrong_attempts == 1:
             print(f"  wrong: chose {result.response!r}; try again.")
             continue
-        print(render_construct_result(result))
+        print(render_latin_result(result))
         return "revealed"
 
 

@@ -17,6 +17,7 @@ from .models import (
     ElementsCardView,
     LearnCardView,
     LearnPart,
+    ProduceCardView,
     RecognizeCardView,
     RecognizeOption,
     WholeNameNote,
@@ -41,6 +42,8 @@ def card_view(
         return _recognize_view(bird, catalog, seed)
     if descriptor.card_type is CardType.C:
         return _construct_view(bird, catalog)
+    if descriptor.card_type is CardType.F:
+        return _produce_view(bird)
     raise InvalidRequest(
         f"card type {descriptor.card_type.value} is not implemented yet"
     )
@@ -160,6 +163,16 @@ def _construct_view(bird: Bird, catalog: Catalog) -> ConstructCardView:
         epithet_parts=_construct_parts(
             bird.epithet, bird.epithet_parts, catalog
         ),
+    )
+
+
+def _produce_view(bird: Bird) -> ProduceCardView:
+    if not bird.hebrew:
+        raise InvalidRequest(f"{bird.latin} has no Hebrew name")
+    return ProduceCardView(
+        card_type=CardType.F,
+        species_id=bird.species_id,
+        hebrew=bird.hebrew,
     )
 
 

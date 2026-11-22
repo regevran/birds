@@ -11,10 +11,11 @@ from trainer.cards.models import (
     ConstructPart,
     ElementsCardView,
     LearnCardView,
+    ProduceCardView,
     RecognizeCardView,
 )
 from trainer.cards.grading import grade_latin
-from trainer.cards.text import render_card, render_construct_result
+from trainer.cards.text import render_card, render_latin_result
 from trainer.cards.views import card_view
 from trainer.foundation.config import Config
 from trainer.foundation.dataset import load_catalog
@@ -89,7 +90,7 @@ class CardViewTests(unittest.TestCase):
 
     def test_unsupported_card_type(self) -> None:
         with self.assertRaises(InvalidRequest):
-            self._view("acrocephalus-agricola", CardType.F)
+            self._view("acrocephalus-agricola", CardType.V)
 
     def test_text_render_learn(self) -> None:
         view = self._view("acrocephalus-agricola", CardType.L)
@@ -284,9 +285,65 @@ class ConstructViewTests(unittest.TestCase):
         self.assertTrue(text.startswith("[C 2/5]"))
 
 
+class ProduceViewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        config = Config.default()
+        cls.catalog = load_catalog(
+            config.species_path, config.etymology_path
+        )
+
+    def _view(self, species_id: str):
+        return card_view(
+            self.catalog,
+            CardDescriptor(
+                species_id=species_id,
+                card_type=CardType.F,
+            ),
+            seed=0,
+        )
+
+    def test_produce_view(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        self.assertIsInstance(view, ProduceCardView)
+        self.assertEqual(view.hebrew, "קנית אורז")
+        self.assertEqual(view.species_id, "acrocephalus-agricola")
+
+    def test_no_hebrew_is_rejected(self) -> None:
+        with self.assertRaises(InvalidRequest):
+            self._view("butorides-striata")
+
+    def test_render_hides_latin(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        text = render_card(view, reverse_hebrew=False)
+        self.assertTrue(
+            text.startswith("[F] Type the Latin name for the Hebrew name.")
+        )
+        self.assertIn("Hebrew:   קנית אורז", text)
+        self.assertNotIn("Acrocephalus", text)
+        self.assertNotIn("agricola", text)
+
+    def test_render_reveal(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        text = render_card(
+            view,
+            reverse_hebrew=False,
+            reveal_produce=True,
+            produce_answer="Acrocephalus agricola",
+        )
+        self.assertIn("correct: 'Acrocephalus agricola'", text)
+
+    def test_render_position(self) -> None:
+        view = self._view("acrocephalus-agricola")
+        text = render_card(
+            view, reverse_hebrew=False, position=(2, 5)
+        )
+        self.assertTrue(text.startswith("[F 2/5]"))
+
+
 class ConstructFeedbackTests(unittest.TestCase):
     def _render(self, response: str) -> str:
-        return render_construct_result(
+        return render_latin_result(
             grade_latin("Microcarbo pygmeus", response)
         )
 

@@ -1,7 +1,7 @@
 """Card identities and pure client-facing views.
 
-L, E, R and C views are implemented so far.  The remaining card types are
-listed now so the identity type does not change when they are added.
+L, E, R, C and F views are implemented so far.  V is listed so the identity
+type does not change when it is added.
 """
 
 from __future__ import annotations
@@ -136,9 +136,19 @@ class ConstructCardView:
     epithet_parts: tuple[ConstructPart, ...]  # e.g. (ConstructPart("שדה", "a", 4), ...)
 
 
+@dataclass(frozen=True)
+class ProduceCardView:
+    """A complete F-card display: a Hebrew prompt and no scaffold."""
+
+    card_type: CardType  # e.g. CardType.F
+    species_id: str  # e.g. "acrocephalus-agricola"
+    hebrew: str  # e.g. "קנית אורז"
+
+
 CardView = (
     LearnCardView
     | ElementsCardView
     | RecognizeCardView
     | ConstructCardView
-)  # e.g. LearnCardView(...), ElementsCardView(...), RecognizeCardView(...) or ConstructCardView(...)
+    | ProduceCardView
+)  # e.g. LearnCardView(...), ElementsCardView(...), RecognizeCardView(...), ConstructCardView(...) or ProduceCardView(...)

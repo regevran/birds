@@ -9,6 +9,7 @@ from .models import (
     ConstructPart,
     ElementsCardView,
     LearnCardView,
+    ProduceCardView,
     RecognizeCardView,
 )
 
@@ -23,6 +24,8 @@ def render_card(
     recognize_answers: tuple[str, ...] = (),
     reveal_construct: bool = False,
     construct_answer: str = "",
+    reveal_produce: bool = False,
+    produce_answer: str = "",
     position: tuple[int, int] | None = None,
 ) -> str:
     label = _card_label(view, position)
@@ -46,6 +49,14 @@ def render_card(
             reverse_hebrew,
             reveal_construct,
             construct_answer,
+            label,
+        )
+    if isinstance(view, ProduceCardView):
+        return _render_produce(
+            view,
+            reverse_hebrew,
+            reveal_produce,
+            produce_answer,
             label,
         )
     raise TypeError(f"cannot render {type(view).__name__}")
@@ -212,6 +223,22 @@ def _render_construct(
     return "\n".join(lines)
 
 
+def _render_produce(
+    view: ProduceCardView,
+    reverse: bool,
+    reveal: bool,
+    answer: str,
+    label: str,
+) -> str:
+    lines = [
+        f"{label} Type the Latin name for the Hebrew name.",
+        f"  Hebrew:   {_he(view.hebrew, reverse)}",
+    ]
+    if reveal and answer:
+        lines.append(f"  correct: {answer!r}")
+    return "\n".join(lines)
+
+
 def _render_scaffold(view: ConstructCardView, reverse: bool) -> str:
     words = " ".join(
         (
@@ -239,8 +266,8 @@ def _scaffold_legend_part(part: ConstructPart, reverse: bool) -> str:
     return str(part.length)
 
 
-def render_construct_result(result: LatinResult) -> str:
-    """Render feedback for a typed Latin answer."""
+def render_latin_result(result: LatinResult) -> str:
+    """Render feedback for a typed Latin answer on C or F."""
     if result.outcome == "correct":
         return f"  correct: {result.expected!r}"
 

@@ -1,5 +1,6 @@
-- F is the next card: Hebrew prompt, type the Latin unaided; the hint ladder
-  remains to be designed/implemented.
+- F is implemented: Hebrew prompt, type the Latin unaided. The hint request
+  will be an input at the `Latin:` prompt (for example `Latin:?`); the shared
+  ladder for C/F/V remains to be designed/implemented.
 - V cards, scheduling, lifecycle and the web UI remain design-only.
 - Browser UI illustrations: https://github.com/alchaincyf/huashu-bird-sticker
   contains illustrations of all birds under CC BY 4.0; usable with attribution,

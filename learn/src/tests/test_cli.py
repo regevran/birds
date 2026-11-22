@@ -337,7 +337,7 @@ class OneShotElementAnswerTests(unittest.TestCase):
             )
         self.assertIn("choose either --answer or --reveal", output.getvalue())
 
-    def test_answer_is_only_for_e(self) -> None:
+    def test_answer_is_not_for_l(self) -> None:
         output = io.StringIO()
         with redirect_stdout(output):
             _dispatch(
@@ -346,7 +346,7 @@ class OneShotElementAnswerTests(unittest.TestCase):
                 False,
             )
         self.assertIn(
-            "--answer is only for E, R and C cards", output.getvalue()
+            "--answer is only for E, R, C and F cards", output.getvalue()
         )
 
 
@@ -928,6 +928,262 @@ class ConstructCardTests(unittest.TestCase):
             "--answer needs a single match; 2 birds match 'cormorant'",
             text,
         )
+
+
+class ProduceCardTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        config = Config.default()
+        cls.catalog = load_catalog(
+            config.species_path, config.etymology_path
+        )
+
+    def _run(
+        self, args: list[str], responses: list[str]
+    ) -> tuple[str, list[str]]:
+        prompts: list[str] = []
+        iterator = iter(responses)
+
+        def fake_input(prompt: str) -> str:
+            prompts.append(prompt)
+            return next(iterator)
+
+        output = io.StringIO()
+        with patch("builtins.input", side_effect=fake_input):
+            with redirect_stdout(output):
+                _dispatch(
+                    self.catalog, args, False, interactive=True
+                )
+        return output.getvalue(), prompts
+
+    def _batch(self, args: list[str]) -> str:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            _dispatch(self.catalog, args, False)
+        return output.getvalue()
+
+    def test_correct_with_case_and_whitespace(self) -> None:
+        text, _ = self._run(
+            ["F", "acrocephalus-agricola"],
+            ["  ACROCEPHALUS   AGRICOLA  "],
+        )
+        self.assertIn("correct: 'Acrocephalus agricola'", text)
+        self.assertNotIn("try again", text)
+
+    def test_near_miss_reveals_spelling_and_moves_on(self) -> None:
+        text, _ = self._run(
+            ["F", "acrocephalus-agricola"],
+            ["Acrocephalus agrikola"],
+        )
+        self.assertIn("almost:", text)
+        self.assertIn("correct 'Acrocephalus agricola'", text)
+        self.assertNotIn("try again", text)
+
+    def test_wrong_once_then_correct(self) -> None:
+        text, _ = self._run(
+            ["F", "acrocephalus-agricola"],
+            ["Turdus merula", "Acrocephalus agricola"],
+        )
+        self.assertIn("try again", text)
+        self.assertIn("correct: 'Acrocephalus agricola'", text)
+
+    def test_wrong_twice_reveals(self) -> None:
+        text, _ = self._run(
+            ["F", "acrocephalus-agricola"],
+            ["Turdus merula", "Passer domesticus"],
+        )
+        self.assertIn("try again", text)
+        self.assertIn("wrong: chose", text)
+        self.assertIn("correct 'Acrocephalus agricola'", text)
+        self.assertIn("[wrong]", text)
+
+    def test_prompt_has_no_scaffold(self) -> None:
+        text, _ = self._run(
+            ["F", "acrocephalus-agricola"],
+            ["Acrocephalus agricola"],
+        )
+        self.assertIn(
+            "[F] Type the Latin name for the Hebrew name.", text
+        )
+        self.assertNotIn("Scaffold", text)
+
+    def test_search_returns_to_card(self) -> None:
+        text, prompts = self._run(
+            ["F", "acrocephalus-agricola"],
+            ["/paddyfield", "exit", "Acrocephalus agricola"],
+        )
+        self.assertIn("1 bird matching 'paddyfield'", text)
+        self.assertIn("search> ", prompts)
+        self.assertIn("correct:", text)
+
+    def test_up_abandons_card(self) -> None:
+        text, _ = self._run(
+            ["F", "acrocephalus-agricola"], ["exit"]
+        )
+        self.assertIn("card cancelled.", text)
+
+    def test_reveal_shows_latin(self) -> None:
+        text = self._batch(
+            ["F", "acrocephalus-agricola", "--reveal"]
+        )
+        self.assertIn("correct: 'Acrocephalus agricola'", text)
+
+    def test_answer_correct(self) -> None:
+        text = self._batch(
+            [
+                "F",
+                "acrocephalus-agricola",
+                "--answer",
+                "Acrocephalus agricola",
+            ]
+        )
+        self.assertIn("correct: 'Acrocephalus agricola'", text)
+
+    def test_answer_near_miss(self) -> None:
+        text = self._batch(
+            [
+                "F",
+                "acrocephalus-agricola",
+                "--answer",
+                "Acrocephalus agrikola",
+            ]
+        )
+        self.assertIn("almost:", text)
+
+    def test_answer_wrong(self) -> None:
+        text = self._batch(
+            ["F", "acrocephalus-agricola", "--answer", "Turdus merula"]
+        )
+        self.assertIn("wrong: chose", text)
+        self.assertIn("correct 'Acrocephalus agricola'", text)
+
+    def test_answer_needs_single_match(self) -> None:
+        text = self._batch(
+            ["F", "cormorant", "--answer", "Microcarbo pygmeus"]
+        )
+        self.assertIn(
+            "--answer needs a single match; 2 birds match 'cormorant'",
+            text,
+        )
+
+
+class ProduceRunTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        config = Config.default()
+        cls.catalog = load_catalog(
+            config.species_path, config.etymology_path
+        )
+
+    def _run(
+        self, args: list[str], responses: list[str]
+    ) -> tuple[str, list[str]]:
+        prompts: list[str] = []
+        iterator = iter(responses)
+
+        def fake_input(prompt: str) -> str:
+            prompts.append(prompt)
+            return next(iterator)
+
+        output = io.StringIO()
+        with patch("builtins.input", side_effect=fake_input):
+            with redirect_stdout(output):
+                _dispatch(
+                    self.catalog, args, False, interactive=True
+                )
+        return output.getvalue(), prompts
+
+    def _batch(self, args: list[str]) -> str:
+        output = io.StringIO()
+        with redirect_stdout(output):
+            _dispatch(self.catalog, args, False)
+        return output.getvalue()
+
+    def test_produce_run(self) -> None:
+        text, _ = self._run(
+            ["F", "cormorant"],
+            ["Microcarbo pygmeus", "", "Phalacrocorax carbo"],
+        )
+        self.assertIn("F run: 2 birds matching 'cormorant'", text)
+        self.assertIn("[F 1/2]", text)
+        self.assertIn("[F 2/2]", text)
+        self.assertNotIn("Scaffold", text)
+        self.assertIn(
+            "F run complete: 2 cards, first try 2, near miss 0, "
+            "retry 0, revealed 0.",
+            text,
+        )
+
+    def test_produce_run_near_miss(self) -> None:
+        text, _ = self._run(
+            ["F", "cormorant"],
+            ["Microcarbo pigmeus", "", "Phalacrocorax carbo"],
+        )
+        self.assertIn("almost:", text)
+        self.assertIn(
+            "F run complete: 2 cards, first try 1, near miss 1, "
+            "retry 0, revealed 0.",
+            text,
+        )
+
+    def test_produce_run_retry(self) -> None:
+        text, _ = self._run(
+            ["F", "cormorant"],
+            [
+                "Turdus merula",
+                "Microcarbo pygmeus",
+                "",
+                "Phalacrocorax carbo",
+            ],
+        )
+        self.assertIn(
+            "F run complete: 2 cards, first try 1, near miss 0, "
+            "retry 1, revealed 0.",
+            text,
+        )
+
+    def test_produce_run_revealed(self) -> None:
+        text, _ = self._run(
+            ["F", "cormorant"],
+            [
+                "Turdus merula",
+                "Passer domesticus",
+                "",
+                "Phalacrocorax carbo",
+            ],
+        )
+        self.assertIn(
+            "F run complete: 2 cards, first try 1, near miss 0, "
+            "retry 0, revealed 1.",
+            text,
+        )
+
+    def test_produce_run_stops(self) -> None:
+        text, _ = self._run(["F", "cormorant"], ["exit"])
+        self.assertIn("card cancelled.", text)
+        self.assertIn("F run stopped after 0 of 2 cards.", text)
+
+    def test_produce_run_skips_no_hebrew(self) -> None:
+        text, _ = self._run(["F", "puffinus"], ["exit"])
+        self.assertIn(
+            "F run: 4 birds matching 'puffinus' "
+            "(3 skipped: no Hebrew)",
+            text,
+        )
+
+    def test_batch_produce_cards(self) -> None:
+        text = self._batch(["F", "cormorant"])
+        self.assertIn("F run: 2 birds matching 'cormorant'", text)
+        self.assertIn("[F 1/2]", text)
+        self.assertIn("[F 2/2]", text)
+        self.assertNotIn("Microcarbo pygmeus", text)
+        self.assertNotIn("Phalacrocorax carbo", text)
+
+    def test_batch_reveal_shows_answers(self) -> None:
+        text = self._batch(["F", "cormorant", "--reveal"])
+        self.assertIn("correct: 'Microcarbo pygmeus'", text)
+        self.assertIn("correct: 'Phalacrocorax carbo'", text)
+        self.assertIn("F run: 2 cards (answers revealed).", text)
 
 
 class ConstructRunTests(unittest.TestCase):

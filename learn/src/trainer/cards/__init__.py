@@ -15,6 +15,7 @@ from .models import (
     CardView,
     ConstructCardView,
     ConstructPart,
+    ProduceCardView,
     RecognizeCardView,
     RecognizeOption,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "ConstructPart",
     "ElementResult",
     "LatinResult",
+    "ProduceCardView",
     "RecognizeCardView",
     "RecognizeOption",
     "RecognizeResult",

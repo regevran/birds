@@ -1,8 +1,8 @@
 # Learning tool — implementation spec (draft)
 
-Status: draft for review. The foundation data layer, the L/E/R/C card views and
-E/R/C answer grading are implemented in `learn/src/trainer/`; the remaining card
-types, scheduling, lifecycle and web UI are still proposals. This file is the
+Status: draft for review. The foundation data layer, the L/E/R/C/F card views
+and E/R/C/F answer grading are implemented in `learn/src/trainer/`; the V card,
+hints, scheduling, lifecycle and web UI are still proposals. This file is the
 implementation-level companion to `learn-reference.md`; where the two differ,
 this file is the proposal and the difference is listed under **Open decisions**.
 
@@ -48,6 +48,7 @@ birds/
     learn/
   .ai/                          AI context and design records
     README.md
+    REFERENCE.md                layout, build commands and status
     decisions.md
     repository.md
     book-reference.md
@@ -418,19 +419,19 @@ truth.
 
 ## 5. Card generation
 
-> Implemented for L, E, R and C: `CardDescriptor` identifies the card,
-> `LearnCardView`, `ElementsCardView`, `RecognizeCardView` and
-> `ConstructCardView` are the pure views, `card_view(catalog, descriptor, *,
-> seed=0)` builds them, and `cards/grading.py` grades E, R and C answers.
-> `cards/text.py` renders the views and `trainer/cli.py` is the interactive
-> text client with answerable E, R and C cards, nested search mode and
-> up-one-level navigation. A card command whose query matches several birds
-> becomes a one-pass run in search order: Enter advances,
-> exit/quit/Ctrl-D/Esc stops, and ineligible birds are skipped and counted.
-> One-shot display and `--reveal` batch-print every match. The interactive
-> client gives each E/R card a fresh random seed unless `--seed N` is supplied;
-> one-shot commands use seed 0. The F and V view structures remain to be
-> settled.
+> Implemented for L, E, R, C and F: `CardDescriptor` identifies the card,
+> `LearnCardView`, `ElementsCardView`, `RecognizeCardView`,
+> `ConstructCardView` and `ProduceCardView` are the pure views,
+> `card_view(catalog, descriptor, *, seed=0)` builds them, and
+> `cards/grading.py` grades E, R, C and F answers. `cards/text.py` renders the
+> views and `trainer/cli.py` is the interactive text client with answerable
+> E, R, C and F cards, nested search mode and up-one-level navigation. A card
+> command whose query matches several birds becomes a one-pass run in search
+> order: Enter advances, exit/quit/Ctrl-D/Esc stops, and ineligible birds are
+> skipped and counted. One-shot display and `--reveal` batch-print every
+> match. The interactive client gives each E/R card a fresh random seed unless
+> `--seed N` is supplied; one-shot commands use seed 0. The V view structure
+> and the hint ladder remain to be settled.
 
 ### 5.1 Chain
 
@@ -472,8 +473,11 @@ parts. One text input for the full Latin name. The scaffold is part of the
 design, not a hint. Implemented in the text client: a near miss shows the
 exact spelling and moves on; a wrong answer gets one retry, then reveals.
 
-**F — Produce.** Hebrew prompt; one text input; hint ladder on request. No
-scaffold.
+**F — Produce.** Hebrew prompt; one text input; no scaffold. Implemented in
+the text client with the same grading and feedback as C: a near miss shows the
+exact spelling and moves on; a wrong answer gets one retry, then reveals. The
+hint ladder is not wired yet; when it is, the request will be an input at the
+`Latin:` prompt (for example `Latin:?`).
 
 **V — Review.** Same view as F, plus `is_review`, `out_of_scope` and skip.
 
@@ -527,9 +531,9 @@ The card's species is the one that passes. This is the agreed edge-case rule.
 
 **Elements.** The user picks a Hebrew gloss; the correct gloss is the element's
 `he`. Because glosses are not unique, any element with that gloss is accepted;
-options are deduplicated by gloss. Wrong answers reveal and continue. E, R and
-C grading are implemented in `cards/grading.py`; F/V grading comes with those
-cards.
+options are deduplicated by gloss. Wrong answers reveal and continue. E, R, C
+and F grading are implemented in `cards/grading.py`; F reuses `grade_latin`;
+V grading comes with the V card.
 
 **Hebrew/English (later).** Hebrew prompt matching normalizes ASCII hyphen,
 maqaf, space, geresh/gershayim and whitespace. English grading will be
@@ -919,11 +923,11 @@ Test layers:
    transposition, first-letter mismatch and word-count cases.
 3. **Card tests:** chain with/without parts; E targets only split words; R
    option count and taxonomy; C scaffold for split and unsplit words; no
-   answer leakage; option determinism by seed; hint ladder; F scaffolds; L
-   bridge. Text client: E answer prompts and score, R retry/reveal and accepted
-   answers, C typed answers and near-miss/retry/reveal, nested search mode,
-   up-one-level keys, one-shot `--answer`, and multi-match runs (order,
-   Enter/stop, skip counts, batch output).
+   answer leakage; option determinism by seed; hint ladder; F has no scaffold;
+   L bridge. Text client: E answer prompts and score, R retry/reveal and
+   accepted answers, C/F typed answers and near-miss/retry/reveal, nested
+   search mode, up-one-level keys, one-shot `--answer`, and multi-match runs
+   (order, Enter/stop, skip counts, batch output).
 4. **Queue tests:** insertion order, chain order, failure distance, fallback
    chain, active cap, pool/queue disjointness, V injection spacing, skip
    snooze, counter increments.
@@ -971,8 +975,8 @@ the UI gate. Optional later: Playwright or a headless browser.
 1. **Skeleton + data:** tree, config, dataset loader/validation, `validate`
    CLI, static "hello" server, test harness. Review.
 2. **Cards + grading (no persistence):** models, normalize, grading, options,
-   card views, scaffolds, hints, bridge. Review. Implemented for L/E/R/C
-   views and E/R/C grading, with the interactive text client; F/V and hints
+   card views, scaffolds, hints, bridge. Review. Implemented for L/E/R/C/F
+   views and E/R/C/F grading, with the interactive text client; V and hints
    remain.
 3. **Queue + scheduler (pure):** pool, queue, failure moves, V scheduling,
    worked example, randomized invariants. Review.

@@ -24,13 +24,14 @@ top-level disposable `build/`, and the trainer runs from `learn/src`.
 ## Status
 
 Foundation data layer is in place: `Config`, domain errors, the dataset
-loader/validator with indexes. The card layer implements the pure L, E, R and
-C card views, E/R/C answer grading and a text renderer, and
-`src/trainer/cli.py` exposes them through an interactive text client. E, R and
-C are answerable: E prompts for one option per element and reports a score; R
-asks for the Latin name; C asks for a typed Latin name with a scaffold. The F
-and V cards, scheduling, lifecycle and the web UI are still design-only. There
-are 142 passing tests.
+loader/validator with indexes. The card layer implements the pure L, E, R, C
+and F card views, E/R/C/F answer grading and a text renderer, and
+`src/trainer/cli.py` exposes them through an interactive text client. E, R, C
+and F are answerable: E prompts for one option per element and reports a
+score; R asks for the Latin name; C asks for a typed Latin name with a
+scaffold; F asks for a typed Latin name with no scaffold. The V card, hints,
+scheduling, lifecycle and the web UI are still design-only. There are 167
+passing tests.
 
 ## Running the text client
 
@@ -54,12 +55,14 @@ card R cormorant
 card E cormorant --seed 1
 card C acrocephalus-agricola
 card C cormorant
+card F acrocephalus-agricola
+card F cormorant
 help
 quit
 ```
 
-`card L`, `card E`, `card R` and `card C` are the commands; `L`, `E`, `R` and
-`C` are aliases, and F and V follow the same pattern. `/<text>` searches
+`card L`, `card E`, `card R`, `card C` and `card F` are the commands; `L`,
+`E`, `R`, `C` and `F` are aliases. `/<text>` searches
 species_id, Latin, English, Hebrew, family and order. Every word must match;
 `list`, `find`, `birds` and `search` are aliases. The list shows species_id,
 Latin, English, Hebrew, family and Hebrew family.
@@ -67,9 +70,9 @@ Latin, English, Hebrew, family and Hebrew family.
 In the interactive client, a search opens `search>` mode. Type text there to
 search again; `?` shows help. A bare `/` opens search mode without listing
 every bird. `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one
-prompt up: from `search>` back to the card, from an E, R or C prompt or between
-run cards back to `card>`, and from `card>` out of the client. Ctrl-C leaves
-the client.
+prompt up: from `search>` back to the card, from an E, R, C or F prompt or
+between run cards back to `card>`, and from `card>` out of the client. Ctrl-C
+leaves the client.
 
 At an Elements prompt, enter an option number. Each row shows its theme, and
 the options are drawn only from that theme, so the theme is a hint. `/text`
@@ -92,10 +95,13 @@ Type the full Latin name; case and spacing are ignored. A near miss (small
 spelling difference with matching first letters) shows the exact spelling and
 moves on. A wrong answer gets one retry; the second wrong reveals the answer.
 
+At a Produce prompt, only the Hebrew name is shown; there is no scaffold.
+Type the full Latin name. Grading and feedback are the same as for Construct.
+
 A card command also accepts a search query. `card R cormorant` runs R for
 every matching bird in search order; one match behaves as a single card.
-Press Enter between cards; `exit`, `quit`, Ctrl-D or Esc stops the run. R and
-C runs skip birds without Hebrew, and E runs skip birds without splits,
+Press Enter between cards; `exit`, `quit`, Ctrl-D or Esc stops the run. R, C
+and F runs skip birds without Hebrew, and E runs skip birds without splits,
 reporting the count. This is an ephemeral, one-pass study tool ("search with
 benefits"), not saved progress. `--seed N` reproduces the run. `--answer`
 needs a single match; one-shot display and `--reveal` print every matching
@@ -108,6 +114,7 @@ cd learn/src && python3 -m trainer card L acrocephalus-agricola
 cd learn/src && python3 -m trainer card E acrocephalus-agricola --answer "1 3 5 1"
 cd learn/src && python3 -m trainer card R acrocephalus-agricola --answer "5"
 cd learn/src && python3 -m trainer card C acrocephalus-agricola --answer "Acrocephalus agricola"
+cd learn/src && python3 -m trainer card F acrocephalus-agricola --answer "Acrocephalus agricola"
 ```
 
 One-shot commands are display-only unless `--answer` is given. The E answer
