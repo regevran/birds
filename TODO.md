@@ -6,6 +6,6 @@
 
 ## Trainer
 
-2. [ ] Add the C, F and V cards to the trainer — [details](.ai/learn-todo.md)
+2. [ ] Add the F and V cards to the trainer — [details](.ai/learn-todo.md)
 3. [ ] Persist trainer profiles/sessions so the text and browser clients resume the same queue — [details](.ai/learn-todo.md)
 4. [ ] Add global search to the trainer — [details](.ai/learn-todo.md)

@@ -2,14 +2,19 @@
 
 from .grading import (
     ElementResult,
+    LatinResult,
     RecognizeResult,
+    WordResult,
     grade_elements,
+    grade_latin,
     grade_recognize,
 )
 from .models import (
     CardDescriptor,
     CardType,
     CardView,
+    ConstructCardView,
+    ConstructPart,
     RecognizeCardView,
     RecognizeOption,
 )
@@ -19,11 +24,16 @@ __all__ = [
     "CardDescriptor",
     "CardType",
     "CardView",
+    "ConstructCardView",
+    "ConstructPart",
     "ElementResult",
+    "LatinResult",
     "RecognizeCardView",
     "RecognizeOption",
     "RecognizeResult",
+    "WordResult",
     "card_view",
     "grade_elements",
+    "grade_latin",
     "grade_recognize",
 ]

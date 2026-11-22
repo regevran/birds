@@ -1,7 +1,7 @@
 """Card identities and pure client-facing views.
 
-L, E and R views are implemented so far.  The remaining card types are listed
-now so the identity type does not change when they are added.
+L, E, R and C views are implemented so far.  The remaining card types are
+listed now so the identity type does not change when they are added.
 """
 
 from __future__ import annotations
@@ -116,6 +116,29 @@ class RecognizeCardView:
     options: tuple[RecognizeOption, ...]  # e.g. (RecognizeOption("Acrocephalus arundinaceus", "acrocephalus-arundinaceus"),)
 
 
+@dataclass(frozen=True)
+class ConstructPart:
+    """One word or split part on a C-card scaffold."""
+
+    hebrew: str  # e.g. "פסגה"; "" for an unsplit word
+    first_letter: str  # e.g. "A"
+    length: int  # e.g. 4
+
+
+@dataclass(frozen=True)
+class ConstructCardView:
+    """A complete C-card display: a Hebrew prompt and a scaffold."""
+
+    card_type: CardType  # e.g. CardType.C
+    species_id: str  # e.g. "acrocephalus-agricola"
+    hebrew: str  # e.g. "קנית אורז"
+    genus_parts: tuple[ConstructPart, ...]  # e.g. (ConstructPart("פסגה", "A", 4), ...)
+    epithet_parts: tuple[ConstructPart, ...]  # e.g. (ConstructPart("שדה", "a", 4), ...)
+
+
 CardView = (
-    LearnCardView | ElementsCardView | RecognizeCardView
-)  # e.g. LearnCardView(...) or ElementsCardView(...) or RecognizeCardView(...)
+    LearnCardView
+    | ElementsCardView
+    | RecognizeCardView
+    | ConstructCardView
+)  # e.g. LearnCardView(...), ElementsCardView(...), RecognizeCardView(...) or ConstructCardView(...)

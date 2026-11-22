@@ -1,11 +1,11 @@
 # Learning tool — design reference
 
 Status: foundation implemented (`Config`, dataset loader/validator/indexes,
-and dataset tests); L, E and R card views plus the text client implemented, and
-E and R are answerable with pure grading. The C, F and V cards, persistence,
-scheduling, lifecycle and the web UI are still design-only. This file is the
-durable record of the design conversation; use it to continue next session.
-`learn-todo.md` holds follow-ups.
+and dataset tests); L, E, R and C card views plus the text client implemented,
+and E, R and C are answerable with pure grading. The F and V cards,
+persistence, scheduling, lifecycle and the web UI are still design-only. This
+file is the durable record of the design conversation; use it to continue next
+session. `learn-todo.md` holds follow-ups.
 
 ## Purpose
 
@@ -67,7 +67,7 @@ Later, when due: **V** (review).
 | **L** | Learn | Display only: family/order, Hebrew, English, Latin, all parts and meanings, bridge line. One button: next. No "show again", no "I know this". |
 | **E** | Elements | All parts on one card; choose each part's Hebrew meaning from options. Options stay inside the part's theme, which is shown as a hint. Wrong answers reveal the correct pairs and continue. Not a gate. |
 | **R** | Recognize | Hebrew prompt → choose the Latin from 4–5 options. No English, no family. Options shuffled each time. A wrong choice gets one retry; a second wrong reveals the Latin. |
-| **C** | Construct | Hebrew prompt → type the Latin. Scaffold: part meanings + first letters (or first letters/length when there are no parts). |
+| **C** | Construct | Hebrew prompt → type the Latin. One-line scaffold: concatenated word shapes plus part lengths and glosses; the genus is one word even when split. A near miss shows the exact spelling and moves on; a wrong answer gets one retry, then reveals. |
 | **F** | Produce | Hebrew prompt → type the Latin. No scaffold; hint ladder on request. |
 | **V** | Review | Same as F, presented when due. V cards are the only cards that can be skipped. |
 
@@ -159,12 +159,17 @@ Chosen approach: **A — local server**.
   re-prompts without revealing; a second wrong reveals the correct Latin.
   `--reveal` shows the accepted Latin name(s); the shared-Hebrew pair accepts
   either name.
+- `card C`: shows the Hebrew name and a one-line scaffold: the concatenated
+  word shapes, then the part lengths and Hebrew glosses. The genus is one word
+  even when split. The user types the full Latin; normalization is NFC,
+  whitespace collapse and casefold. A near miss shows the exact spelling and
+  moves on; a wrong answer gets one retry, then reveals.
 - A card command also accepts a search query. One match is a single card;
   several matches form a one-pass run in search order. Enter advances;
-  exit/quit/Ctrl-D/Esc stops the run. E/R runs skip ineligible birds and report
-  the count. This is a learner-driven study tool ("search with benefits"), not
-  saved progress or the scheduler. One-shot display and `--reveal` batch-print
-  all matching cards; `--answer` needs a single match.
+  exit/quit/Ctrl-D/Esc stops the run. E/R/C runs skip ineligible birds and
+  report the count. This is a learner-driven study tool ("search with
+  benefits"), not saved progress or the scheduler. One-shot display and
+  `--reveal` batch-print all matching cards; `--answer` needs a single match.
 - A search command opens a read-only `search>` mode. Every line there is a
   query (a leading `/` is optional) except `?` (help); a bare `/` opens the
   mode without listing all birds. Exiting returns to the same element and
@@ -186,7 +191,10 @@ Chosen approach: **A — local server**.
 - Partial etymology: E asks only about the split words.
 - Hebrew grading: normalize ASCII hyphen / maqaf / space, geresh/gershayim; no niqqud in the source.
 - English grading (later): case-insensitive, hyphens/apostrophes/spaces normalized.
-- Latin grading: case-insensitive, trim; genus and epithet scored separately; distinguish near-miss from wrong.
+- Latin grading: NFC, trim/collapse whitespace, casefold; genus and epithet
+  scored separately; near-miss when word count matches, first letters match,
+  and total Damerau-Levenshtein distance is at most 2; otherwise wrong.
+- E choices are graded by Hebrew gloss; R by Latin option; C by typed Latin.
 - Status markers (`A`, `I`, `Ex`, `X`) are context, not v1 quiz targets.
 - English directions, whole-name deck, and element free-typing are later.
 
@@ -195,7 +203,7 @@ Chosen approach: **A — local server**.
 - Offline browser app with local server and file-based progress (option A).
 - Hebrew book-style UI; English names shown; English quizzing later.
 - No session timer; pure card-count scheduling; global counter across sessions.
-- L is display-only with only "next"; E is a reveal-and-continue element check; R/C/F as described.
+- L is display-only with only "next"; E is a reveal-and-continue element check; R is a Latin choice; C is typed with a scaffold; F later.
 - Pass F = unaided correct; passed birds are profile-global and excluded from new/reloaded sessions.
 - Session learning is independent; passed birds and V reviews are shared.
 - Active-chain cap 7; random bird draw from the filtered, shuffled pool; no family blocks.

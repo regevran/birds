@@ -81,22 +81,24 @@ short command without a custom target.
   one-file PDF is 98 A5 pages.
 - The trainer foundation is implemented: `Config`, domain errors, the dataset
   loader/validator with indexes.
-- The trainer card layer implements the pure L, E and R views, E/R answer
-  grading and a text renderer, plus a text client. All 96 tests pass through
+- The trainer card layer implements the pure L, E, R and C views, E/R/C answer
+  grading and a text renderer, plus a text client. All 142 tests pass through
   `learn-test`.
-- The text client supports `/<text>` search, `card L|E|R ...` and their
-  `L`/`E`/`R` aliases, multi-word species names, `--seed`, `--reveal`, and
-  readline history at `~/.birds_trainer_history`. E and R are answerable:
+- The text client supports `/<text>` search, `card L|E|R|C ...` and their
+  `L`/`E`/`R`/`C` aliases, multi-word species names, `--seed`, `--reveal`, and
+  readline history at `~/.birds_trainer_history`. E, R and C are answerable:
   E prompts for one option per element and reports a score; R asks for the
-  Latin name and retries once before revealing. `--answer` grades a one-shot
-  E or R card. Interactive E/R cards pick a fresh random seed per card;
-  `--seed N` reproduces one, and one-shot commands stay at seed 0.
+  Latin name and retries once before revealing; C asks for a typed Latin name
+  with a scaffold, showing a near miss and retrying a wrong answer once.
+  `--answer` grades a one-shot E, R or C card. Interactive E/R cards pick a
+  fresh random seed per card; `--seed N` reproduces one, and one-shot commands
+  stay at seed 0.
 - A card command also accepts a search query. One match is a single card;
   several matches run in search order with Enter between cards and
-  exit/quit/Ctrl-D/Esc stopping the run. E/R runs skip ineligible birds and
+  exit/quit/Ctrl-D/Esc stopping the run. E/R/C runs skip ineligible birds and
   report the count. This is an ephemeral learner tool, not saved progress.
 - A search opens a nested, read-only `search>` mode; `exit`, `quit`, Ctrl-D
   and Esc (Esc then Enter) go one prompt up, and from `card>` leave the
   client.
-- The C/F/V cards, persistence, scheduling, lifecycle and web UI are still
+- The F/V cards, persistence, scheduling, lifecycle and web UI are still
   design-only.

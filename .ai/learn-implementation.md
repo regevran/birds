@@ -1,7 +1,7 @@
 # Learning tool — implementation spec (draft)
 
-Status: draft for review. The foundation data layer, the L/E/R card views and
-E/R answer grading are implemented in `learn/src/trainer/`; the remaining card
+Status: draft for review. The foundation data layer, the L/E/R/C card views and
+E/R/C answer grading are implemented in `learn/src/trainer/`; the remaining card
 types, scheduling, lifecycle and web UI are still proposals. This file is the
 implementation-level companion to `learn-reference.md`; where the two differ,
 this file is the proposal and the difference is listed under **Open decisions**.
@@ -418,18 +418,19 @@ truth.
 
 ## 5. Card generation
 
-> Implemented for L, E and R: `CardDescriptor` identifies the card,
-> `LearnCardView`, `ElementsCardView` and `RecognizeCardView` are the pure
-> views, `card_view(catalog, descriptor, *, seed=0)` builds them, and
-> `cards/grading.py` grades E and R choices. `cards/text.py` renders the views
-> and `trainer/cli.py` is the interactive text client with answerable E and R
-> cards, nested search mode and up-one-level navigation. A card command whose
-> query matches several birds becomes a one-pass run in search order: Enter
-> advances, exit/quit/Ctrl-D/Esc stops, and ineligible birds are skipped and
-> counted. One-shot display and `--reveal` batch-print every match.
-> The interactive client gives each E/R card a fresh random seed unless
-> `--seed N` is supplied; one-shot commands use seed 0. The C, F and V view
-> structures remain to be settled.
+> Implemented for L, E, R and C: `CardDescriptor` identifies the card,
+> `LearnCardView`, `ElementsCardView`, `RecognizeCardView` and
+> `ConstructCardView` are the pure views, `card_view(catalog, descriptor, *,
+> seed=0)` builds them, and `cards/grading.py` grades E, R and C answers.
+> `cards/text.py` renders the views and `trainer/cli.py` is the interactive
+> text client with answerable E, R and C cards, nested search mode and
+> up-one-level navigation. A card command whose query matches several birds
+> becomes a one-pass run in search order: Enter advances,
+> exit/quit/Ctrl-D/Esc stops, and ineligible birds are skipped and counted.
+> One-shot display and `--reveal` batch-print every match. The interactive
+> client gives each E/R card a fresh random seed unless `--seed N` is supplied;
+> one-shot commands use seed 0. The F and V view structures remain to be
+> settled.
 
 ### 5.1 Chain
 
@@ -464,10 +465,12 @@ the pool is too small, use as many options as exist (minimum two). A wrong
 choice gets one retry without revealing the answer; a second wrong reveals the
 correct Latin. The text client implements this.
 
-**C — Construct.** Hebrew prompt; a scaffold showing, per Latin word, the
-first letter and length; for split words, per part: its Hebrew meaning, first
-letter and length. One text input for the full Latin name. The scaffold is part
-of the design, not a hint.
+**C — Construct.** Hebrew prompt; a one-line scaffold with the concatenated
+word shapes (first letter and dots per part) and a parenthetical legend of part
+lengths and Hebrew glosses. The genus is one word even when built from several
+parts. One text input for the full Latin name. The scaffold is part of the
+design, not a hint. Implemented in the text client: a near miss shows the
+exact spelling and moves on; a wrong answer gets one retry, then reveals.
 
 **F — Produce.** Hebrew prompt; one text input; hint ladder on request. No
 scaffold.
@@ -505,9 +508,17 @@ the Latin name split on spaces (always two words in the current data).
 - Otherwise -> `wrong`.
 - Near-miss is not a pass. It is a soft return: reinsert 30–50 cards later,
   no failure escalation.
+- C feedback reports each word as `correct`, `almost` or `wrong` (the chosen
+  status in square brackets) and, for words close enough to compare, prints
+  the expected and typed forms with compiler-style `^` markers under the
+  differing region (`pygmeus` / `pygemus` -> `^^` under `em`). Capitalization
+  cannot produce a near-miss: normalization casefolds first.
 - A correct retry after a wrong answer is a pass for F (the failure move is
   scheduling, not a hint). V is different: a retry pass does not advance the V
   level.
+- Implemented as `grade_latin` in `cards/grading.py`, using
+  `foundation/normalize.py`; the scheduler-level soft-return and pass rules
+  come later.
 
 **Shared Hebrew name.** The two *Oenanthe* species share one Hebrew name. The
 card is generated for one species, but either Latin species is accepted. R
@@ -516,8 +527,8 @@ The card's species is the one that passes. This is the agreed edge-case rule.
 
 **Elements.** The user picks a Hebrew gloss; the correct gloss is the element's
 `he`. Because glosses are not unique, any element with that gloss is accepted;
-options are deduplicated by gloss. Wrong answers reveal and continue. E and R
-grading are implemented in `cards/grading.py`; C/F/V grading comes with those
+options are deduplicated by gloss. Wrong answers reveal and continue. E, R and
+C grading are implemented in `cards/grading.py`; F/V grading comes with those
 cards.
 
 **Hebrew/English (later).** Hebrew prompt matching normalizes ASCII hyphen,
@@ -900,15 +911,17 @@ Test layers:
    - Five no-Hebrew species; one shared Hebrew name; 29 families without
      Hebrew; 54 duplicate Hebrew glosses.
    - Data hash is stable and changes when content changes.
-2. **Normalization/grading tests:** case, whitespace, maqaf/hyphen, geresh,
-   near-miss thresholds, genus/epithet flags, shared Hebrew accepts either,
-   element gloss deduplication; E per-element grading, missing/extra/unknown
-   choices, and shared-gloss acceptance; R correct/wrong choices and
-   shared-Hebrew acceptance.
+2. **Normalization/grading tests:** Latin NFC, whitespace and casefold;
+   case, maqaf/hyphen, geresh, near-miss thresholds, genus/epithet flags,
+   shared Hebrew accepts either, element gloss deduplication; E per-element
+   grading, missing/extra/unknown choices, and shared-gloss acceptance; R
+   correct/wrong choices and shared-Hebrew acceptance; C exact, near-miss,
+   transposition, first-letter mismatch and word-count cases.
 3. **Card tests:** chain with/without parts; E targets only split words; R
-   option count and taxonomy; no answer leakage; option determinism by seed;
-   hint ladder; C/F scaffolds; L bridge. Text client: E answer prompts and
-   score, R retry/reveal and accepted answers, nested search mode,
+   option count and taxonomy; C scaffold for split and unsplit words; no
+   answer leakage; option determinism by seed; hint ladder; F scaffolds; L
+   bridge. Text client: E answer prompts and score, R retry/reveal and accepted
+   answers, C typed answers and near-miss/retry/reveal, nested search mode,
    up-one-level keys, one-shot `--answer`, and multi-match runs (order,
    Enter/stop, skip counts, batch output).
 4. **Queue tests:** insertion order, chain order, failure distance, fallback
@@ -958,9 +971,9 @@ the UI gate. Optional later: Playwright or a headless browser.
 1. **Skeleton + data:** tree, config, dataset loader/validation, `validate`
    CLI, static "hello" server, test harness. Review.
 2. **Cards + grading (no persistence):** models, normalize, grading, options,
-   card views, scaffolds, hints, bridge. Review. Implemented for L/E/R views
-   and E/R grading, with the interactive text client; C/F/V, scaffolds and
-   hints remain.
+   card views, scaffolds, hints, bridge. Review. Implemented for L/E/R/C
+   views and E/R/C grading, with the interactive text client; F/V and hints
+   remain.
 3. **Queue + scheduler (pure):** pool, queue, failure moves, V scheduling,
    worked example, randomized invariants. Review.
 4. **Profiles + sessions + store:** atomic JSON/JSONL, events, create/open/

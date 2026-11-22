@@ -10,23 +10,27 @@ import atexit
 import secrets
 import shlex
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from .cards.grading import (
     ElementResult,
     grade_elements,
+    grade_latin,
     grade_recognize,
 )
 from .cards.models import (
     CardDescriptor,
     CardType,
     CardView,
+    ConstructCardView,
     ElementsCardView,
     LearnCardView,
     RecognizeCardView,
 )
 from .cards.text import (
     render_card,
+    render_construct_result,
     render_element_results,
     render_element_row,
     render_recognize_result,
@@ -51,6 +55,9 @@ Commands:
   card R|R|r <species|search> [--seed N]        practise a Recognize card
   card R|R|r <species|search> --answer "2"      grade a Recognize card in one shot
   card R|R|r <species|search> --reveal          show a Recognize card with the answer
+  card C|C|c <species|search>                   practise a Construct card
+  card C|C|c <species|search> --answer "..."    grade a Construct card in one shot
+  card C|C|c <species|search> --reveal          show a Construct card with the answer
   help, ?                                       show this message
   quit, exit                                    leave the client
 
@@ -66,6 +73,12 @@ and return to the same element. One-shot commands are display-only unless
 
 A Recognize card shows the Hebrew name and asks for the matching Latin name.
 A wrong choice lets you try once more; a second wrong reveals the answer.
+
+A Construct card shows the Hebrew name and a scaffold: each Latin word or
+part with its first letter, length and (for split parts) Hebrew gloss. Type
+the full Latin name; case and spacing are ignored. A near miss shows the
+exact spelling and moves on. A wrong answer gets one retry; the second wrong
+reveals the answer.
 
 <species|search> is the same query as /<text>. One match shows one card;
 several matches run through all of them in search order. Press Enter between
@@ -101,6 +114,15 @@ Elements card:
 _R_HELP = """\
 Recognize card:
   1-N         choose the Latin name
+  /text       search birds; list/find/birds/search <text> also work
+  ?           show this message
+  exit, quit, Ctrl-D, Esc (press Esc, then Enter)
+              abandon this card and return to card>
+"""
+
+_C_HELP = """\
+Construct card:
+  type the full Latin name; case and spacing are ignored
   /text       search birds; list/find/birds/search <text> also work
   ?           show this message
   exit, quit, Ctrl-D, Esc (press Esc, then Enter)
@@ -363,7 +385,12 @@ def _card_command(
         )
         return
 
-    if card_type not in (CardType.L, CardType.E, CardType.R):
+    if card_type not in (
+        CardType.L,
+        CardType.E,
+        CardType.R,
+        CardType.C,
+    ):
         print(f"card type {card_type.value} is not implemented yet")
         return
 
@@ -455,9 +482,18 @@ def _single_card(
         if interactive and not reveal:
             _answer_recognize(catalog, view, reverse_hebrew)
             return
+    elif isinstance(view, ConstructCardView):
+        if answer_text is not None:
+            _grade_construct_text(
+                bird, view, answer_text, reverse_hebrew
+            )
+            return
+        if interactive and not reveal:
+            _answer_construct(catalog, bird, view, reverse_hebrew)
+            return
 
     if answer_text is not None:
-        print("--answer is only for E and R cards")
+        print("--answer is only for E, R and C cards")
         return
 
     element_answers: dict[str, str] = {}
@@ -480,8 +516,22 @@ def _single_card(
             element_answers=element_answers,
             reveal_recognize=reveal,
             recognize_answers=recognize_answers,
+            reveal_construct=reveal,
+            construct_answer=bird.latin,
         )
     )
+
+
+@dataclass
+class _RunStats:
+    total: int
+    completed: int = 0
+    element_correct: int = 0
+    element_total: int = 0
+    first_try: int = 0
+    retry: int = 0
+    revealed: int = 0
+    near_miss: int = 0
 
 
 def _run_cards(
@@ -507,17 +557,11 @@ def _run_cards(
         return
 
     print(_run_header(card_type, query, eligible, skipped, skip_reason))
-    total = len(eligible)
-    completed = 0
-    element_correct = 0
-    element_total = 0
-    first_try = 0
-    retried = 0
-    revealed = 0
+    stats = _RunStats(total=len(eligible))
     stopped = False
 
     for offset, bird in enumerate(eligible):
-        position = (offset + 1, total)
+        position = (offset + 1, stats.total)
         view = card_view(
             catalog,
             CardDescriptor(
@@ -529,7 +573,11 @@ def _run_cards(
 
         if reveal:
             _print_revealed_card(
-                catalog, view, reverse_hebrew, position
+                catalog,
+                view,
+                reverse_hebrew,
+                position,
+                bird.latin,
             )
             print()
             continue
@@ -560,46 +608,67 @@ def _run_cards(
             if results is None:
                 stopped = True
                 break
-            element_correct += sum(result.correct for result in results)
-            element_total += len(results)
-        else:
+            stats.element_correct += sum(
+                result.correct for result in results
+            )
+            stats.element_total += len(results)
+        elif isinstance(view, RecognizeCardView):
             outcome = _answer_recognize(
                 catalog, view, reverse_hebrew, position=position
             )
             if outcome is None:
                 stopped = True
                 break
-            if outcome == "first":
-                first_try += 1
-            elif outcome == "retry":
-                retried += 1
-            else:
-                revealed += 1
+            _count_recognize(stats, outcome)
+        elif isinstance(view, ConstructCardView):
+            outcome = _answer_construct(
+                catalog,
+                bird,
+                view,
+                reverse_hebrew,
+                position=position,
+            )
+            if outcome is None:
+                stopped = True
+                break
+            _count_construct(stats, outcome)
+        else:
+            raise TypeError(f"cannot present {type(view).__name__}")
 
-        completed += 1
-        if offset + 1 < total and not _wait_for_next():
+        stats.completed += 1
+        if offset + 1 < stats.total and not _wait_for_next():
             stopped = True
             break
 
     if reveal:
         print(
-            f"{card_type.value} run: {total} cards "
+            f"{card_type.value} run: {stats.total} cards "
             "(answers revealed)."
         )
         return
     if not interactive:
         return
-    _print_run_summary(
-        card_type,
-        total,
-        completed,
-        stopped,
-        element_correct,
-        element_total,
-        first_try,
-        retried,
-        revealed,
-    )
+    _print_run_summary(card_type, stats, stopped)
+
+
+def _count_recognize(stats: _RunStats, outcome: str) -> None:
+    if outcome == "first":
+        stats.first_try += 1
+    elif outcome == "retry":
+        stats.retry += 1
+    else:
+        stats.revealed += 1
+
+
+def _count_construct(stats: _RunStats, outcome: str) -> None:
+    if outcome == "first":
+        stats.first_try += 1
+    elif outcome == "near_miss":
+        stats.near_miss += 1
+    elif outcome == "retry":
+        stats.retry += 1
+    else:
+        stats.revealed += 1
 
 
 def _eligible_birds(
@@ -613,6 +682,10 @@ def _eligible_birds(
         eligible = [bird for bird in matches if bird.has_parts]
         skipped = [bird for bird in matches if not bird.has_parts]
         return eligible, skipped, "no split elements"
+    if card_type is CardType.C:
+        eligible = [bird for bird in matches if bird.has_hebrew]
+        skipped = [bird for bird in matches if not bird.has_hebrew]
+        return eligible, skipped, "no Hebrew"
     return list(matches), [], ""
 
 
@@ -638,6 +711,7 @@ def _print_revealed_card(
     view: CardView,
     reverse_hebrew: bool,
     position: tuple[int, int],
+    construct_answer: str = "",
 ) -> None:
     element_answers: dict[str, str] = {}
     if isinstance(view, ElementsCardView):
@@ -658,6 +732,8 @@ def _print_revealed_card(
             element_answers=element_answers,
             reveal_recognize=True,
             recognize_answers=recognize_answers,
+            reveal_construct=True,
+            construct_answer=construct_answer,
             position=position,
         )
     )
@@ -676,33 +752,35 @@ def _wait_for_next() -> bool:
 
 def _print_run_summary(
     card_type: CardType,
-    total: int,
-    completed: int,
+    stats: _RunStats,
     stopped: bool,
-    element_correct: int,
-    element_total: int,
-    first_try: int,
-    retried: int,
-    revealed: int,
 ) -> None:
     if stopped:
         print(
-            f"{card_type.value} run stopped after {completed} "
-            f"of {total} cards."
+            f"{card_type.value} run stopped after {stats.completed} "
+            f"of {stats.total} cards."
         )
         return
     if card_type is CardType.E:
         print(
-            f"E run complete: {total} cards, "
-            f"{element_correct}/{element_total} elements correct."
+            f"E run complete: {stats.total} cards, "
+            f"{stats.element_correct}/{stats.element_total} "
+            "elements correct."
         )
     elif card_type is CardType.R:
         print(
-            f"R run complete: {total} cards, first try {first_try}, "
-            f"retry {retried}, revealed {revealed}."
+            f"R run complete: {stats.total} cards, "
+            f"first try {stats.first_try}, retry {stats.retry}, "
+            f"revealed {stats.revealed}."
+        )
+    elif card_type is CardType.C:
+        print(
+            f"C run complete: {stats.total} cards, "
+            f"first try {stats.first_try}, near miss {stats.near_miss}, "
+            f"retry {stats.retry}, revealed {stats.revealed}."
         )
     else:
-        print(f"L run complete: {total} cards.")
+        print(f"L run complete: {stats.total} cards.")
 
 
 def _grade_answer_text(
@@ -901,6 +979,83 @@ def _answer_interactively(
     print()
     print(render_element_results(view, results, reverse_hebrew=reverse_hebrew))
     return results
+
+
+def _grade_construct_text(
+    bird: Bird,
+    view: ConstructCardView,
+    answer_text: str,
+    reverse_hebrew: bool,
+) -> None:
+    print(render_card(view, reverse_hebrew=reverse_hebrew))
+    result = grade_latin(bird.latin, answer_text)
+    print()
+    print(render_construct_result(result))
+
+
+def _answer_construct(
+    catalog: Catalog,
+    bird: Bird,
+    view: ConstructCardView,
+    reverse_hebrew: bool,
+    *,
+    position: tuple[int, int] | None = None,
+) -> str | None:
+    print(
+        render_card(
+            view,
+            reverse_hebrew=reverse_hebrew,
+            position=position,
+        )
+    )
+    wrong_attempts = 0
+    while True:
+        try:
+            raw = _read_line("  Latin: ")
+        except _Up:
+            print("card cancelled.")
+            return None
+        text = raw.strip()
+        if text == "?":
+            print(_C_HELP)
+            print(
+                render_card(
+                    view,
+                    reverse_hebrew=reverse_hebrew,
+                    position=position,
+                )
+            )
+            continue
+        query = _search_request(text)
+        if query is not None:
+            _search_mode(catalog, query, reverse_hebrew)
+            print(
+                render_card(
+                    view,
+                    reverse_hebrew=reverse_hebrew,
+                    position=position,
+                )
+            )
+            continue
+        if not text:
+            print(
+                "type the Latin name, /text to search, "
+                "? for help, or exit"
+            )
+            continue
+        result = grade_latin(bird.latin, text)
+        if result.outcome == "correct":
+            print(render_construct_result(result))
+            return "first" if wrong_attempts == 0 else "retry"
+        if result.outcome == "near_miss":
+            print(render_construct_result(result))
+            return "near_miss"
+        wrong_attempts += 1
+        if wrong_attempts == 1:
+            print(f"  wrong: chose {result.response!r}; try again.")
+            continue
+        print(render_construct_result(result))
+        return "revealed"
 
 
 def _search_request(text: str) -> str | None:

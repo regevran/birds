@@ -60,38 +60,44 @@ Date: 2026-11-11
   `L → R → C → F`. `V` appears when due. L is display-only; E is a separate
   element-check card. This superseded the earlier idea of putting the
   parts-matching exercise on L.
-- The foundation data layer and the pure L/E/R card views are implemented,
-  with a text client (`python -m trainer`, CMake `learn-run`) and 96 passing
-  tests. E and R are answerable: E collects one gloss choice per element and
-  grades them with the pure `cards/grading.py` layer; R grades a Latin-name
-  choice. An E row shows its theme and draws every option from that same
-  theme, so the theme is a deliberate hint. R draws distractors by taxonomic
-  proximity (genus, family, order, any) and accepts every species that shares
-  the prompt's Hebrew name. C/F/V, scheduling, lifecycle and the web UI are
-  still design-only.
+- The foundation data layer and the pure L/E/R/C card views are implemented,
+  with a text client (`python -m trainer`, CMake `learn-run`) and 136 passing
+  tests. E, R and C are answerable: E collects one gloss choice per element
+  and grades them with the pure `cards/grading.py` layer; R grades a Latin-name
+  choice; C grades a typed Latin name. An E row shows its theme and draws every
+  option from that same theme, so the theme is a deliberate hint. R draws
+  distractors by taxonomic proximity (genus, family, order, any) and accepts
+  every species that shares the prompt's Hebrew name. F/V, scheduling,
+  lifecycle and the web UI are still design-only.
 - R is a recognition test: Hebrew prompt, Latin options, no English or family.
   A wrong choice gets one retry without revealing the answer; a second wrong
   reveals the correct Latin. Showing the failure is also the intended
   full-training behavior.
+- C is a typed production card: Hebrew prompt plus a one-line scaffold with
+  the concatenated word shapes and a legend of part lengths and Hebrew
+  glosses. The genus is one word even when built from several parts. Typed
+  Latin is normalized with NFC, whitespace collapse and casefold. A near miss
+  (distance at most 2, matching first letters) shows the exact spelling and
+  moves on. A wrong answer gets one retry; the second wrong reveals the answer.
 - A card command may take a search query as well as one species. One match is
   the single card; several matches form an ephemeral run in search order, with
   Enter between cards and exit/quit/Ctrl-D/Esc stopping the run. This is a
   learner-driven "search with benefits" tool, not saved progress or the
-  planned scheduling/skills system: one pass, no repetition, no logging. E/R
-  runs skip ineligible birds and report the count. `--answer` requires a
+  planned scheduling/skills system: one pass, no repetition, no logging.
+  E/R/C runs skip ineligible birds and report the count. `--answer` requires a
   single match; one-shot display and `--reveal` batch-print all cards.
 - The card layer is pure and session-independent. `CardDescriptor` identifies
   the species and card type only; the option seed is supplied by the caller of
-  `card_view` and affects option order only. A Latin segment is called `latin`
-  (`latin_forms` for several), not `surface`.
+  `card_view` and affects E/R option order only. A Latin segment is called
+  `latin` (`latin_forms` for several), not `surface`.
 - The card layer is deterministic given a seed. The interactive client supplies
   a fresh random seed per E or R card unless `--seed N` is given; one-shot
   commands and `--answer` use seed 0 so the output and answer numbers are
   reproducible.
 - The text client is a thin adapter over the same views; the web UI comes last.
-  Its commands are `card L|E|R ...` with `L`/`E`/`R` aliases, `/<text>` for
-  bird search, multi-word Latin/English species names, and `--answer` for a
-  one-shot graded E or R card. Readline history is persisted in
+  Its commands are `card L|E|R|C ...` with `L`/`E`/`R`/`C` aliases, `/<text>`
+  for bird search, multi-word Latin/English species names, and `--answer` for
+  a one-shot graded E, R or C card. Readline history is persisted in
   `~/.birds_trainer_history`.
 - Search is a nested, read-only `search>` mode. It is entered by `/text`, a
   bare `/`, or the `list`/`find`/`birds`/`search` aliases; every input in the
@@ -109,6 +115,7 @@ Date: 2026-11-11
 
 ## Deferred items
 
-- Trainer R/C/F/V cards, queue/scheduler, lifecycle/persistence and web UI.
+- Trainer F/V cards, the hint ladder, queue/scheduler, lifecycle/persistence
+  and web UI.
 - Trainer hosting and the browser UI; global search.
 

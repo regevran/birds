@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import random
 
-from ..foundation.dataset import Bird, Catalog, Element
+from ..foundation.dataset import Bird, Catalog, Element, SplitPart
 from ..foundation.errors import InvalidRequest
 from .models import (
     BridgeMatch,
     CardDescriptor,
     CardType,
     CardView,
+    ConstructCardView,
+    ConstructPart,
     ElementRow,
     ElementsCardView,
     LearnCardView,
@@ -37,6 +39,8 @@ def card_view(
         return _elements_view(bird, catalog, seed)
     if descriptor.card_type is CardType.R:
         return _recognize_view(bird, catalog, seed)
+    if descriptor.card_type is CardType.C:
+        return _construct_view(bird, catalog)
     raise InvalidRequest(
         f"card type {descriptor.card_type.value} is not implemented yet"
     )
@@ -142,6 +146,35 @@ def _recognize_view(
         species_id=bird.species_id,
         hebrew=bird.hebrew,
         options=tuple(options),
+    )
+
+
+def _construct_view(bird: Bird, catalog: Catalog) -> ConstructCardView:
+    if not bird.hebrew:
+        raise InvalidRequest(f"{bird.latin} has no Hebrew name")
+    return ConstructCardView(
+        card_type=CardType.C,
+        species_id=bird.species_id,
+        hebrew=bird.hebrew,
+        genus_parts=_construct_parts(bird.genus, bird.genus_parts, catalog),
+        epithet_parts=_construct_parts(
+            bird.epithet, bird.epithet_parts, catalog
+        ),
+    )
+
+
+def _construct_parts(
+    word: str, parts: tuple[SplitPart, ...], catalog: Catalog
+) -> tuple[ConstructPart, ...]:
+    if not parts:
+        return (ConstructPart(hebrew="", first_letter=word[0], length=len(word)),)
+    return tuple(
+        ConstructPart(
+            hebrew=catalog.element(part.element_id).he,
+            first_letter=part.latin[0],
+            length=len(part.latin),
+        )
+        for part in parts
     )
 
 

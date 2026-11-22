@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from .grading import ElementResult, RecognizeResult
+from .grading import ElementResult, LatinResult, RecognizeResult
 from .models import (
     CardView,
+    ConstructCardView,
+    ConstructPart,
     ElementsCardView,
     LearnCardView,
     RecognizeCardView,
@@ -19,6 +21,8 @@ def render_card(
     element_answers: dict[str, str] | None = None,
     reveal_recognize: bool = False,
     recognize_answers: tuple[str, ...] = (),
+    reveal_construct: bool = False,
+    construct_answer: str = "",
     position: tuple[int, int] | None = None,
 ) -> str:
     label = _card_label(view, position)
@@ -34,6 +38,14 @@ def render_card(
             reverse_hebrew,
             reveal_recognize,
             recognize_answers,
+            label,
+        )
+    if isinstance(view, ConstructCardView):
+        return _render_construct(
+            view,
+            reverse_hebrew,
+            reveal_construct,
+            construct_answer,
             label,
         )
     raise TypeError(f"cannot render {type(view).__name__}")
@@ -181,3 +193,121 @@ def render_recognize_result(result: RecognizeResult) -> str:
 
 def _join_latins(latins: tuple[str, ...]) -> str:
     return " or ".join(repr(latin) for latin in latins)
+
+
+def _render_construct(
+    view: ConstructCardView,
+    reverse: bool,
+    reveal: bool,
+    answer: str,
+    label: str,
+) -> str:
+    lines = [
+        f"{label} Which Latin name matches the Hebrew name?",
+        f"  Hebrew:   {_he(view.hebrew, reverse)}",
+        f"  Scaffold: {_render_scaffold(view, reverse)}",
+    ]
+    if reveal and answer:
+        lines.append(f"  correct: {answer!r}")
+    return "\n".join(lines)
+
+
+def _render_scaffold(view: ConstructCardView, reverse: bool) -> str:
+    words = " ".join(
+        (
+            _scaffold_word(view.genus_parts),
+            _scaffold_word(view.epithet_parts),
+        )
+    )
+    legend = ", ".join(
+        _scaffold_legend_part(part, reverse)
+        for part in (*view.genus_parts, *view.epithet_parts)
+    )
+    return f"{words} ({legend})"
+
+
+def _scaffold_word(parts: tuple[ConstructPart, ...]) -> str:
+    return "".join(
+        f"{part.first_letter}{'·' * max(0, part.length - 1)}"
+        for part in parts
+    )
+
+
+def _scaffold_legend_part(part: ConstructPart, reverse: bool) -> str:
+    if part.hebrew:
+        return f"{part.length} {_he(part.hebrew, reverse)}"
+    return str(part.length)
+
+
+def render_construct_result(result: LatinResult) -> str:
+    """Render feedback for a typed Latin answer."""
+    if result.outcome == "correct":
+        return f"  correct: {result.expected!r}"
+
+    label = "almost" if result.outcome == "near_miss" else "wrong"
+    lines = [
+        f"  {label}: chose {result.response!r}, "
+        f"correct {result.expected!r}"
+    ]
+
+    for index, word in enumerate(result.words):
+        if word.status == "correct" or word.distance > 3:
+            continue
+        role = _word_role(index)
+        lines.append(f"  {role}:")
+        lines.append(f"    expected: {word.expected}")
+        if word.response:
+            lines.append(f"    chose:    {word.response}")
+            lines.append(
+                " " * 14
+                + _difference_markers(word.expected, word.response)
+            )
+        else:
+            lines.append("    chose:    (missing)")
+
+    for index, word in enumerate(result.words):
+        role = f"{_word_role(index)}:"
+        statuses = "  ".join(
+            f"[{value}]" if value == word.status else value
+            for value in ("correct", "almost", "wrong")
+        )
+        lines.append(f"  {role:<9} {statuses}")
+
+    return "\n".join(lines)
+
+
+def _word_role(index: int) -> str:
+    if index == 0:
+        return "genus"
+    if index == 1:
+        return "epithet"
+    return f"word {index + 1}"
+
+
+def _difference_markers(expected: str, response: str) -> str:
+    """Underline the region that differs, compiler-style.
+
+    The shared prefix and suffix are skipped; every response character
+    between them gets a caret, so a swap such as ``pygmeus``/``pygemus``
+    produces ``^^`` under ``em`` rather than two isolated carets.
+    """
+    limit = min(len(expected), len(response))
+    prefix = 0
+    while prefix < limit and expected[prefix] == response[prefix]:
+        prefix += 1
+    suffix = 0
+    while (
+        suffix < limit - prefix
+        and expected[-1 - suffix] == response[-1 - suffix]
+    ):
+        suffix += 1
+
+    markers = [" "] * len(response)
+    middle = len(response) - prefix - suffix
+    if middle:
+        for position in range(prefix, prefix + middle):
+            markers[position] = "^"
+    elif markers:
+        # The response is missing characters: point at where they belong.
+        markers[min(prefix, len(markers) - 1)] = "^"
+    return "".join(markers).rstrip()
