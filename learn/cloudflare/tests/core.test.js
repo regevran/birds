@@ -159,5 +159,6 @@ test("CORS allows the pages origin and any localhost port", () => {
     "https://regevran.github.io",
   );
   assert.match(headers["Access-Control-Expose-Headers"], /X-Revision/);
+  assert.match(headers["Access-Control-Allow-Methods"], /POST/);
   assert.deepEqual(corsHeaders("https://evil.example", configured), {});
 });

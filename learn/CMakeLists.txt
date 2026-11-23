@@ -5,6 +5,7 @@
 #   learn-test          run the Python unit tests
 #   learn-test-live     run live Worker tests (requires BIRDS_TEST_* env)
 #   learn-run           run the interactive text client
+#   learn-worker-data   generate the Worker's bundled dataset module
 #   learn-worker-test   run the Worker tests with Node's built-in runner
 #   learn-worker-dev    run the Worker locally with wrangler
 #   learn-worker-deploy deploy the Worker with wrangler
@@ -18,6 +19,15 @@ file(GLOB_RECURSE LEARN_PY CONFIGURE_DEPENDS
 file(GLOB_RECURSE LEARN_WORKER CONFIGURE_DEPENDS
     "${LEARN_CLOUDFLARE}/src/*.js"
     "${LEARN_CLOUDFLARE}/tests/*.js")
+
+add_custom_target(learn-worker-data
+    COMMAND "${Python3_EXECUTABLE}"
+        "${BIRDS_ROOT}/learn/tools/build_worker_data.py"
+    DEPENDS
+        "${BIRDS_DATA_OUT}/israel_birds_final.json"
+        "${BIRDS_DATA_OUT}/etymology.json"
+    COMMENT "Generating the Worker dataset module"
+    VERBATIM)
 
 find_program(NODE_EXECUTABLE node)
 
@@ -62,6 +72,7 @@ if(NODE_EXECUTABLE)
         NAME learn-worker
         COMMAND "${NODE_EXECUTABLE}" --test
         WORKING_DIRECTORY "${LEARN_CLOUDFLARE}")
+    add_dependencies(learn-worker-test learn-worker-data)
 else()
     add_custom_target(learn-worker-test
         COMMAND "${CMAKE_COMMAND}" -E echo
@@ -84,3 +95,6 @@ add_custom_target(learn-worker-deploy
     COMMENT "Deploying the progress Worker"
     USES_TERMINAL
     VERBATIM)
+
+add_dependencies(learn-worker-dev learn-worker-data)
+add_dependencies(learn-worker-deploy learn-worker-data)

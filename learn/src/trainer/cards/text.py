@@ -1,8 +1,8 @@
-"""Plain-text rendering of card views for the development client."""
+"""Plain-text rendering of Worker card and feedback JSON."""
 
 from __future__ import annotations
 
-from .grading import ElementResult, LatinResult, RecognizeResult
+from .results import ElementResult, LatinResult, RecognizeResult
 from .models import (
     CardView,
     ConstructCardView,
@@ -71,6 +71,11 @@ def _he(text: str, reverse: bool) -> str:
     return text[::-1] if reverse else text
 
 
+def _family_suffix(view: CardView) -> str:
+    family = getattr(view, "family", "")
+    return f" ({family})" if family else ""
+
+
 def _render_learn(view: LearnCardView, reverse: bool, label: str) -> str:
     status = view.status or "regular"
     categories = ", ".join(view.status_categories)
@@ -122,7 +127,7 @@ def _render_elements(
     label: str,
 ) -> str:
     lines = [
-        f"{label} {view.latin}",
+        f"{label} {view.latin}{_family_suffix(view)}",
         "  Choose the Hebrew meaning for each element.",
     ]
     for index, row in enumerate(view.rows):
@@ -183,7 +188,8 @@ def _render_recognize(
     label: str,
 ) -> str:
     lines = [
-        f"{label} Which Latin name matches the Hebrew name?",
+        f"{label} Which Latin name matches the Hebrew name?"
+        f"{_family_suffix(view)}",
         f"  Hebrew: {_he(view.hebrew, reverse)}",
         "",
     ]
@@ -214,7 +220,8 @@ def _render_construct(
     label: str,
 ) -> str:
     lines = [
-        f"{label} Which Latin name matches the Hebrew name?",
+        f"{label} Type the Latin name for the Hebrew name."
+        f"{_family_suffix(view)}",
         f"  Hebrew:   {_he(view.hebrew, reverse)}",
         f"  Scaffold: {_render_scaffold(view, reverse)}",
     ]
@@ -231,7 +238,8 @@ def _render_produce(
     label: str,
 ) -> str:
     lines = [
-        f"{label} Type the Latin name for the Hebrew name.",
+        f"{label} Type the Latin name for the Hebrew name."
+        f"{_family_suffix(view)}",
         f"  Hebrew:   {_he(view.hebrew, reverse)}",
     ]
     if reveal and answer:

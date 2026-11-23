@@ -1,2 +1,2 @@
-AUTH_SECRET="replace-with-a-long-random-value"
+AUTH_SECRET="73hfcnbe934y7trhdxcj2048rtjd;smdchwe9r984y3grpsldshwge9<F8>f5urks0yfvsw"
 ALLOWED_ORIGINS="http://localhost:8000"

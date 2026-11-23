@@ -2,14 +2,17 @@
 
 Status: the Worker file API, login, provisioning script and their tests are
 implemented in `learn/cloudflare/` and `learn/tools/provision_user.py`. The
-Worker is deployed at `https://birds-progress.regevran.workers.dev` and the
-live login smoke test succeeded. The Python `CloudFiles` client, credential
-storage and CLI `login`/`logout`/`whoami` are implemented. Scheduler wiring
-and the browser client are next.
+Worker is deployed at `https://birds-progress.regevran.workers.dev`; the live
+login smoke test succeeded. The Worker has `/fs`, the `/app` session API and
+the stateless card/search API. The Python text client uses all of them; it
+keeps no bird data, card views, grading or search logic. The browser client is
+next. The stateless endpoints are implemented and tested locally but still
+need a deployment to reach the live Worker.
 
-This file is the current storage design. The local-file and local-server
-sections of `learn-implementation.md` describe the earlier plan and are
-superseded where they conflict.
+This file is the current storage and session design. The endpoint contract
+with request/response examples is in `learn/WORKER-API.md`. The local-file and
+local-server sections of `learn-implementation.md` describe the earlier plan
+and are superseded where they conflict.
 
 ## Shape
 
@@ -20,9 +23,10 @@ GitHub Pages (public)                 Cloudflare
         └──── HTTPS + bearer token ────────┘
 ```
 
-The Worker is a file store, not a trainer API. It authenticates, scopes paths
-and reads/writes R2. The trainer logic (cards, queue, scheduler) lives in the
-clients; the files are the contract between them.
+The Worker owns the trainer session logic: `/app` creates sessions, returns
+the current card, grades answers and saves profile/session documents. Clients
+render the JSON views; they do not duplicate scheduling. `/fs` remains a
+scoped raw file API for profile/session documents and test probes.
 
 ## Bucket layout
 
@@ -78,49 +82,48 @@ writes it.
 
 ## Tokens
 
-- `POST /login` returns an HMAC-SHA256 signed token valid for 30 days
-  (`TOKEN_TTL_SECONDS`).
-- Payload: `{u: username, s: profile|tests, exp: unix-seconds}`.
-- `AUTH_SECRET` is a Worker secret; rotating it invalidates every token.
-- Login failures are generic: unknown user and wrong password both return
-  `invalid_credentials`.
-- Missing or malformed tokens return `unauthorized`; expired tokens return
-  `token_expired`.
+Login, token retrieval, bearer headers and expiry behavior are documented only
+in [Get a token](../learn/WORKER-API.md#get-a-token). Internally the token is an
+HMAC-SHA256 signed payload `{u: username, s: profile|tests, exp: unix-seconds}`;
+`AUTH_SECRET` is a Worker secret and rotating it invalidates every token.
 
-## File API
+## API
 
-```text
-GET    /health
-POST   /login
-GET    /fs?prefix=...&limit=...&cursor=...
-GET    /fs/<path>
-PUT    /fs/<path>          If-Match: <revision> optional
-DELETE /fs/<path>
-```
+The endpoint contract, request/response examples, status codes and CORS rules
+live only in [`learn/WORKER-API.md`](../learn/WORKER-API.md). This file does not
+duplicate them. Entry points:
 
-- Reads return `X-Revision` (R2 ETag without quotes) and `ETag`.
-- Writes return `{path, revision, size}`. Without `If-Match` a write creates or
-  replaces; with a stale `If-Match` it returns `412 revision_conflict`.
-- Listing is a flat recursive prefix list; `prefix=sessions/` lists the
-  subtree, `prefix=` lists the whole scope.
-- Bodies are capped at 1 MB.
-- Paths are relative and restricted to letters, digits, `.`, `_`, `-` and
-  `/`. Empty segments, `.`, `..`, backslashes and control characters are
-  rejected.
-- Error body: `{error, message}`.
+- [Run the Worker locally](../learn/WORKER-API.md#run-the-worker-locally)
+- [Get a token](../learn/WORKER-API.md#get-a-token)
+- [File API](../learn/WORKER-API.md#file-api)
+- [Profile](../learn/WORKER-API.md#profile)
+- [Sessions](../learn/WORKER-API.md#sessions)
+- [Stateless cards](../learn/WORKER-API.md#stateless-cards)
+- [Errors](../learn/WORKER-API.md#errors)
+- [CORS](../learn/WORKER-API.md#cors)
 
-## CORS
+Design constraints that stay here:
 
-`ALLOWED_ORIGINS` is a comma-separated list; the default is
-`https://regevran.github.io`. Any localhost or 127.0.0.1 port is allowed for
-development. Preflights are cached for a day.
+- The Worker owns the card chain, grading and session scheduler; clients render
+  the JSON views and never duplicate scheduling. It also resolves session
+  handles and filters card-run eligibility.
+- Sessions are independent documents with no active pointer. The protected
+  `default` session always exists. Each client locally selects the session it
+  works on; different clients may select different sessions, or the same one.
+- `/app/cards` is stateless and never touches progress. Session routes persist
+  through R2. Both use the same card and grading code.
+- Card views never contain an explicit correct-answer field. L is the learning
+  card and intentionally shows the full name.
+- Session names are optional and unique; `default` is reserved.
 
 ## Revision model
 
-The R2 ETag is the revision. The Worker sends it as `X-Revision` and accepts
-it back in `If-Match`. It uses R2's conditional `put` so two writers cannot
-silently overwrite each other. The app should keep one open session per
-profile and reload on a `412`.
+The R2 ETag is the revision. The Worker sends it as `X-Revision` and accepts it
+back in `If-Match`; the API reference defines the exact requests and
+responses. It uses R2's conditional `put` so two writers cannot silently
+overwrite each other. Sessions carry no active pointer, so two clients may
+practise the same session: a consumed card is rejected with `409 stale_card`
+and the client reloads the session, while a stale write reloads on `412`.
 
 ## Python client
 
@@ -129,11 +132,18 @@ profile and reload on a `412`.
 - `login(server, username, password)` -> `Credentials`.
 - `CloudFiles(server, token)` with `read`, `read_json`, `write`,
   `write_json`, `list` (follows cursors) and `delete`.
+- `CloudApp(server, token)` calls `/app`: `search_birds`, `card_view`,
+  `card_run`, `grade_card`, `profile`, `list_sessions`, `resolve_session`,
+  `create_session`, `session`, `prepare_session`, `rename_session`,
+  `delete_session` and `answer`.
 - `CloudError` carries the HTTP status and the Worker's error code.
 - Credentials are stored in `~/.birds_trainer.json` with mode 0600:
   `{server, username, scope, token, expires_at}`. Override the path with
   `BIRDS_TRAINER_CREDENTIALS`; the server can come from
   `BIRDS_TRAINER_SERVER`.
+- The selected session is client state in `~/.birds_trainer_state.json`
+  (mode 0600), keyed by `server|username`; override the path with
+  `BIRDS_TRAINER_STATE`. It is not stored in the Worker.
 
 CLI commands:
 
@@ -141,7 +151,39 @@ CLI commands:
 python3 -m trainer login --server https://birds-progress.regevran.workers.dev
 python3 -m trainer whoami
 python3 -m trainer logout
+python3 -m trainer search paddyfield
+python3 -m trainer card L paddyfield
+python3 -m trainer card F paddyfield
+python3 -m trainer session new --search paddyfield --status accidental
+python3 -m trainer session new passers --search passer
+python3 -m trainer session list
+python3 -m trainer session run
+python3 -m trainer session run passers
+python3 -m trainer session status
+python3 -m trainer session open default
+python3 -m trainer session rename passers evening
+python3 -m trainer session rename evening --clear
+python3 -m trainer session delete <id|name>
 ```
+
+Search, card views, grading and sessions require a stored login and a reachable
+Worker. `card` and `search` are online-only; there is no local dataset or card
+generator. `--answer` and `--reveal` are not part of the CLI: the normal flow
+reveals the answer, and `card L` is the reference view.
+
+`session new [X | --name X]` creates a session and selects it for this client
+without starting it; the name is optional and unique. `session new` accepts
+`--search`, `--status`, `--family`, `--order`, `--genus`, `--active-cap` and
+`--seed`. `session open|status|run|delete` accept a name, full id or
+unambiguous id prefix, or `--name` for an exact name. Handles match
+case-insensitively. `session open` and `run X` save the selection locally;
+`status X` is read-only. `session rename OLD [NEW]` sets or clears a name; the
+id, queue and progress stay unchanged. `session run` calls `/prepare` so passed
+birds are dropped, renders the Worker's card views and submits answers; pausing
+(`exit`, Esc or Ctrl-D) leaves the session saved, so `session run` resumes it.
+Every session except `default` can be deleted; if it was selected, the client
+falls back to `default`. `default` cannot be renamed. A completed session is
+not deleted automatically.
 
 The token is never printed. An expired stored login tells the user to run
 `login` again. The credential file and the login command tests use a temporary
@@ -156,13 +198,16 @@ BIRDS_TEST_PASSWORD=... \
 cmake --build build --target learn-test-live
 ```
 
-They write only under `tests/probe/<random>/` and delete the file. Without the
-three environment variables the live module is skipped in the normal suite.
+They write only under `tests/`: file probes use `tests/probe/<random>/`, and
+the session test creates and deletes one short session. Without the three
+environment variables the live module is skipped in the normal suite.
 
 ## Testing
 
 - `cmake --build build --target learn-worker-test` runs Node's built-in test
-  runner (`node --test`) in `learn/cloudflare`.
+  runner (`node --test`) in `learn/cloudflare`: 90 tests covering core,
+  login/file API, dataset, grading, views, scheduler, stateless cards/search
+  and the `/app` session API.
 - The tests use an in-memory binding that implements only the R2 methods the
   Worker calls. This is a binding stub for the Worker, not a parallel progress
   store; deployed-worker tests with real R2 come with the client.
@@ -186,8 +231,6 @@ needed.
 
 ## Deferred
 
-- Python `RemoteFiles` client and CLI `login`/`logout`.
-- Scheduler/profile/session code on top of the file API.
 - Browser client and GitHub Pages deployment.
 - Optional login throttling if the public endpoint is scanned.
 - Any event log (R2 cannot append in place; D1 would be a separate design).

@@ -85,16 +85,22 @@ build writes to `build/book` and installs its print PDFs to `book/out`. The
 `learn` CMake targets work too. See
 `.ai/book-reference.md` for the book state.
 
-The trainer foundation is implemented: `Config`, domain errors, the dataset
-loader/validator with indexes. The card layer has pure L, E, R, C and F views,
-E/R/C/F answer grading and an interactive text client, with 191 passing Python
-tests (two live Worker tests skip unless configured). The text client supports
-answerable E, R, C and F cards, multi-match card runs, nested search mode and
-one-prompt-up navigation. The Cloudflare Worker in `learn/cloudflare/`
-implements an authenticated, private R2 file store and login, with 22 passing
-Node tests, and is deployed at
-`https://birds-progress.regevran.workers.dev`. The Python `CloudFiles` client
-and CLI `login`/`logout`/`whoami` are implemented. The V card, hints,
-scheduling, lifecycle and the web UI are still design-only; see
+The trainer is Worker-owned: the dataset, L/E/R/C/F views, grading, search and
+scheduler live in `learn/cloudflare/`. The Python text client is a thin Worker
+client with a text renderer and credential store, with 112 passing Python tests
+(three live Worker tests skip unless configured). The text client supports
+search, answerable E, R, C and F cards, multi-match card runs, nested search
+mode and one-prompt-up navigation. The Cloudflare Worker implements an
+authenticated, private R2 file store, login, the `/app` session API and the
+stateless card/search API, with 90 passing Node tests. It is at
+`https://birds-progress.regevran.workers.dev`; the stateless routes still need
+a deployment. Python `CloudFiles`/`CloudApp` and CLI
+`login`/`logout`/`whoami` are implemented. Search and cards go through the
+Worker; `--answer`, `--reveal` and the local card/dataset layer are gone.
+Saved sessions are driven through
+`session new|list|open|status|run|rename|delete`. Sessions are independent
+Worker documents with no active one; each client locally selects the session
+it works on, and a protected `default` session always exists.
+The V card, hints and the web UI are still to come; see
 `.ai/learn-reference.md`, `.ai/learn-implementation.md` and
 `.ai/learn-cloudflare.md`.

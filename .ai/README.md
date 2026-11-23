@@ -14,8 +14,8 @@ Files:
 - `learn-reference.md` — trainer design and card chain.
 - `learn-implementation.md` — trainer implementation spec and open decisions.
 - `learn-todo.md` — trainer follow-ups.
-- `learn-cloudflare.md` — current progress store: Worker file API, accounts,
-  tokens and deployment.
+- `learn-cloudflare.md` — current progress store and session API: Worker `/fs`
+  and `/app`, accounts, tokens and deployment.
 - `REFERENCE.md` — repository orientation: layout, build commands and status.
 - `whole-words.md` — open audit of whole-word meanings such as `olivetorum`.
 

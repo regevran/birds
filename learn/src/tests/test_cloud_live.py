@@ -12,6 +12,7 @@ import unittest
 import uuid
 
 from trainer.foundation.cloud import (
+    CloudApp,
     CloudError,
     CloudFiles,
     login,
@@ -85,6 +86,33 @@ class LiveWorkerTests(unittest.TestCase):
             login(SERVER, USER, f"wrong-{uuid.uuid4().hex}")
         self.assertEqual(failure.exception.status, 401)
         self.assertEqual(failure.exception.code, "invalid_credentials")
+
+    def test_session_api_creates_advances_and_deletes(self) -> None:
+        app = CloudApp(self.credentials.server, self.credentials.token)
+        view = app.create_session(
+            name=f"live-{uuid.uuid4().hex}",
+            filter={
+                "search": "acrocephalus-agricola",
+                "statuses": ["accidental"],
+            },
+            settings={"active_cap": 1},
+            seed=7,
+        )
+        session_id = view["session"]["session_id"]
+        try:
+            self.assertEqual(view["current"]["type"], "L")
+            response = app.answer(
+                session_id, view["current"]["uid"], "advance"
+            )
+            self.assertEqual(response["session"]["current"]["type"], "E")
+            self.assertIsNone(response["feedback"])
+            listed = app.list_sessions()["sessions"]
+            self.assertIn(
+                session_id,
+                [session["session_id"] for session in listed],
+            )
+        finally:
+            app.delete_session(session_id)
 
 
 if __name__ == "__main__":

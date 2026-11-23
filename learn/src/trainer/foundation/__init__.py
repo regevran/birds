@@ -1,5 +1,5 @@
-"""Foundation: configuration, errors, dataset, normalization and passwords."""
+"""Foundation: runtime support shared by the text client.
 
-from .config import Config
-
-__all__ = ["Config"]
+The Worker owns the dataset and trainer logic; this package keeps errors,
+passwords and the Worker HTTP client.
+"""

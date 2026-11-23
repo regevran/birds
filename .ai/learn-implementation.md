@@ -1,10 +1,15 @@
 # Learning tool — implementation spec (draft)
 
-Status: draft for review. The foundation data layer, the L/E/R/C/F card views
-and E/R/C/F answer grading are implemented in `learn/src/trainer/`; the V card,
-hints, scheduling, lifecycle and web UI are still proposals. This file is the
-implementation-level companion to `learn-reference.md`; where the two differ,
-this file is the proposal and the difference is listed under **Open decisions**.
+Status: draft for review. The dataset, L/E/R/C/F card views, E/R/C/F grading,
+search, scheduling and session state are implemented in the Worker (`/app`).
+It also resolves session handles and filters card-run eligibility. The Python
+client renders Worker JSON, collects answers and stores credentials; it no
+longer implements the dataset, card layer or grading. The V card, hints, lifecycle
+details and web UI are still proposals. This file is the implementation-level
+companion to `learn-reference.md`; where the two differ, this file is the
+proposal and the difference is listed under **Open decisions**. The Python
+module tree below is historical where it describes local card/view/dataset
+modules.
 
 > Storage has moved: progress is a private Cloudflare R2 file store behind the
 > Worker in `learn/cloudflare/`, documented in `learn-cloudflare.md`. The
@@ -44,6 +49,13 @@ this file is the proposal and the difference is listed under **Open decisions**.
   would add a build step and dependencies for no benefit.
 
 ## 2. Repository tree
+
+> **Historical target tree.** The current Python package is only the CLI,
+> `foundation/` (errors, Worker client, passwords) and `cards/` (models,
+> Worker JSON decoding, text rendering). The dataset, card generation,
+> grading, search, scheduling and lifecycle live in `learn/cloudflare/`.
+> Files listed below such as `dataset.py`, `views.py`, `grading.py` and the
+> `scheduling/`/`lifecycle/` packages were not kept.
 
 ```text
 birds/
@@ -194,8 +206,9 @@ foundation: config, errors, models, dataset, normalize
   answer, return the next profile/session and the response. No file I/O inside.
 - **I/O edges**: `store` reads/writes files; `api` parses HTTP and serializes;
   `static` serves files; `events` appends JSONL.
-- **One `AppContext`** holds the config, dataset, profile store, active session
-  and locks. It is created at startup and injected into the API handlers.
+- **One `AppContext`** holds the config, dataset, profile store, selected
+  session and locks. It is created at startup and injected into the API
+  handlers. (Historical: the Worker now holds this state.)
 - **Dataclasses** for `Bird`, `Element`, `SplitPart`, `WholeName` and `Catalog`
   live in `dataset.py`. Card and session models are deferred until those
   layers are designed. No Pydantic.
@@ -429,19 +442,17 @@ truth.
 
 ## 5. Card generation
 
-> Implemented for L, E, R, C and F: `CardDescriptor` identifies the card,
-> `LearnCardView`, `ElementsCardView`, `RecognizeCardView`,
-> `ConstructCardView` and `ProduceCardView` are the pure views,
-> `card_view(catalog, descriptor, *, seed=0)` builds them, and
-> `cards/grading.py` grades E, R, C and F answers. `cards/text.py` renders the
-> views and `trainer/cli.py` is the interactive text client with answerable
-> E, R, C and F cards, nested search mode and up-one-level navigation. A card
-> command whose query matches several birds becomes a one-pass run in search
-> order: Enter advances, exit/quit/Ctrl-D/Esc stops, and ineligible birds are
-> skipped and counted. One-shot display and `--reveal` batch-print every
-> match. The interactive client gives each E/R card a fresh random seed unless
-> `--seed N` is supplied; one-shot commands use seed 0. The V view structure
-> and the hint ladder remain to be settled.
+> Implemented in the Worker: the card descriptor identifies the card, the
+> L/E/R/C/F view JSON is built by `learn/cloudflare/src/trainer/views.js`, and
+> `learn/cloudflare/src/trainer/grading.js` grades E, R, C and F answers.
+> `learn/src/trainer/cards/text.py` renders the JSON and
+> `learn/src/trainer/cli.py` is the interactive text client. A card command
+> whose query matches several birds becomes a one-pass run in search order:
+> Enter advances, exit/quit/Ctrl-D/Esc stops, and ineligible birds are skipped
+> and counted. `--answer` and `--reveal` were removed. E/R/C/F card commands
+> practise both inside the client and from a shell; L only prints. Each E/R
+> card gets a fresh random seed unless `--seed N` is supplied. The V view
+> structure and the hint ladder remain to be settled.
 
 ### 5.1 Chain
 
@@ -530,9 +541,9 @@ the Latin name split on spaces (always two words in the current data).
 - A correct retry after a wrong answer is a pass for F (the failure move is
   scheduling, not a hint). V is different: a retry pass does not advance the V
   level.
-- Implemented as `grade_latin` in `cards/grading.py`, using
-  `foundation/normalize.py`; the scheduler-level soft-return and pass rules
-  come later.
+- Implemented as `gradeLatin` in the Worker's `trainer/grading.js`, with
+  normalization in `trainer/normalize.js`; the scheduler-level soft-return and
+  pass rules live in the Worker.
 
 **Shared Hebrew name.** The two *Oenanthe* species share one Hebrew name. The
 card is generated for one species, but either Latin species is accepted. R
@@ -542,8 +553,8 @@ The card's species is the one that passes. This is the agreed edge-case rule.
 **Elements.** The user picks a Hebrew gloss; the correct gloss is the element's
 `he`. Because glosses are not unique, any element with that gloss is accepted;
 options are deduplicated by gloss. Wrong answers reveal and continue. E, R, C
-and F grading are implemented in `cards/grading.py`; F reuses `grade_latin`;
-V grading comes with the V card.
+and F grading are implemented in the Worker's `trainer/grading.js`; F reuses
+the Latin grader; V grading comes with the V card.
 
 **Hebrew/English (later).** Hebrew prompt matching normalizes ASCII hyphen,
 maqaf, space, geresh/gershayim and whitespace. English grading will be
@@ -695,7 +706,7 @@ Two birds, global counter 100, cap 7, no V due.
 | 10 | B/F | correct | 110 | B passed; V1 due 130; session complete |
 
 At counter 127, A's V1 becomes due; at 130, B's. They are injected into the
-next active session (in-scope or out-of-scope per settings).
+next session that is practised (in-scope or out-of-scope per settings).
 
 ### 6.6 Invariants
 
@@ -720,39 +731,49 @@ Checked in tests after every transition:
 - Create with a display name; generate a filesystem-safe ID.
 - Main screen lists profiles and due-review counts.
 - Rename changes the display name only; the ID and files stay.
-- Delete requires confirmation; if committed, git is the backup. If the
-  profile has an active session, close it first.
+- Delete requires confirmation; if committed, git is the backup. A profile's
+  sessions are independent documents and remain until individually deleted.
 - Settings: default active cap, lookahead target, out-of-scope reviews, bridge.
 
 ### 7.2 Sessions
 
-- Create: choose a filter, preview the eligible count, name the session (auto
-  from local start time, editable), set advanced options, create. The server
-  computes the eligible set, subtracts `passed`, shuffles with a stored seed,
-  builds the pool and initial queue (no V injection yet), and saves.
+- Sessions are independent documents with no active pointer. The protected
+  `default` session must always exist; it has no filters and contains every
+  eligible bird. A client selects the session it works on locally, per server
+  and account; two clients may select the same session.
+- Create: choose a filter, preview the eligible count, optionally name the
+  session (names are unique; unnamed sessions use the id), set advanced
+  options, create. The server computes the eligible set, subtracts `passed`,
+  shuffles with a stored seed, builds the pool and initial queue (no V
+  injection yet), and saves. The creating client selects it; other clients do
+  not change.
 - Eligibility default: `regular` + `introduced`; `accidental`, `historical` and
   `extinct` are opt-in. H→L always requires a Hebrew name, so the five
-  no-Hebrew species are excluded.
+  no-Hebrew species are excluded. `default` has no status filter.
 - Filter semantics: AND across dimensions (`families`, `orders`, `genera`,
   `statuses`, `search`); OR within a dimension; empty list means unrestricted.
-- Open: close any other active session, load, validate data version, prune
-  passed birds from pool and queue (see open decision), re-claim
-  `paused_review` if still valid, refill with V injection, return current card
-  and lookahead.
-- Close: save, release claims, emit event, clear active session.
-- Resume: `queue[0]` is re-shown, so closing mid-card resumes exactly, except
+- Prepare/select: a client selects a session and calls `/prepare`, which prunes
+  passed birds from pool and queue (see open decision), re-claims
+  `paused_review` if still valid, refills with V injection, and returns current
+  card and lookahead.
+- Resume: `queue[0]` is re-shown, so pausing mid-card resumes exactly, except
   for passed-bird pruning and V re-derivation.
 - Reload: drop passed birds from queue and pool, release stale claims, refill.
   Keeps the session's own progress and counter history.
 - Completed: pool and queue empty. Can be reopened for due V. Stays saved.
-- Rename/delete: same safety as profiles.
-- One active session at a time. Two saved sessions may learn the same
-  not-yet-passed bird; only `passed` is globally excluded.
+- Rename/clear name: one session document write; the id, queue and progress do
+  not change, nor does any client's selection. `default` cannot be renamed or
+  deleted; every other session can be deleted. A client whose selected session
+  disappears falls back to `default`.
+- Two saved sessions may learn the same not-yet-passed bird; only `passed` is
+  globally excluded. Two clients on one session share its progress; a consumed
+  card is a `409 stale_card` and the client reloads.
 
 ### 7.3 Passed table and reviews
 
 - `passed` is profile-global, keyed by species and skill.
-- V cards are profile-global but claimed by the active session so the same
+- V cards are profile-global but claimed by the session that is practising them
+  so the same
   review is not shown twice.
 - Out-of-scope V cards are allowed by default, marked, and skippable; a session
   setting can disable them.
@@ -763,60 +784,11 @@ Checked in tests after every transition:
 
 ## 8. HTTP API
 
-> **Superseded for progress.** The current Worker is a file API
-> (`/login`, `/fs/<path>`, `/fs` listing) documented in
-> `learn-cloudflare.md`. The profile/session endpoints below were the earlier
-> local-server plan. The browser client now runs against the static Pages
-> bundle and the Worker file API; a future app-level API can be added on top if
-> the scheduler moves server-side.
-
-All API responses are JSON. Static files are served from `learn/src/web/` only.
-
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/api/health` | app/data/schema versions, counts |
-| GET | `/api/profiles` | profiles + due counts |
-| POST | `/api/profiles` | create profile |
-| GET | `/api/profiles/<pid>` | profile summary/settings |
-| PATCH | `/api/profiles/<pid>` | rename/settings |
-| DELETE | `/api/profiles/<pid>` | delete profile |
-| GET | `/api/profiles/<pid>/catalog` | filter options + counts |
-| POST | `/api/profiles/<pid>/catalog/preview` | eligible/pool count for a filter |
-| GET | `/api/profiles/<pid>/sessions` | session summaries |
-| POST | `/api/profiles/<pid>/sessions` | create session |
-| GET | `/api/profiles/<pid>/sessions/<sid>` | session view (current/lookahead) |
-| POST | `/api/profiles/<pid>/sessions/<sid>/open` | open/resume |
-| POST | `/api/profiles/<pid>/sessions/<sid>/answer` | submit L/E advance or R/C/F/V answer |
-| POST | `/api/profiles/<pid>/sessions/<sid>/hint` | request next hint |
-| POST | `/api/profiles/<pid>/sessions/<sid>/reload` | prune passed + refill |
-| POST | `/api/profiles/<pid>/sessions/<sid>/close` | save and release |
-| PATCH | `/api/profiles/<pid>/sessions/<sid>` | rename/settings |
-| DELETE | `/api/profiles/<pid>/sessions/<sid>` | delete |
-
-The answer request carries `card_uid`, `action`
-(`advance`/`answer`/`skip`), `response`, `hint_level`, `latency_ms`. The server
-grades and returns feedback plus the next current card and lookahead.
-
-Errors use a stable code and a human message:
-
-- `profile_not_found`, `session_not_found`, `session_not_active`,
-  `stale_card`, `invalid_action`, `empty_pool`, `data_invalid`,
-  `save_failed`, `internal_error`.
-
-Status codes: 400 invalid request, 403 cross-origin, 404 not found, 409 stale
-card/active conflict, 422 empty pool/semantic error, 500 internal.
-
-Security and robustness:
-
-- Bind `127.0.0.1` by default; never `0.0.0.0` without an explicit flag.
-- Reject requests whose `Origin` is not the local app origin.
-- Require `Content-Type: application/json` for mutations; cap body at 1 MB.
-- No CORS headers. No external network calls.
-- Static paths are resolved under `learn/src/web/`; reject `..`, absolute paths
-  and symlink escapes. Serve only known extensions.
-- Escape all user-controlled names in the UI with `textContent`.
-- API responses are `Cache-Control: no-store`; static assets `no-cache` during
-  local use.
+The HTTP API is documented only in
+[`learn/WORKER-API.md`](../learn/WORKER-API.md). The earlier local-server
+`/api/...` plan is retired and its endpoint table has been removed; do not add
+API routes here. The Worker now serves `/fs` and `/app` as described in that
+reference.
 
 ## 9. UI
 
@@ -879,8 +851,9 @@ Security and robustness:
 
 > **Superseded for storage.** R2 object writes are atomic per object; there is
 > no rename, append or file lock. The Worker uses the R2 ETag as the revision
-> and `If-Match` for optimistic concurrency; one open session per profile is
-> the rule. The local fsync/lock/event-append details below describe the
+> and `If-Match` for optimistic concurrency; sessions are independent documents
+> with no active pointer, and each client selects one locally. The local
+> fsync/lock/event-append details below describe the
 > earlier local-file plan and do not apply to the current store.
 
 - **Atomic writes:** write `.<name>.tmp` in the same directory, flush, fsync,
@@ -892,9 +865,9 @@ Security and robustness:
   append events; then replace in-memory state. If a write fails, keep the old
   state and return `save_failed`.
 - **Crash consistency:** state writes are atomic per file, but profile and
-  session are two files. On startup, validate the active session; if its
-  current card looks already answered in the event log, show a recovery banner
-  and offer reload. This is an accepted local-app trade-off, not a database
+  session are two files. A session's current card can be stale relative to the
+  profile after an interrupted write; the Worker rejects a consumed card and
+  the client reloads. This is an accepted trade-off, not a database
   guarantee.
 - **Locking:** in-process `threading.RLock` per profile/session. A
   `learn/data/progress/.lock` file with `fcntl.flock` prevents two server processes on
@@ -949,8 +922,8 @@ Test layers:
    answer leakage; option determinism by seed; hint ladder; F has no scaffold;
    L bridge. Text client: E answer prompts and score, R retry/reveal and
    accepted answers, C/F typed answers and near-miss/retry/reveal, nested
-   search mode, up-one-level keys, one-shot `--answer`, and multi-match runs
-   (order, Enter/stop, skip counts, batch output).
+   search mode, up-one-level keys, and multi-match runs (order, Enter/stop,
+   skip counts, batch output).
 4. **Queue tests:** insertion order, chain order, failure distance, fallback
    chain, active cap, pool/queue disjointness, V injection spacing, skip
    snooze, counter increments.
@@ -1070,7 +1043,11 @@ Proposed: implement the heuristic in v1 behind a setting; omit uncertain
 matches. Alternative: defer to v1.1. Recommendation: implement a conservative
 version, since L is the learning card and the bridge is its main payoff.
 
-## 14. Global search (future)
+## 14. Global search (browser, future)
+
+The text client's `POST /app/birds` already matches element meanings and
+returns grouped `birds`/`elements` with `matched` reasons; the browser screen
+is what remains.
 
 Not v1, but the core must make it additive:
 
@@ -1087,9 +1064,8 @@ Not v1, but the core must make it additive:
 - The card layer must expose a pure, session-independent
   `card_view(catalog, descriptor, *, seed=0)`. Search previews call that directly;
   the scheduler is not involved.
-- API: `GET /api/search?q=...` and
-  `GET /api/cards/<species_id>/<type>`, separate from the session answer
-  endpoints.
+- API: when search previews are implemented, add their endpoints and examples
+  to `learn/WORKER-API.md`; do not document routes here.
 - UI: a `web/screens/search.js` screen plus a preview route; the `/` shortcut
   opens it from any screen.
 

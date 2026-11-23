@@ -1,19 +1,22 @@
 # Learning tool — design reference
 
-Status: foundation implemented (`Config`, dataset loader/validator/indexes,
-and dataset tests); L, E, R, C and F card views plus the text client
-implemented, and E, R, C and F are answerable with pure grading. The
-Cloudflare progress Worker (file API, login, private R2) is implemented and
-tested but not deployed. The V card, the Python remote client, scheduling,
-lifecycle, hints and the web UI are still design-only. This
-file is the durable record of the design conversation; use it to continue next
-session. `learn-todo.md` holds follow-ups.
+Status: the Worker owns the dataset, L/E/R/C/F card views, grading, search,
+scheduling and session state. The Python text client renders Worker JSON and
+stores credentials; it has no local card or dataset layer. The V card, hints,
+lifecycle details and the web UI are still design-only. This file is the
+durable record of the design conversation; use it to continue next session.
+`learn-todo.md` holds follow-ups.
 
 ## Purpose
 
-An offline browser trainer for the same dataset as the book: Latin, English and Hebrew bird names, plus the etymology elements of the Latin names. Primary v1 skill is **Hebrew → Latin**; English directions are later (v2/v3). There is no session timer: the user practices as long as they want, stops whenever, and resumes the saved card queue later. History is collected now and analysed later.
+A browser trainer for the same dataset as the book: Latin, English and Hebrew
+bird names, plus the etymology elements of the Latin names. Primary v1 skill is
+**Hebrew → Latin**; English directions are later (v2/v3). There is no session
+timer: the user practices as long as they want, stops whenever, and resumes the
+saved card queue later.
 
-Multiple local profiles ("this is me practising"). No sync. Everything local, in the repository.
+One profile per Worker account. Progress is online-only in the Worker; there is
+no second local progress store and no offline card layer.
 
 ## Source data
 
@@ -43,7 +46,7 @@ Defaults:
 ## Core vocabulary
 
 - **Profile** — a person. Holds settings, the shared `passed` table, the global card counter, and the event log.
-- **Session** — a saved, named practice queue with its own filter, pool, active chains and card counter. Independent from other sessions except for the shared `passed` table and reviews. One active session at a time.
+- **Session** — a saved practice queue with an optional unique name, its own filter, pool, active chains and card counter. Independent from other sessions except for the shared `passed` table and reviews. No session is active; each client selects one locally, and the protected `default` session is always present.
 - **Pool (the set)** — the session's filtered birds minus birds already in `passed`, shuffled. Birds not yet started.
 - **Active chain** — the remaining card sequence for one bird currently being learned: `L → E → R → C → F` (or `L → R → C → F`). Per-bird, ordered; not a separate stream for the user.
 - **Queue** — the single ordered list of concrete cards to present next: the interleaving of all active chains plus due V cards. The user sees the front. Target lookahead ~50 cards; it may grow to place a failed card 30–50 cards ahead.
@@ -111,14 +114,14 @@ Notes:
   - **Out-of-scope** (bird was injected into a focused session): remove from `passed`; do **not** insert an F chain into the focused session. The bird is handed back: a normal session whose filter includes it can pick it up. Existing saved sessions do not retroactively add it; the user picks it up manually.
 - **Skip:** V cards only. Non-failure; V level and passed status unchanged; snooze 100 cards; the skip consumes a card and advances the global counter.
 - **Out-of-scope V cards:** allowed by default, visually marked, skippable. A per-session toggle can turn them off. The main screen shows a global due-reviews count.
-- V cards are claimed by the active session so the same review is not duplicated across saved sessions; unshown V cards return to the shared due pool on save/switch.
+- V cards are claimed by the session that is practising them so the same review is not duplicated across saved sessions; unshown V cards return to the shared due pool on save. With no active-session pointer, the exact claim model is still open.
 
 ## Sessions and profiles
 
 - Sessions are independent: each has its own filter, pool, active chains, queue and learning progress.
 - Shared across sessions: the `passed` table, the global card counter, and V reviews.
 - In-progress overlap is allowed: two saved sessions may be learning the same not-yet-passed bird. Only passed birds are excluded.
-- New session: choose a filter → pool = filtered set minus passed, shuffled → name (auto from start time, editable) → start. New birds are drawn randomly from the pool; no family blocks.
+- New session: choose a filter → pool = filtered set minus passed, shuffled → optional unique name → start. New birds are drawn randomly from the pool; no family blocks.
 - Resume: load the saved queue exactly; if closed mid-card, re-show the same card.
 - Reload: drop birds that are now passed from the queue, active chains and pool; refill.
 - Broadening scope = create a new session; the old one remains.
@@ -138,14 +141,15 @@ server and `learn/data/progress` plan. The current design is in
   counter). A normal account maps them under `users/<username>/`; a
   test-scoped account maps them under `tests/`.
 - The R2 ETag is the revision; writes use `If-Match` and a stale write returns
-  `412`. One open session per profile.
+  `412`. Sessions have no active pointer; `default` is always present and each
+  client selects its session locally.
 - Data version hash stored with the session; card content is regenerated from
   item IDs.
 - V cards are not persisted as part of a session queue; they are injected from
-  the shared due pool and claimed by the active session. This prevents the same
-  review appearing in two saved sessions.
-- The tool is online-only. Card inspection can run offline; anything that
-  touches progress requires the Worker.
+  the shared due pool and claimed by the practising session. This prevents the
+  same review appearing in two saved sessions.
+- The tool is online-only. Search, card views, grading and progress all require
+  the Worker; only credential handling works offline.
 - No event log for now; the earlier event-log idea is deferred and may be
   dropped. No dashboards or progress views yet.
 
@@ -160,20 +164,20 @@ server and `learn/data/progress` plan. The current design is in
 - C: scaffold visible; typed answer.
 - F: typed answer; hints on request (ladder: length/first letter → 4–5 options → reveal).
 - V: typed answer; skip button.
-- No timer. No idle detection. Record open/close and card events; later analysis can infer gaps.
+- No timer. No idle detection. Record session changes and card events; later
+  analysis can infer gaps.
 
 ### Text client (current practice surface)
 
 - The interactive text client is the real practice surface until the browser
-  exists. One-shot commands stay display-only unless `--answer` is given.
+  exists. Card views, search and grading come from the Worker.
 - `card E`: shows the card, prompts for one option number per element, then
   prints per-element feedback and `correct/total`. Wrong rows show the chosen
   and correct glosses; correct rows repeat the correct gloss. Wrong answers
   reveal and continue; E is not a gate.
 - `card R`: shows the Hebrew name and numbered Latin options. A wrong choice
   re-prompts without revealing; a second wrong reveals the correct Latin.
-  `--reveal` shows the accepted Latin name(s); the shared-Hebrew pair accepts
-  either name.
+  Shared-Hebrew names are all accepted.
 - `card C`: shows the Hebrew name and a one-line scaffold: the concatenated
   word shapes, then the part lengths and Hebrew glosses. The genus is one word
   even when split. The user types the full Latin; normalization is NFC,
@@ -185,19 +189,26 @@ server and `learn/data/progress` plan. The current design is in
   several matches form a one-pass run in search order. Enter advances;
   exit/quit/Ctrl-D/Esc stops the run. E, R, C and F runs skip ineligible birds
   and report the count. This is a learner-driven study tool ("search with
-  benefits"), not saved progress or the scheduler. One-shot display and
-  `--reveal` batch-print all matching cards; `--answer` needs a single match.
+  benefits"), not saved progress or the scheduler.
+- A search command matches identity fields and the etymology elements of a
+  bird's name, so `summit` finds the `Acrocephalus` birds. Result rows carry a
+  `matched` explanation (`acrido (=locust)`, in the searched language), and a
+  following `Elements matching ...` section lists the dictionary entries with
+  glosses, theme, origin and bird count. Name matches sort first. Session
+  filters stay names-only; card commands use the full search.
 - A search command opens a read-only `search>` mode. Every line there is a
   query (a leading `/` is optional) except `?` (help); a bare `/` opens the
   mode without listing all birds. Exiting returns to the same element and
   keeps answers already given.
-- Each interactive `card E` or `card R` uses a fresh random option seed;
-  `--seed N` reproduces one exact card. One-shot commands stay at seed 0 so
-  `--answer` numbers are reliable.
+- Each `card E` or `card R` uses a fresh random option seed; `--seed N`
+  reproduces one exact card. E, R, C and F practise from a shell as well as
+  inside the client; L only prints.
+  `--answer` and `--reveal` do not exist; `card L` is the reference view and
+  the practice flow reveals answers.
 - `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one prompt up; from
   `card>` they leave the client. Ctrl-C leaves the client.
-- Progress is not saved yet; the next gate adds the shared profile/session
-  store so the text and browser clients can resume the same queue.
+- Progress is saved through the Worker profile/session store; `session run`
+  resumes the open queue.
 
 ## Data edge cases and grading
 

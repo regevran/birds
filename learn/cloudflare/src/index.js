@@ -1,10 +1,11 @@
-/* Cloudflare Worker: authenticated file storage for trainer progress.
+/* Cloudflare Worker: authentication, file storage and the trainer session API.
  *
- * The Worker is deliberately a file store, not a trainer API.  The Python
- * client and the browser client decide what profile.json and session files
- * mean; this module only authenticates, scopes paths and reads/writes R2.
+ * `/fs` is a scoped file store for clients that need raw profile/session
+ * documents. `/app` owns scheduling and grading so the text and browser
+ * clients stay thin and share one progress source in R2.
  */
 
+import { handleApp } from "./app.js";
 import {
   DEFAULT_TOKEN_TTL_SECONDS,
   HttpError,
@@ -56,6 +57,17 @@ export default {
           throw new HttpError(405, "method_not_allowed", "method not allowed");
         }
         return await handleLogin(request, env, cors);
+      }
+
+      if (
+        url.pathname === "/app" ||
+        url.pathname.startsWith("/app/")
+      ) {
+        const identity = await authenticate(request, env);
+        return await handleApp(request, env, url, {
+          ...cors,
+          "Cache-Control": "no-store",
+        }, identity);
       }
 
       if (url.pathname === "/fs") {

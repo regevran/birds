@@ -1,8 +1,7 @@
-"""HTTP client for the Cloudflare progress file store.
+"""HTTP client for the Cloudflare Worker.
 
-The Worker exposes a small file API; this module is the Python side of it.
-It has no trainer logic: callers read and write JSON documents through the
-same ``read``/``write``/``list``/``delete`` surface as a local file store.
+``CloudFiles`` is the raw scoped file API. ``CloudApp`` calls the trainer API
+for search, card views, grading and sessions. This module has no trainer rules.
 """
 
 from __future__ import annotations
@@ -325,6 +324,214 @@ class CloudFiles:
         return _open(request, self.timeout)
 
 
+class CloudApp:
+    """Call the Worker's trainer session API under the token's scope."""
+
+    def __init__(
+        self,
+        server: str,
+        token: str,
+        *,
+        username: str = "",
+        timeout: float = DEFAULT_TIMEOUT,
+    ) -> None:
+        self.server = normalize_server(server)
+        if not token:
+            raise ValueError("token is required")
+        self.username = str(username)
+        self.token = token
+        self.timeout = timeout
+
+    def profile(self) -> dict[str, Any]:
+        """Return the profile summary, creating the profile if needed."""
+        return self._json("GET", "/app/profile")
+
+    def search_birds(self, query: str = "") -> dict[str, Any]:
+        """Search the Worker's bundled catalog."""
+        return self._json("POST", "/app/birds", {"q": str(query)})
+
+    def card_view(
+        self,
+        species_id: str,
+        card_type: str,
+        seed: int = 0,
+    ) -> dict[str, Any]:
+        """Build one stateless card view."""
+        return self._json(
+            "POST",
+            "/app/cards",
+            {
+                "species_id": species_id,
+                "card_type": card_type,
+                "seed": seed,
+            },
+        )
+
+    def grade_card(
+        self,
+        species_id: str,
+        card_type: str,
+        seed: int = 0,
+        attempt: int = 1,
+        *,
+        choices: dict[str, str] | None = None,
+        choice: str | None = None,
+        response: str | None = None,
+    ) -> dict[str, Any]:
+        """Grade one stateless card attempt; return ``{feedback}``."""
+        body: dict[str, Any] = {
+            "species_id": species_id,
+            "card_type": card_type,
+            "seed": seed,
+            "attempt": attempt,
+        }
+        if choices is not None:
+            body["choices"] = choices
+        if choice is not None:
+            body["choice"] = choice
+        if response is not None:
+            body["response"] = response
+        return self._json("POST", "/app/cards/answer", body)
+
+    def list_sessions(self) -> dict[str, Any]:
+        """Return ``{sessions}``."""
+        return self._json("GET", "/app/sessions")
+
+    def resolve_session(
+        self, handle: str, *, by_name: bool = False
+    ) -> dict[str, Any]:
+        """Resolve a session name, id or id prefix in the Worker."""
+        return self._json(
+            "POST",
+            "/app/sessions/resolve",
+            {"handle": handle, "by_name": by_name},
+        )
+
+    def card_run(
+        self, query: str, card_type: str
+    ) -> dict[str, Any]:
+        """Return Worker-filtered eligible birds for a card run."""
+        return self._json(
+            "POST",
+            "/app/cards/run",
+            {"q": str(query), "card_type": str(card_type)},
+        )
+
+    def create_session(
+        self,
+        *,
+        name: str | None = None,
+        filter: dict[str, Any] | None = None,
+        settings: dict[str, Any] | None = None,
+        seed: int | None = None,
+    ) -> dict[str, Any]:
+        """Create a session and return its first view."""
+        body: dict[str, Any] = {}
+        if name is not None:
+            body["name"] = name
+        if filter is not None:
+            body["filter"] = filter
+        if settings is not None:
+            body["settings"] = settings
+        if seed is not None:
+            body["seed"] = seed
+        return self._json("POST", "/app/sessions", body)
+
+    def session(self, session_id: str) -> dict[str, Any]:
+        """Return one session view."""
+        return self._json("GET", self._session_path(session_id))
+
+    def prepare_session(self, session_id: str) -> dict[str, Any]:
+        """Prune passed birds and return the session view."""
+        return self._json(
+            "POST", f"{self._session_path(session_id)}/prepare"
+        )
+
+    def rename_session(
+        self, session_id: str, name: str | None
+    ) -> dict[str, Any]:
+        """Set a session name; ``None`` removes it."""
+        return self._json(
+            "POST",
+            f"{self._session_path(session_id)}/rename",
+            {"name": name},
+        )
+
+    def delete_session(self, session_id: str) -> None:
+        """Delete a session; deleting a missing one still succeeds."""
+        self._json("DELETE", self._session_path(session_id), allow_empty=True)
+
+    def answer(
+        self,
+        session_id: str,
+        card_uid: str,
+        action: str,
+        *,
+        choices: dict[str, str] | None = None,
+        choice: str | None = None,
+        response: str | None = None,
+    ) -> dict[str, Any]:
+        """Submit one answer; return ``{feedback, session}``."""
+        body: dict[str, Any] = {"card_uid": card_uid, "action": action}
+        if choices is not None:
+            body["choices"] = choices
+        if choice is not None:
+            body["choice"] = choice
+        if response is not None:
+            body["response"] = response
+        return self._json(
+            "POST", f"{self._session_path(session_id)}/answer", body
+        )
+
+    def _session_path(self, session_id: str) -> str:
+        logical = str(session_id or "").strip()
+        if not logical:
+            raise ValueError("session id is required")
+        return f"/app/sessions/{urllib.parse.quote(logical, safe='')}"
+
+    def _json(
+        self,
+        method: str,
+        path: str,
+        body: dict[str, Any] | None = None,
+        *,
+        allow_empty: bool = False,
+    ) -> dict[str, Any]:
+        data = None
+        headers = {"Accept": "application/json"}
+        if body is not None:
+            data = json.dumps(body).encode("utf-8")
+            headers["Content-Type"] = "application/json"
+        request = urllib.request.Request(
+            f"{self.server}{path}",
+            data=data,
+            method=method,
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "User-Agent": USER_AGENT,
+                **headers,
+            },
+        )
+        status, payload, _ = _open(request, self.timeout)
+        if not payload:
+            if allow_empty:
+                return {}
+            raise CloudError(
+                status, "invalid_response", "response body is empty"
+            )
+        try:
+            document = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise CloudError(
+                status, "invalid_response", "response is not valid JSON"
+            ) from exc
+        if not isinstance(document, dict):
+            raise CloudError(
+                status, "invalid_response", "response is not an object"
+            )
+        return document
+
+
 def _open(
     request: urllib.request.Request, timeout: float
 ) -> tuple[int, bytes, Any]:
@@ -365,6 +572,7 @@ def _revision(headers: Any) -> str:
 
 __all__ = [
     "CREDENTIALS_ENV",
+    "CloudApp",
     "CloudError",
     "CloudFiles",
     "Credentials",

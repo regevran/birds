@@ -50,26 +50,29 @@ Date: 2026-11-11
 
 ### Trainer
 
-- The trainer is an offline browser trainer for the same dataset: Latin,
-  English and Hebrew names plus etymology elements. The primary v1 skill is
-  **Hebrew → Latin**; English directions are later.
+- The trainer is a browser trainer for the same dataset: Latin, English and
+  Hebrew names plus etymology elements. The primary v1 skill is
+  **Hebrew → Latin**; English directions are later. Search, cards and grading
+  need the Worker; only login/logout/whoami work without it.
 - There is no session timer. The user practises as long as wanted, stops at any
-  time, and resumes the saved card queue. History is collected now and analysed
-  later. Everything is local; multiple local profiles; no sync.
+  time, and resumes the saved card queue. Only the current profile/session
+  state is stored; there is no event log. Progress is online-only in the
+  Cloudflare Worker; each account has one profile, with no second local store.
 - Card chain with parts: `L → E → R → C → F`; without parts:
   `L → R → C → F`. `V` appears when due. L is display-only; E is a separate
   element-check card. This superseded the earlier idea of putting the
   parts-matching exercise on L.
-- The foundation data layer and the pure L/E/R/C/F card views are implemented,
-  with a text client (`python -m trainer`, CMake `learn-run`), 191 Python
-  tests (two live Worker tests skip unless configured) and 22 Worker tests.
-  E, R, C and F are answerable: E collects one gloss choice per element
-  and grades them with the pure `cards/grading.py` layer; R grades a Latin-name
-  choice; C and F grade a typed Latin name. An E row shows its theme and draws
-  every option from that same theme, so the theme is a deliberate hint. R draws
-  distractors by taxonomic proximity (genus, family, order, any) and accepts
-  every species that shares the prompt's Hebrew name. V, the hint ladder,
-  scheduling, lifecycle and the web UI are still design-only.
+- The Worker owns the dataset, L/E/R/C/F views, grading and search. The Python
+  text client (`python -m trainer`, CMake `learn-run`) is a thin Worker client:
+  command parsing, prompts and text rendering only. Python retains 112 tests
+  (three live Worker tests skip unless configured); the Worker has 90 tests.
+  E, R, C and F are answerable: E collects one gloss choice per element and is
+  graded by the Worker; R grades a Latin-name choice; C and F grade a typed
+  Latin name. An E row shows its theme and draws every option from that same
+  theme, so the theme is a deliberate hint. R draws distractors by taxonomic
+  proximity (genus, family, order, any) and accepts every species that shares
+  the prompt's Hebrew name. V, the hint ladder and the web UI remain
+  design-only.
 - R is a recognition test: Hebrew prompt, Latin options, no English or family.
   A wrong choice gets one retry without revealing the answer; a second wrong
   reveals the correct Latin. Showing the failure is also the intended
@@ -86,24 +89,73 @@ Date: 2026-11-11
 - A card command may take a search query as well as one species. One match is
   the single card; several matches form an ephemeral run in search order, with
   Enter between cards and exit/quit/Ctrl-D/Esc stopping the run. This is a
-  learner-driven "search with benefits" tool, not saved progress or the
-  planned scheduling/skills system: one pass, no repetition, no logging.
-  R/C/F runs skip birds without Hebrew, E runs skip birds without split
-  elements, and the count is reported. `--answer` requires a
-  single match; one-shot display and `--reveal` batch-print all cards.
-- The card layer is pure and session-independent. `CardDescriptor` identifies
-  the species and card type only; the option seed is supplied by the caller of
-  `card_view` and affects E/R option order only. A Latin segment is called
-  `latin` (`latin_forms` for several), not `surface`.
-- The card layer is deterministic given a seed. The interactive client supplies
-  a fresh random seed per E or R card unless `--seed N` is given; one-shot
-  commands and `--answer` use seed 0 so the output and answer numbers are
-  reproducible.
-- The text client is a thin adapter over the same views; the web UI comes last.
-  Its commands are `card L|E|R|C ...` with `L`/`E`/`R`/`C` aliases, `/<text>`
-  for bird search, multi-word Latin/English species names, and `--answer` for
-  a one-shot graded E, R or C card. Readline history is persisted in
+  learner-driven "search with benefits" tool, not saved progress: one pass, no
+  repetition, no logging. The Worker filters the run: R/C/F need Hebrew, E
+  needs split elements, and it returns the skipped count and reason.
+- `--answer` and `--reveal` were removed. Card views never contain an explicit
+  answer; the normal flow reveals it (E immediately, R/C/F on the second wrong
+  attempt or a near miss), and `card L` is the reference view.
+- Question-card headers include the Latin family name, for example
+  `[E 1/15] Gulosus aristotelis (Phalacrocoracidae)`. L already shows the
+  family (and Hebrew family) as a field.
+- Card views are JSON produced by the Worker; the Python client decodes them
+  with `cards/wire.py`. The option seed is supplied by the caller and affects
+  E/R option order only. A Latin segment is called `latin` (`latin_forms` for
+  several), not `surface`.
+- The Worker's card output is deterministic given a seed. E/R cards get a fresh
+  random seed unless `--seed N` is given. E, R, C and F practise from a shell as
+  well as inside the client: `python3 -m trainer card C acro` prints the card
+  and prompts in the terminal. L only prints.
+- The text client is a thin adapter over the Worker JSON; the web UI comes
+  last. Its commands are `card L|E|R|C|F ...` with `L`/`E`/`R`/`C`/`F` aliases
+  and `/<text>` for bird search. Readline history is persisted in
   `~/.birds_trainer_history`.
+- Help is split like `gh`: `--help` prints only a terse usage and command list,
+  and `<command> --help` / `help <command>` (including `card E` and
+  `session new`) prints one command's usage. Prose explanations and examples
+  live in `learn/CLI-USAGE.md`, not in `--help`, so the two do not duplicate.
+  `session --help` documents the counters: `cards` (cards consumed in the
+  session), `queue` (cards waiting in the session queue) and `pool` (eligible
+  birds not yet added to the queue); the same meanings are in `CLI-USAGE.md`.
+- Sessions follow a git-branch model with a **client-local checkout**. Sessions
+  are independent Worker documents with no notion of an active one. Each client
+  remembers which session it points at, per server and account, in
+  `~/.birds_trainer_state.json` (`BIRDS_TRAINER_STATE` overrides the path);
+  different clients may point at different sessions, and two clients may point
+  at the same one. The protected `default` session always exists: it has no
+  filters (all status categories), so it contains every eligible bird, and it
+  cannot be deleted or renamed. It is also the fallback when a client has no
+  selection or its selection disappeared. Other names are optional and unique
+  (trimmed, case-insensitive). `session new [X | --name X]` creates a session,
+  selects it for this client and prints one row with `*`; it does not print a
+  card or start practising. `session open|status|run|delete [X | --name X]`
+  resolve `X` as exact name, exact id or unambiguous id prefix; `--name` forces
+  an exact name. `open X` selects locally; `run X` selects first; `status X` is
+  read-only; `delete` removes any non-`default` session, and if it was selected
+  the client falls back to `default`. `session rename OLD [NEW]` changes or
+  clears a name (`--clear`, or no NEW) without changing the id, queue, progress
+  or selection; the `default` session cannot be renamed. Handles (names, ids and
+  id prefixes) match case-insensitively; the stored id stays lowercase. Session
+  errors are short: semantic errors print `error: <message>` with ids and names,
+  not HTTP details. There is no `session close` and no `--start`.
+- The Worker owns session handle resolution and card-run eligibility. The CLI
+  sends `{handle, by_name}` to `POST /app/sessions/resolve` and
+  `{q, card_type}` to `POST /app/cards/run`; it does no name/id/prefix matching
+  and no `has_hebrew`/`has_parts` filtering. Session views and summaries carry
+  no `active` field, because selection is client state. Before practising, the
+  client calls `POST /app/sessions/<id>/prepare`, which drops already-passed
+  birds from the queue and pool. Two clients on the same session can race: the
+  Worker rejects a consumed card with `409 stale_card` and a stale write with
+  `412 revision_conflict`; the client then reports that the state changed in
+  another client, reloads the session and continues.
+- Search matches identity fields (species id, Latin, English, Hebrew, family,
+  Hebrew family, order) and the etymology elements of each bird's name
+  (`element_id`, `display`, `en`, `he`, `forms`). Results carry a `matched`
+  explanation — `acrido (=locust)`, with the matched text in the searched
+  language — and an `Elements matching ...` section lists the matching
+  dictionary entries with glosses, theme, origin and bird count. Name matches
+  sort before element-only matches. Whole-name meanings are excluded. Session
+  filters stay names-only; card commands use the full search.
 - Search is a nested, read-only `search>` mode. It is entered by `/text`, a
   bare `/`, or the `list`/`find`/`birds`/`search` aliases; every input in the
   mode is a query except `?` (help) and the up keys. From an E answer prompt,
@@ -115,8 +167,8 @@ Date: 2026-11-11
   implemented by a readline binding that submits a sentinel and is removed
   from history; without readline, a line containing only ESC is treated as
   up.
-- Progress is not persisted yet. The next slice adds the profile/session
-  store so the text and browser clients can resume the same saved queue.
+- Card commands are ephemeral. Saved progress uses the Worker session commands
+  in the next section; a card run does not write progress.
 
 ## Progress storage and hosting (2026-11-22)
 
@@ -131,17 +183,35 @@ Date: 2026-11-11
 - The Worker is the single source of truth for progress. The text client uses
   the same Worker; there is no second local progress store outside tests and
   development.
-- The hosted tool is online-only by design. Card inspection still works
-  offline, but any feature that touches progress requires the Worker.
+- The hosted tool is online-only by design. Search, card views, grading and
+  sessions all require the Worker; only local credential handling works
+  offline.
+- The Worker is the only trainer implementation. Python keeps the CLI, text
+  rendering, Worker transport and credential store; it has no dataset loader,
+  card generator, grader or search matcher. This removes the duplicate
+  implementations and makes card inspection online-only.
+- Client and Worker are one version: the client requires the current response
+  shape (for example `elements` and `matched` on `/app/birds`) and has no
+  backward-compatibility path for older deployments. Work happens locally and
+  a release deploys both together.
 - R2 holds JSON documents: one profile document (settings, passed table,
   global counter) and one document per session. There is no event log for now;
   the earlier event-log idea is deferred and may be dropped.
 - The progress bucket is private. Progress is never served through a public
   `r2.dev` base. The Worker authenticates a signed token and scopes every key
   to the logged-in user.
-- The Worker exposes a file API, not a trainer API: `GET/PUT/DELETE /fs/<path>`
-  plus `/fs` prefix listing and `POST /login`. The R2 ETag is the revision;
-  writes accept `If-Match` and return `412` on a stale revision.
+- The Worker exposes two APIs: `/fs` is the scoped raw file API, and `/app`
+  is the trainer API. The full contract and examples are in
+  `learn/WORKER-API.md`. The R2 ETag is the revision; writes accept `If-Match`
+  and reject a stale revision. `/app` owns cards, grading, scheduling and
+  session state so the text and browser clients stay thin.
+- Sessions are independent Worker documents with no active pointer; `default`
+  is always present and cannot be deleted or renamed. A wrong first attempt is
+  a retry
+  that does not consume the card; a second wrong attempt or a revealed answer
+  consumes it and inserts the fallback chain. A near miss consumes the card
+  and moves it and its remaining chain ahead. Passing F adds the bird to
+  `passed` with a V1 due counter.
 - Passwords are owner-set, salted and hashed with PBKDF2-HMAC-SHA256 at 1,000
   iterations. This is a speed bump, not a password vault; the private bucket
   and unique passwords are the main controls. The count is stored per user so

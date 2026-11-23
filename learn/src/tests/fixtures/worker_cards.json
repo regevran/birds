@@ -1,0 +1,176 @@
+{
+  "L": {
+    "card_type": "L",
+    "species_id": "acrocephalus-agricola",
+    "latin": "Acrocephalus agricola",
+    "english": "Paddyfield warbler",
+    "hebrew": "קנית אורז",
+    "family": "Acrocephalidae",
+    "family_he": "קניתיים",
+    "order": "Passeriformes",
+    "status": "A",
+    "status_categories": [
+      "accidental"
+    ],
+    "parts": [
+      {
+        "latin": "Acro",
+        "element_id": "acro",
+        "english": "summit, peak",
+        "hebrew": "פסגה",
+        "theme": "Shape"
+      },
+      {
+        "latin": "cephalus",
+        "element_id": "cephalus",
+        "english": "head",
+        "hebrew": "ראש",
+        "theme": "Body"
+      },
+      {
+        "latin": "agri",
+        "element_id": "agri",
+        "english": "field",
+        "hebrew": "שדה",
+        "theme": "Where it lives"
+      },
+      {
+        "latin": "cola",
+        "element_id": "cola",
+        "english": "dweller",
+        "hebrew": "שוכן",
+        "theme": "Behaviour"
+      }
+    ],
+    "bridge": [],
+    "whole_names": []
+  },
+  "E": {
+    "card_type": "E",
+    "species_id": "acrocephalus-agricola",
+    "family": "Acrocephalidae",
+    "latin": "Acrocephalus agricola",
+    "rows": [
+      {
+        "element_id": "acro",
+        "latin_forms": [
+          "Acro"
+        ],
+        "theme": "Shape",
+        "options": [
+          "כפוף לאחור",
+          "קצה",
+          "פסגה",
+          "נפוח",
+          "כפוף"
+        ]
+      },
+      {
+        "element_id": "cephalus",
+        "latin_forms": [
+          "cephalus"
+        ],
+        "theme": "Body",
+        "options": [
+          "עין",
+          "גרון",
+          "ראש",
+          "נוצה",
+          "גלימה"
+        ]
+      },
+      {
+        "element_id": "agri",
+        "latin_forms": [
+          "agri"
+        ],
+        "theme": "Where it lives",
+        "options": [
+          "חומה",
+          "חול",
+          "שדה",
+          "ים",
+          "עץ"
+        ]
+      },
+      {
+        "element_id": "cola",
+        "latin_forms": [
+          "cola"
+        ],
+        "theme": "Behaviour",
+        "options": [
+          "מהלך",
+          "צופה",
+          "שוכן",
+          "צייד",
+          "צוללן"
+        ]
+      }
+    ]
+  },
+  "R": {
+    "card_type": "R",
+    "species_id": "acrocephalus-agricola",
+    "family": "Acrocephalidae",
+    "hebrew": "קנית אורז",
+    "options": [
+      {
+        "latin": "Acrocephalus orientalis",
+        "species_id": "acrocephalus-orientalis"
+      },
+      {
+        "latin": "Acrocephalus melanopogon",
+        "species_id": "acrocephalus-melanopogon"
+      },
+      {
+        "latin": "Acrocephalus schoenobaenus",
+        "species_id": "acrocephalus-schoenobaenus"
+      },
+      {
+        "latin": "Acrocephalus griseldis",
+        "species_id": "acrocephalus-griseldis"
+      },
+      {
+        "latin": "Acrocephalus agricola",
+        "species_id": "acrocephalus-agricola"
+      }
+    ]
+  },
+  "C": {
+    "card_type": "C",
+    "species_id": "acrocephalus-agricola",
+    "family": "Acrocephalidae",
+    "hebrew": "קנית אורז",
+    "genus_parts": [
+      {
+        "hebrew": "פסגה",
+        "first_letter": "A",
+        "length": 4
+      },
+      {
+        "hebrew": "ראש",
+        "first_letter": "c",
+        "length": 8
+      }
+    ],
+    "epithet_parts": [
+      {
+        "hebrew": "שדה",
+        "first_letter": "a",
+        "length": 4
+      },
+      {
+        "hebrew": "שוכן",
+        "first_letter": "c",
+        "length": 4
+      }
+    ]
+  },
+  "F": {
+    "card_type": "F",
+    "species_id": "acrocephalus-agricola",
+    "family": "Acrocephalidae",
+    "hebrew": "קנית אורז"
+  }
+}

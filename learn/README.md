@@ -1,46 +1,55 @@
 # Learn — interactive bird-name trainer
 
 This directory is the trainer project, parallel to `book/` and `data/`.
-The foundation data layer, the card layer and the text client exist. Progress
-is stored in private Cloudflare R2 through the Worker in `cloudflare/`. The
-design is in `../.ai/learn-reference.md`; the storage design is in
-`../.ai/learn-cloudflare.md`; the implementation spec is in
+The Worker owns the dataset and trainer logic; the Python text client renders
+its JSON and stores credentials. Progress is stored in private Cloudflare R2
+through the Worker in `cloudflare/`. The design is in
+`../.ai/learn-reference.md`; the storage design is in
+`../.ai/learn-cloudflare.md`; the endpoint reference with request/response
+examples is in [`WORKER-API.md`](WORKER-API.md); command-line explanations are
+in [`CLI-USAGE.md`](CLI-USAGE.md); the implementation spec is in
 `../.ai/learn-implementation.md`; follow-ups are in `../.ai/learn-todo.md`.
 
 ## Layout
 
 - `src/trainer/` — Python package:
-  - `foundation/` — config, errors, dataset, normalization, passwords.
-  - `cards/` — card rules, options, grading, card views, bridge.
-  - `scheduling/` — queue and scheduler (not implemented yet).
-  - `lifecycle/` — profiles and sessions (not implemented yet).
+  - `foundation/` — errors, Worker HTTP client, passwords.
+  - `cards/` — card models, Worker JSON decoding and the text renderer.
   - `cli.py`, `__main__.py` at the package root.
 - `src/tests/` — Python tests.
-- `cloudflare/` — progress Worker, its Node tests and wrangler config.
+- `cloudflare/` — Worker (`/fs` file API, `/app` sessions and stateless
+  cards/search), its Node tests, JS trainer modules and wrangler config.
+- `WORKER-API.md` — endpoint reference with request/response examples and a
+  local quickstart.
+- `CLI-USAGE.md` — full text-client usage, commands, practice flow and keys.
 - `tools/provision_user.py` — adds an account to the Worker's `users.json`.
 
 There is no `learn/build` or `learn/out`: all build artifacts go to the
 top-level disposable `build/`, and the trainer runs from `learn/src`. There is
-no local progress store; the Worker is the single source of truth.
+no local progress store or local bird data; the Worker is the source of truth.
 
 ## Status
 
-Foundation data layer is in place: `Config`, domain errors, the dataset
-loader/validator with indexes. The card layer implements the pure L, E, R, C
-and F card views, E/R/C/F answer grading and a text renderer, and
-`src/trainer/cli.py` exposes them through an interactive text client. E, R, C
-and F are answerable: E prompts for one option per element and reports a
+The Worker implements the dataset, L/E/R/C/F card views, grading, search,
+session handle resolution, card-run eligibility, sessions and the scheduler.
+`src/trainer/cli.py` is a thin client: it parses
+commands, collects answers, renders Worker JSON and stores credentials. E, R,
+C and F are answerable; E prompts for one option per element and reports a
 score; R asks for the Latin name; C asks for a typed Latin name with a
-scaffold; F asks for a typed Latin name with no scaffold. The V card, hints,
-scheduling and the web UI are still design-only. There are 191 Python tests
-(two live Worker tests skip unless configured) and 22 Worker tests.
+scaffold; F asks for a typed Latin name with no scaffold. Search matches names
+and taxonomy plus the meanings of a bird's etymology parts; results show the
+matching element and text and list the matching element entries. Search, card
+views and grading require a stored login and a reachable Worker. The V card,
+hints and the web UI are still to come. There are 112 Python tests (three live
+Worker tests skip unless configured) and 90 Worker tests.
 
 ## Progress Worker
 
-The Worker is an authenticated file store over R2: login, `/fs` listing and
-`GET`/`PUT`/`DELETE /fs/<path>`. The bucket is private; the Worker scopes each
-token to one user's prefix or to `tests/`. See `cloudflare/README.md` for
-setup and the API.
+The Worker is an authenticated store over R2 with a raw file API and the
+`/app` trainer API that owns card views, grading and the scheduler. The bucket
+is private; the Worker scopes each token to one user's prefix or to `tests/`.
+See `cloudflare/README.md` for setup and `WORKER-API.md` for the endpoint
+contract.
 
 ```sh
 cmake --build build --target learn-worker-test
@@ -48,8 +57,8 @@ cmake --build build --target learn-worker-dev
 cmake --build build --target learn-worker-deploy
 ```
 
-The Worker is deployed at `https://birds-progress.regevran.workers.dev`.
-Provision accounts with:
+The Worker is at `https://birds-progress.regevran.workers.dev`; the stateless
+card/search routes still need a deployment. Provision accounts with:
 
 ```sh
 python3 learn/tools/provision_user.py <username>
@@ -64,8 +73,47 @@ python3 -m trainer whoami
 python3 -m trainer logout
 ```
 
-The token is stored in `~/.birds_trainer.json` with mode 0600. Live Worker
-tests use a `tests`-scoped account:
+The token is stored in `~/.birds_trainer.json` with mode 0600. Search, card
+views and grading go through the Worker:
+
+```sh
+python3 -m trainer search paddyfield
+python3 -m trainer card L paddyfield
+python3 -m trainer card F paddyfield
+```
+
+Saved sessions are driven from the same prompt. Sessions live in the Worker
+with no active one; each client selects the session it works on. The protected
+`default` session contains every eligible bird:
+
+```sh
+python3 -m trainer session new --search paddyfield --status accidental
+python3 -m trainer session new passers --search passer
+python3 -m trainer session list
+python3 -m trainer session run
+python3 -m trainer session run passers
+python3 -m trainer session status
+python3 -m trainer session open default
+python3 -m trainer session rename passers evening
+python3 -m trainer session rename evening --clear
+python3 -m trainer session delete <id|name>
+```
+
+`session new` takes an optional name as `X` or `--name X`, selects the new
+session for this client and prints one row; it does not start practising.
+`session list` marks this client's selected session with `*`. The choice is
+stored locally per server and account, so other clients keep their own.
+`session open X` selects a session without practising. The other commands
+accept `X` as an exact name, a full id or an unambiguous id prefix, or
+`--name X` for an exact name. The Worker resolves handles case-insensitively.
+`session rename OLD [NEW]` changes or clears a name without changing the id,
+queue or progress. `session new` accepts `--search`, `--status`, `--family`,
+`--order`, `--genus`, `--active-cap` and `--seed`. Filters AND between
+different options and OR within one option's comma/space-separated list; by
+default only `regular` and `introduced` birds are eligible. See `python3 -m
+trainer session new --help`. Every session except `default` can be deleted;
+deleting the selected session falls back to `default`. Live Worker tests use a
+`tests`-scoped account:
 
 ```sh
 BIRDS_TEST_SERVER=https://birds-progress.regevran.workers.dev \
@@ -81,16 +129,19 @@ cmake --build build --target learn-run
 cd learn/src && python3 -m trainer
 ```
 
-Inside the client:
+Use `python3 -m trainer --help` for the terse usage and command list, and
+`python3 -m trainer <command> --help` (or `help <command>`) for one command.
+The longer explanations are in [`CLI-USAGE.md`](CLI-USAGE.md). Inside the
+client:
 
 ```text
 /paddyfield
 /acro
 card L acrocephalus-agricola
 card E acrocephalus-agricola
-card E acrocephalus-agricola --seed 1 --reveal
+card E acrocephalus-agricola --seed 1
 card R acrocephalus-agricola
-card R acrocephalus-agricola --seed 1 --reveal
+card R acrocephalus-agricola --seed 1
 card R cormorant
 card E cormorant --seed 1
 card C acrocephalus-agricola
@@ -102,17 +153,20 @@ quit
 ```
 
 `card L`, `card E`, `card R`, `card C` and `card F` are the commands; `L`,
-`E`, `R`, `C` and `F` are aliases. `/<text>` searches
-species_id, Latin, English, Hebrew, family and order. Every word must match;
-`list`, `find`, `birds` and `search` are aliases. The list shows species_id,
-Latin, English, Hebrew, family and Hebrew family.
+`E`, `R`, `C` and `F` are aliases. `/<text>` searches species_id, Latin,
+English, Hebrew, family, order and the meanings of the name's etymology parts.
+Every word must match; `list`, `find`, `birds` and `search` are aliases. The
+list shows species_id, Latin, English, Hebrew, family and Hebrew family, plus a
+`matched` column when an element caused the match; matching elements are
+listed after the table.
 
 In the interactive client, a search opens `search>` mode. Type text there to
 search again; `?` shows help. A bare `/` opens search mode without listing
 every bird. `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one
 prompt up: from `search>` back to the card, from an E, R, C or F prompt or
 between run cards back to `card>`, and from `card>` out of the client. Ctrl-C
-leaves the client.
+leaves the client. Search and card commands require a stored login and a
+reachable Worker.
 
 At an Elements prompt, enter an option number. Each row shows its theme, and
 the options are drawn only from that theme, so the theme is a hint. `/text`
@@ -140,27 +194,25 @@ Type the full Latin name. Grading and feedback are the same as for Construct.
 
 A card command also accepts a search query. `card R cormorant` runs R for
 every matching bird in search order; one match behaves as a single card.
-Press Enter between cards; `exit`, `quit`, Ctrl-D or Esc stops the run. R, C
-and F runs skip birds without Hebrew, and E runs skip birds without splits,
-reporting the count. This is an ephemeral, one-pass study tool ("search with
-benefits"), not saved progress. `--seed N` reproduces the run. `--answer`
-needs a single match; one-shot display and `--reveal` print every matching
-card.
+Press Enter between cards; `exit`, `quit`, Ctrl-D or Esc stops the run. The
+Worker filters the run: R, C and F need Hebrew, and E needs splits. The skipped
+count and reason come from the Worker. This is an ephemeral, one-pass study
+tool ("search with benefits"), not saved progress. `--seed N` reproduces the
+run.
 
-A one-shot command also works:
+Card views and grading come from the Worker. `card L` is the reference view;
+there is no `--answer` or `--reveal` flag. The normal practice flow reveals the
+answer: E immediately, R/C/F on the second wrong attempt or a near miss.
+
+A card command also runs outside the interactive prompt:
 
 ```sh
 cd learn/src && python3 -m trainer card L acrocephalus-agricola
-cd learn/src && python3 -m trainer card E acrocephalus-agricola --answer "1 3 5 1"
-cd learn/src && python3 -m trainer card R acrocephalus-agricola --answer "5"
-cd learn/src && python3 -m trainer card C acrocephalus-agricola --answer "Acrocephalus agricola"
-cd learn/src && python3 -m trainer card F acrocephalus-agricola --answer "Acrocephalus agricola"
+cd learn/src && python3 -m trainer card E acrocephalus-agricola
 ```
 
-One-shot commands are display-only unless `--answer` is given. The E answer
-string has one option number per element; commas or spaces separate them. The
-R answer is one option number. The C answer is the full Latin name; case and
-spacing are ignored.
+E, R, C and F practise from a shell too: they print the card and prompt for the
+answer in the terminal. L only prints.
 
 ## Testing
 

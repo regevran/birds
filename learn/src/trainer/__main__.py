@@ -1,4 +1,4 @@
-"""Run the text development client."""
+"""Run the Worker-backed text client."""
 
 from .cli import main
 

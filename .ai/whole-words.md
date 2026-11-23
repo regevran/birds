@@ -58,5 +58,5 @@ deliberate “no useful gloss” cases — but the group is large enough to audi
 - `data/in/etymology.md` — authoritative word splits and whole names.
 - `data/src/pipeline/build_etymology.py` — validation and JSON output.
 - `data/out/etymology.json` — installed `splits` and `whole_names`.
-- `learn/src/trainer/cards/views.py` — `_whole_names()` builds the L-card notes.
+- `learn/cloudflare/src/trainer/views.js` — `whole_names` builds the L-card notes.
 - `book/src/make_pocket.py` — whole-name index.

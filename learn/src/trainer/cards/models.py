@@ -22,14 +22,6 @@ class CardType(str, Enum):
 
 
 @dataclass(frozen=True)
-class CardDescriptor:
-    """One requested card: a species and a card type."""
-
-    species_id: str  # e.g. "acrocephalus-agricola"
-    card_type: CardType  # e.g. CardType.L
-
-
-@dataclass(frozen=True)
 class LearnPart:
     """One written piece of a Latin name with its meaning and theme."""
 
@@ -94,6 +86,7 @@ class ElementsCardView:
 
     card_type: CardType  # e.g. CardType.E
     species_id: str  # e.g. "acrocephalus-agricola"
+    family: str  # e.g. "Acrocephalidae"
     latin: str  # e.g. "Acrocephalus agricola"
     rows: tuple[ElementRow, ...]  # e.g. (ElementRow("acro", ("Acro",), "Shape", ("פטל", ...)),)
 
@@ -112,6 +105,7 @@ class RecognizeCardView:
 
     card_type: CardType  # e.g. CardType.R
     species_id: str  # e.g. "acrocephalus-agricola"
+    family: str  # e.g. "Acrocephalidae"
     hebrew: str  # e.g. "קנית אורז"
     options: tuple[RecognizeOption, ...]  # e.g. (RecognizeOption("Acrocephalus arundinaceus", "acrocephalus-arundinaceus"),)
 
@@ -131,6 +125,7 @@ class ConstructCardView:
 
     card_type: CardType  # e.g. CardType.C
     species_id: str  # e.g. "acrocephalus-agricola"
+    family: str  # e.g. "Acrocephalidae"
     hebrew: str  # e.g. "קנית אורז"
     genus_parts: tuple[ConstructPart, ...]  # e.g. (ConstructPart("פסגה", "A", 4), ...)
     epithet_parts: tuple[ConstructPart, ...]  # e.g. (ConstructPart("שדה", "a", 4), ...)
@@ -142,6 +137,7 @@ class ProduceCardView:
 
     card_type: CardType  # e.g. CardType.F
     species_id: str  # e.g. "acrocephalus-agricola"
+    family: str  # e.g. "Acrocephalidae"
     hebrew: str  # e.g. "קנית אורז"
 
 

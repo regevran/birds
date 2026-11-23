@@ -348,7 +348,7 @@ export function corsHeaders(origin, configured) {
   }
   return {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type, If-Match",
     "Access-Control-Expose-Headers": "ETag, X-Revision",
     "Access-Control-Max-Age": "86400",
