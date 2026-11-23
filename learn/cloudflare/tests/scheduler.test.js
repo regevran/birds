@@ -5,6 +5,7 @@ import { catalog } from "../src/trainer/dataset.js";
 import {
   activeCount,
   assertCurrent,
+  completionPercent,
   consume,
   createProfile,
   createSession,
@@ -211,6 +212,28 @@ test("session views expose the current card and a safe lookahead", () => {
       "type",
     ]);
   }
+});
+
+test("completion percent follows learned birds", () => {
+  const owner = profile();
+  const session = createSession(catalog, owner, {
+    filter: { search: "cormorant", statuses: ALL_STATUSES },
+    settings: { active_cap: 2 },
+    seed: 7,
+    sessionId: "s1",
+    uid: idFactory(),
+    now: NOW,
+  });
+  assert.equal(completionPercent(session), 0);
+
+  const learned = session.queue[0].species_id;
+  session.queue = session.queue.filter(
+    (card) => card.species_id !== learned,
+  );
+  assert.equal(completionPercent(session), 50);
+
+  session.queue = [];
+  assert.equal(completionPercent(session), 100);
 });
 
 test("L and E advance one card and one counter", () => {

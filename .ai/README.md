@@ -1,29 +1,34 @@
 # Birds of Israel — AI context
 
-This directory is the durable context for AI sessions on this repository. It
-is versioned with the code and is the place to read before changing anything,
-and to update when a decision or the structure changes.
+Durable project context. Read this file first; update the relevant file when a
+decision, structure or status changes. Paths are from the repository root. Git
+history holds superseded drafts.
 
-Files:
+## Read in this order
 
-- `decisions.md` — agreed product, build and working preferences, with the
-  reasons behind them.
-- `repository.md` — repository tree, data contract, build flow and current
-  state.
-- `book-reference.md` — book orientation, layout, index rules and history.
-- `learn-reference.md` — trainer design and card chain.
-- `learn-implementation.md` — trainer implementation spec and open decisions.
-- `learn-todo.md` — trainer follow-ups.
-- `learn-cloudflare.md` — current progress store and session API: Worker `/fs`
-  and `/app`, accounts, tokens and deployment.
-- `REFERENCE.md` — repository orientation: layout, build commands and status.
-- `whole-words.md` — open audit of whole-word meanings such as `olivetorum`.
+1. `decisions.md` — agreed choices and their reasons.
+2. `repository.md` — layout, data contract, build and current status.
+3. For trainer work: `learn-reference.md` (design), `learn-ui.md`
+   (browser UI design) and `learn-cloudflare.md` (Worker and progress).
+4. Domain notes: `book-reference.md`, `whole-words.md`.
 
-The public per-project READMEs remain in place: `book/README.md`,
-`book/PRINT.md`, `data/README.md` and `learn/README.md`. The root-level
-orientation notes live in `REFERENCE.md`; a human-facing root README is still
-to be written.
+Canonical references outside `.ai/`:
 
-When a decision changes, update `decisions.md`; when the repository structure
-changes, update `repository.md`. Keep this directory as the source of context
-for new sessions.
+- Worker API: `learn/WORKER-API.md`
+- CLI usage: `learn/CLI-USAGE.md`
+- Public READMEs: `learn/README.md`, `book/README.md`, `book/PRINT.md`,
+  `data/README.md`
+- Actionable work: root `TODO.md`
+
+## Working agreement
+
+- Discuss, summarize and agree **before** implementing; work in small slices
+  and let the user review each one.
+- **CMake is the only build interface.** No second manual build path.
+- Do not change `data/` or `book/` while working on the trainer unless asked.
+- Do not commit unless asked.
+- In chat, print Hebrew reversed (the terminal renders RTL backwards); source
+  files keep normal Hebrew. The text trainer reverses Hebrew by default and
+  accepts `--no-reverse-hebrew`.
+- In data models, every field gets an end-of-line comment with a real project
+  example; class docstrings say what the class holds.

@@ -4,11 +4,10 @@ This directory is the trainer project, parallel to `book/` and `data/`.
 The Worker owns the dataset and trainer logic; the Python text client renders
 its JSON and stores credentials. Progress is stored in private Cloudflare R2
 through the Worker in `cloudflare/`. The design is in
-`../.ai/learn-reference.md`; the storage design is in
-`../.ai/learn-cloudflare.md`; the endpoint reference with request/response
-examples is in [`WORKER-API.md`](WORKER-API.md); command-line explanations are
-in [`CLI-USAGE.md`](CLI-USAGE.md); the implementation spec is in
-`../.ai/learn-implementation.md`; follow-ups are in `../.ai/learn-todo.md`.
+`../.ai/learn-reference.md`; the storage/Worker design is in
+`../.ai/learn-cloudflare.md`; the endpoint reference is in
+[`WORKER-API.md`](WORKER-API.md); command-line explanations are in
+[`CLI-USAGE.md`](CLI-USAGE.md); work items are in `../TODO.md`.
 
 ## Layout
 
@@ -40,8 +39,8 @@ scaffold; F asks for a typed Latin name with no scaffold. Search matches names
 and taxonomy plus the meanings of a bird's etymology parts; results show the
 matching element and text and list the matching element entries. Search, card
 views and grading require a stored login and a reachable Worker. The V card,
-hints and the web UI are still to come. There are 112 Python tests (three live
-Worker tests skip unless configured) and 90 Worker tests.
+hints and the web UI are still to come. There are 113 Python tests (three live
+Worker tests skip unless configured) and 91 Worker tests.
 
 ## Progress Worker
 

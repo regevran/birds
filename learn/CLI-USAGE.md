@@ -155,7 +155,7 @@ id).
 prints one line; it does not start practising:
 
 ```text
-* passers  20261123-0902-1a2b  queue 32  pool 164
+* passers  20261123-0902-1a2b  0%  queue 32  pool 164
 Practise with: session run
 ```
 
@@ -173,8 +173,8 @@ checked-out branch in `git branch`, and lists `default` first. If the selected
 session no longer exists, the client falls back to `default` and says so:
 
 ```text
-* default       default               cards 0   queue 7   pool 558
-  passers       20261123-0902-1a2b   cards 12  queue 20  pool 150
+* default       default               completed cards 0   0%   queue 7    pool 558
+  passers       20261123-0902-1a2b   completed cards 12  50%  queue 20   pool 150
 ```
 
 `session open X` selects X for this client without practising. `session run`
@@ -228,10 +228,12 @@ it again resumes the queue. A completed session is not deleted automatically.
 The session row shows the counters:
 
 ```text
-* passers  20261123-0902-1a2b  cards 12  queue 20  pool 150
+* passers  20261123-0902-1a2b  completed cards 12  50%  queue 20  pool 150
 ```
 
-- **cards** — cards consumed in this session.
+- **completed cards** — cards consumed in this session.
+- **% completed** — share of the session's birds already learned (passed),
+  from 0 to 100%. A completed session shows 100%.
 - **queue** — cards currently waiting in the session queue.
 - **pool** — eligible birds not yet added to the queue. This counts birds, not
   cards.

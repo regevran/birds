@@ -174,6 +174,15 @@ export function activeCount(session) {
   return new Set(session.queue.map((card) => card.species_id)).size;
 }
 
+export function completionPercent(session) {
+  const total = Number(session.initial_pool_size) || 0;
+  if (total <= 0) {
+    return session.queue.length === 0 && session.pool.length === 0 ? 100 : 0;
+  }
+  const done = total - session.pool.length - activeCount(session);
+  return Math.max(0, Math.min(100, Math.floor((done / total) * 100)));
+}
+
 export function currentCard(session) {
   return session.queue[0] ?? null;
 }
@@ -514,6 +523,7 @@ export function sessionView(catalog, profile, session, limit = LOOKAHEAD) {
       name: session.name,
       status: session.status,
       session_card_count: session.session_card_count,
+      percent_completed: completionPercent(session),
       global_counter: profile.global_counter,
       initial_pool_size: session.initial_pool_size,
       pool_size: session.pool.length,

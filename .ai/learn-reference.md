@@ -1,265 +1,202 @@
-# Learning tool — design reference
+# Trainer design
 
-Status: the Worker owns the dataset, L/E/R/C/F card views, grading, search,
-scheduling and session state. The Python text client renders Worker JSON and
-stores credentials; it has no local card or dataset layer. The V card, hints,
-lifecycle details and the web UI are still design-only. This file is the
-durable record of the design conversation; use it to continue next session.
-`learn-todo.md` holds follow-ups.
+Status: implementation is the Worker (see `learn-cloudflare.md`). The Python
+text client renders JSON and stores credentials. This file records the trainer
+design; V, hints and the browser UI are not implemented yet.
+
+Canonical companions: `learn-cloudflare.md` (storage/Worker implementation),
+`learn/WORKER-API.md` (endpoint contract), `learn/CLI-USAGE.md` (text client),
+`decisions.md` (choices and reasons).
 
 ## Purpose
 
-A browser trainer for the same dataset as the book: Latin, English and Hebrew
-bird names, plus the etymology elements of the Latin names. Primary v1 skill is
-**Hebrew → Latin**; English directions are later (v2/v3). There is no session
-timer: the user practices as long as they want, stops whenever, and resumes the
-saved card queue later.
+A browser trainer for the book's dataset: Latin, English and Hebrew names plus
+the etymology elements of Latin names. The v1 skill is **Hebrew → Latin**;
+English directions come later. No timer: practise as long as wanted, stop at
+any time, resume the saved queue.
 
-One profile per Worker account. Progress is online-only in the Worker; there is
-no second local progress store and no offline card layer.
+## Vocabulary
 
-## Source data
-
-Read-only inputs:
-
-- `data/out/israel_birds_final.json` — 565 species; fields `latin`, `genus`, `epithet`, `english`, `family`, `family_order`, `family_he`, `order`, `status`, `hebrew`, `flags`.
-- `data/out/etymology.json` — `elements`, `splits`, `whole_names`, `themes`.
-- `book/` and `data/` are never mutated by the trainer. The trainer derives its own quiz dataset with validation.
-
-Data facts that shape the design:
-
-- 565 species, 84 families, 249 genera, 26 orders.
-- 560 unique Hebrew names; 5 species have no Hebrew; one Hebrew name (`סלעית לבנת-כנף`) is shared by *Oenanthe lugens* and *O. warriae*.
-- 29 families have no `family_he` (`no-family-hebrew`, `family-hebrew-unverified`).
-- Statuses: 381 unmarked (regular), 167 `A`, 11 `I`, 2 `Ex`, 3 `Ex/A`, 1 `X`.
-- Etymology: 95 species fully split, 232 partially split, 238 with no split. 113 of 249 genera have a split.
-- 308 elements, 312 split words, 16 whole names. 195 elements occur in only one word; the top 20 cover 31.5% of element occurrences.
-- No niqqud in the Hebrew names. 124 Hebrew names use ASCII `-` rather than maqaf. 155 English names contain hyphens, 42 apostrophes, 2 diacritics (`Rüppell`).
-
-Defaults:
-
-- Practice scope: regular + introduced; accidental (`A`) and historical (`Ex`/`X`) are opt-in.
-- H→L requires a Hebrew name: the 5 no-Hebrew species are excluded from the H→L pool.
-- Family is context, never a quiz source. Family Hebrew is not quizzed.
-- Only words with a source split are asked in the E card. No-split species get no E card.
-
-## Core vocabulary
-
-- **Profile** — a person. Holds settings, the shared `passed` table, the global card counter, and the event log.
-- **Session** — a saved practice queue with an optional unique name, its own filter, pool, active chains and card counter. Independent from other sessions except for the shared `passed` table and reviews. No session is active; each client selects one locally, and the protected `default` session is always present.
-- **Pool (the set)** — the session's filtered birds minus birds already in `passed`, shuffled. Birds not yet started.
-- **Active chain** — the remaining card sequence for one bird currently being learned: `L → E → R → C → F` (or `L → R → C → F`). Per-bird, ordered; not a separate stream for the user.
-- **Queue** — the single ordered list of concrete cards to present next: the interleaving of all active chains plus due V cards. The user sees the front. Target lookahead ~50 cards; it may grow to place a failed card 30–50 cards ahead.
-- **Passed table** — profile-global list of birds that passed F, with V level and `due_at` global card count. Passed birds are excluded from new and reloaded sessions.
-- **Global counter** — every consumed card in any session, including L, E and skips.
-- **V level** — review interval level 1–4. V1–V4 are the same kind of review at different card distances.
+- **Profile** — a person; settings, global `passed` table and global counter.
+- **Session** — a saved queue with its own filter, pool, active chains and
+  card counter. Sessions are independent; `passed` and reviews are shared.
+- **Pool** — the session's filtered birds minus passed birds, shuffled; birds
+  not yet started.
+- **Active chain** — the remaining cards for one bird: `L→E→R→C→F` or
+  `L→R→C→F`.
+- **Queue** — the ordered cards to present; `queue[0]` is current.
+- **Passed** — profile-global map of birds that passed F, with V level and
+  due counter.
+- **Global counter** — one increment per consumed card in any session.
 
 ```text
-POOL / SET                         ACTIVE (max 7)                  QUEUE (~50 cards)
-[bird8] [bird9] [bird10] ...  ──pull──>  A: L✓ E R C F  ──interleave──>  [B/R] [V1] [A/E] [C/R] [A/R] ...
-                                         B: L✓ R C F
-                                         C: L✓ E✓ R C F
+POOL / SET                        ACTIVE (max 7)                 QUEUE (~50 cards)
+[bird8] [bird9] ...  ──pull──>  A: L✓ E R C F  ──interleave──>  [B/R] [A/E] [C/R] ...
+                                B: L✓ R C F
 ```
 
-## Card types and per-bird flow
+## Dataset facts that shape the trainer
 
-With etymology parts: **L → E → R → C → F**.
-Without parts: **L → R → C → F**.
-Later, when due: **V** (review).
+- 565 species, 84 families, 249 genera, 26 orders.
+- 560 species have Hebrew (559 unique names); 5 have no Hebrew; one name
+  (`סלעית לבנת-כנף`) is shared by *Oenanthe lugens* and *O. warriae*.
+- 13 families (29 species) lack `family_he`.
+- Statuses: 381 regular, 167 `A`, 11 `I`, 2 `Ex`, 3 `Ex/A`, 1 `X`.
+- Etymology: 95 species fully split, 232 partially, 238 not; 113 of 249 genera
+  have a split. 308 elements, 312 split words, 16 whole names.
+- No niqqud; 124 Hebrew names use ASCII `-`; 155 English names contain
+  hyphens, 42 apostrophes, 2 diacritics.
+- Default practice scope: regular + introduced; accidental and historical are
+  opt-in. H→L requires Hebrew, so the five no-Hebrew species are excluded.
+  Family and status are context, never quizzed. Only split words get an E card.
 
-| Card | Name | What the user does |
+## Cards
+
+| Card | Name | User action |
 |---|---|---|
-| **L** | Learn | Display only: family/order, Hebrew, English, Latin, all parts and meanings, bridge line. One button: next. No "show again", no "I know this". |
-| **E** | Elements | All parts on one card; choose each part's Hebrew meaning from options. Options stay inside the part's theme, which is shown as a hint. Wrong answers reveal the correct pairs and continue. Not a gate. |
-| **R** | Recognize | Hebrew prompt → choose the Latin from 4–5 options. No English, no family. Options shuffled each time. A wrong choice gets one retry; a second wrong reveals the Latin. |
-| **C** | Construct | Hebrew prompt → type the Latin. One-line scaffold: concatenated word shapes plus part lengths and glosses; the genus is one word even when split. A near miss shows the exact spelling and moves on; a wrong answer gets one retry, then reveals. |
-| **F** | Produce | Hebrew prompt → type the Latin. No scaffold; hint ladder on request. |
-| **V** | Review | Same as F, presented when due. V cards are the only cards that can be skipped. |
+| **L** | Learn | Display only: family/order, Hebrew, English, Latin, parts and meanings, bridge. Next only. |
+| **E** | Elements | Choose one Hebrew gloss per element row. Options stay within the row's theme; the theme is a hint. Not a gate. |
+| **R** | Recognize | Hebrew → choose the Latin from 4–5 options. No English/family. Wrong: one retry; second wrong reveals. |
+| **C** | Construct | Hebrew → type the Latin with a one-line scaffold of word shapes and part lengths/glosses. Near miss reveals and moves on; wrong: one retry, then reveals. |
+| **F** | Produce | Hebrew → type the Latin unaided. Same grading as C. |
+| **V** | Review | Same as F, when due; skippable. Future design. |
 
-Notes:
+- **Passing F** = unaided correct. A correct retry after a wrong answer counts
+  as a pass for F; V treats a retry as not advancing. A bird always goes
+  through its chain once.
+- Genus and epithet are scored separately for partial credit.
+- R distractors come from the same genus, then family, then order, then any;
+  the correct answer and all accepted answers are excluded. Shared-Hebrew
+  species are both accepted and both shown in feedback.
+- E options are deduplicated by Hebrew gloss; any element with the chosen
+  gloss is accepted.
+- The L **bridge** line heuristically shows Hebrew-word ↔ Latin-part matches;
+  it is display-only, never graded, and can be turned off.
+- **Hints** (future): request length/first letters → 4–5 options → reveal.
+  Assisted or revealed answers are soft returns; R's options are its hint, and
+  L has no hints.
 
-- **Passing F** = unaided correct. A hint-assisted correct is recorded as assisted and does not advance; the card returns later.
-- A known bird still goes through the chain once, then enters the V table. There is no skip on L or F.
-- Genus and epithet are scored separately for partial credit and diagnosis.
-- Distractors should be plausible: same genus/family for names; same theme/meaning group for elements. Never a fixed option position.
-- The L card's "bridge" line (e.g. Hebrew word ↔ Latin element) is a display aid, computed where possible; omit it when there is no match.
-- History: the first sketch put the parts-matching exercise on L. That was superseded: L is display-only, followed by a separate E card with all parts (chosen option **b**).
-- No personal notes field.
+### Latin grading
 
-## Passing F and the passed table
+Normalize with NFC, trim, collapse whitespace and casefold. A near miss has
+the same word count, matching first letters and total Damerau-Levenshtein
+distance ≤ 2; otherwise the answer is wrong. Feedback shows per-word status
+and caret markers under differing letters. Hebrew/English grading is later
+(normalize hyphen/maqaf/space, geresh/gershayim; English also diacritics).
 
-- Unaided correct on F → remove the bird from its session's active set, add it to the profile-global `passed` table, schedule V1 at `global_counter + 20`, free the active slot, and pull the next bird from the session pool.
-- Assisted correct → no pass; retry the same card.
-- If F fails, fall back one card (C → R → L) and keep the bird active.
+## Series
 
-## Queue mechanics
+Cards are independent units: a card defines no relation to L, E, R, C or F. The
+order is imposed by an external **series**, which combines membership (how cards
+enter), ordering (per-bird chains, interleaving, fixed list vs pooled refill),
+persistence (ephemeral or saved, with or without concurrency), progression
+(retiring a bird, reviews) and completion.
 
-- The session keeps a target lookahead of ~50 cards; it is edited dynamically.
-- The only hard ordering constraint is that a bird's remaining cards stay in chain order. There is no anti-adjacency rule; B3 → B4 adjacent is allowed.
-- Refill when the lookahead falls short, in this priority: due V cards, next cards of active chains, then a new bird's L card if active < 7.
-- **Failure move:** take the failed card and the rest of its chain out, move the failed card 30–50 cards ahead, then reinsert the remaining chain cards after it in order with random gaps.
-- **Repeat once:** a failed card is retried once in the session. A second failure falls back one card.
-- Active-chain cap: **7** (setting 5/7/10). Counts birds in L→F, including in-scope V-failure exception chains. V cards themselves do not count.
-- Pool and queue are per session; passed birds and V reviews are profile-global.
-- If the pool is exhausted and no active chains remain, the queue is V cards only; when those are done, return to the main selection screen. The completed session stays saved.
+A session is one series instance — the complex one. A card run is another —
+query, one card type, search order, ephemeral, no `passed` changes. The chain
+`L→E→R→C→F` is just the ordering the session series allows; `R→C`, `R→E` and
+others are different orderings over the same cards, not different card types.
+New series are a group-level design question, taken together rather than as
+ad-hoc variants.
 
-## V reviews (profile-global)
+## Scheduling
 
-- `passed`: bird → V level 1–4, `due_at` global card count, last result.
-- Intervals: V1 = 20 cards after F; V2 = 60 after V1; V3 = 150 after V2; V4 = 400 after V3. After V4, the bird is mastered.
-- Pure card count: timestamps are recorded but do not affect scheduling; a long break does not promote overdue cards. A session resumes exactly.
-- Unaided first-try V pass advances the level. A retry pass or hint-assisted pass does not advance; schedule the same level again.
-- **V failure:** first failure → retry the same V once after 30–50 cards. Second failure:
-  - **In-scope** (bird matches the session filter): remove from `passed`; re-enter at F in the current session. If F passes, the bird returns to `passed` with a fresh V1.
-  - **Out-of-scope** (bird was injected into a focused session): remove from `passed`; do **not** insert an F chain into the focused session. The bird is handed back: a normal session whose filter includes it can pick it up. Existing saved sessions do not retroactively add it; the user picks it up manually.
-- **Skip:** V cards only. Non-failure; V level and passed status unchanged; snooze 100 cards; the skip consumes a card and advances the global counter.
-- **Out-of-scope V cards:** allowed by default, visually marked, skippable. A per-session toggle can turn them off. The main screen shows a global due-reviews count.
-- V cards are claimed by the session that is practising them so the same review is not duplicated across saved sessions; unshown V cards return to the shared due pool on save. With no active-session pointer, the exact claim model is still open.
+- Each consumed card increments `global_counter` and the session's
+  `session_card_count` exactly once. Opening, presenting and hints do not.
+- `queue` is the source of truth. `queue[0]` is current; the pool is disjoint;
+  a bird is active while it has non-V cards. Only chain order is constrained;
+  cards of one bird may be adjacent.
+- Active cap **7** (settings 5/7/10). Look-ahead target ~50 is soft; with 4–5
+  card chains the queue is normally 28–35. Never start more than 7 birds just
+  to fill the queue.
+- Refill: due V cards (future), then next cards of active chains, then a new
+  bird's L when below the cap.
+- **Soft return** (near miss, assisted, revealed): move the card and its later
+  chain 30–50 cards ahead; no failure escalation; `attempt` stays 1.
+- **Hard fail:** first wrong moves the card (attempt 2) and later chain ahead.
+  Second wrong falls back one card (`F→C`, `C→R`, `R→L`); the fallback starts
+  at attempt 1 and the bird stays active.
+- E always advances after its one-pass check; L advances.
+- Passing F adds the bird to `passed` (`level: 1`, `due_at: counter + 20`) and
+  frees the active slot.
+- A session is `completed` when queue and pool are empty; it stays saved.
+- `percent_completed` = share of the session's initial birds now passed,
+  floored; 100 only when done.
 
-## Sessions and profiles
+## Sessions and passed birds
 
-- Sessions are independent: each has its own filter, pool, active chains, queue and learning progress.
-- Shared across sessions: the `passed` table, the global card counter, and V reviews.
-- In-progress overlap is allowed: two saved sessions may be learning the same not-yet-passed bird. Only passed birds are excluded.
-- New session: choose a filter → pool = filtered set minus passed, shuffled → optional unique name → start. New birds are drawn randomly from the pool; no family blocks.
-- Resume: load the saved queue exactly; if closed mid-card, re-show the same card.
-- Reload: drop birds that are now passed from the queue, active chains and pool; refill.
-- Broadening scope = create a new session; the old one remains.
-- Queue empty → main selection screen.
+- Sessions are independent Worker documents with **no active one**. Each
+  client selects a session locally per server/account
+  (`~/.birds_trainer_state.json`, `BIRDS_TRAINER_STATE` overrides). Clients may
+  select different sessions or share one.
+- `default` always exists, has no filters, contains every eligible bird, and
+  cannot be deleted or renamed; it is the fallback when a client has no
+  selection or its selection disappeared. Other names are optional and unique.
+- Handles resolve Worker-side: exact name → exact id → unique id prefix,
+  case-insensitive. `--name` forces a name match.
+- Create: filter → eligible set minus passed → shuffled with a stored seed →
+  pool and initial queue; birds are drawn randomly, with no family blocks.
+  Eligibility defaults to regular + introduced; `default` has no status filter.
+- Two sessions may learn the same not-yet-passed bird; only `passed` is
+  globally excluded. Broadening scope means creating a new session; the old
+  one remains.
+- Before practising, `/prepare` drops newly passed birds from queue and pool.
+  Resume re-shows `queue[0]`; reload prunes and refills.
+- Rename changes or clears a name; the id, queue, progress and client
+  selections do not change. Delete removes any non-`default` session; a client
+  whose selection vanished falls back to `default`.
+- Two clients on one session see each other's progress. A consumed card returns
+  `409 stale_card`; a stale write returns `412`; the client reloads and
+  continues.
+- `passed` is profile-global, keyed by species and skill. It excludes birds
+  from new and prepared sessions. There is no unpass command; until V exists,
+  a passed bird simply retires from saved sessions.
 
-## Persistence
+## V reviews (future)
 
-Chosen approach: **Cloudflare file store**, superseding the earlier local
-server and `learn/data/progress` plan. The current design is in
-`learn-cloudflare.md`.
+Design recorded for later; not implemented.
 
-- A Cloudflare Worker in `learn/cloudflare/` exposes an authenticated R2 file
-  API; the static client is published on GitHub Pages and the CLI uses the same
-  Worker. The Worker is the single source of truth.
-- Logical files: `profile.json` (name, settings, passed table, global counter)
-  and `sessions/<session-id>.json` (name, filter, seed, pool, queue, card
-  counter). A normal account maps them under `users/<username>/`; a
-  test-scoped account maps them under `tests/`.
-- The R2 ETag is the revision; writes use `If-Match` and a stale write returns
-  `412`. Sessions have no active pointer; `default` is always present and each
-  client selects its session locally.
-- Data version hash stored with the session; card content is regenerated from
-  item IDs.
-- V cards are not persisted as part of a session queue; they are injected from
-  the shared due pool and claimed by the practising session. This prevents the
-  same review appearing in two saved sessions.
-- The tool is online-only. Search, card views, grading and progress all require
-  the Worker; only credential handling works offline.
-- No event log for now; the earlier event-log idea is deferred and may be
-  dropped. No dashboards or progress views yet.
+- Levels V1–V4; intervals after the previous review: 20, 60, 150, 400 cards.
+  Pure card count, no time-based promotion. V4 pass sets `mastered` and clears
+  `due_at`.
+- Unaided first-try V pass advances; retry or hint-assisted pass repeats the
+  level. First failure retries once after 30–50 cards.
+- Second failure removes the bird from `passed`. In-scope: insert a fresh F
+  chain and re-add on pass. Out-of-scope: hand the bird back to normal
+  sessions without inserting a chain.
+- Skip is allowed only on V: snooze 100 cards, keep level and passed status.
+- Out-of-scope V cards are allowed by default, marked and skippable; a session
+  setting can disable them.
+- Claims: only a V card at the front at save time (`paused_review`) is
+  persisted; other V cards are re-derived from the due pool. With no active
+  session, the cross-session claim model is still open.
 
-## UI
+## Browser UI (next)
 
-- Hebrew book-style interface; English names and element glosses shown as in the book. Hebrew labels with English names/values.
-- Main screen: profile → saved sessions + "new session"; global due-reviews count; rename/delete.
-- Session screen: current card; a collapsible look-ahead of the next **5** cards showing **Hebrew name + card type**, never the Latin; user can stop at any time.
-- L: next only.
-- E: check; wrong answers reveal and continue; next.
-- R: options; feedback.
-- C: scaffold visible; typed answer.
-- F: typed answer; hints on request (ladder: length/first letter → 4–5 options → reveal).
-- V: typed answer; skip button.
-- No timer. No idle detection. Record session changes and card events; later
-  analysis can infer gaps.
+- Screens and regions: settled in `learn-ui.md` (shell, learning area, search
+  region, session drawer); the earlier three-screen sketch is superseded.
+- Look-ahead: next 5 cards, Hebrew name + card type only; never Latin, English,
+  family or internal ids. Collapsible.
+- Card presentation: book-like cream paper, ink text, grey parts, ochre
+  accents. L shows the reference panel; E uses option buttons; R uses large
+  Latin options with number keys; C/F use a Latin input (LTR) and submit.
+- Feedback: result banner, expected Latin with parts, English and family;
+  per-word marks for C/F, per-part results for E. Do not expose counters.
+- Keyboard: Enter submits/advances; 1–5 choose R options; hints and V skip when
+  those exist. Ignore shortcuts while typing except Enter.
+- Accessibility: `aria-live` feedback, visible focus, labels in addition to
+  colour, logical CSS properties for RTL. Latin inputs use `dir="ltr"`,
+  `autocomplete="off"`, `autocapitalize="none"`, `spellcheck="false"`.
+- States: no profile; empty pool (explain why); data mismatch; stale card
+  (reload); save failed (do not advance); server down.
+- Bird illustrations: https://github.com/alchaincyf/huashu-bird-sticker (CC BY
+  4.0, attribution required) are available but not integrated.
 
-### Text client (current practice surface)
+## Later
 
-- The interactive text client is the real practice surface until the browser
-  exists. Card views, search and grading come from the Worker.
-- `card E`: shows the card, prompts for one option number per element, then
-  prints per-element feedback and `correct/total`. Wrong rows show the chosen
-  and correct glosses; correct rows repeat the correct gloss. Wrong answers
-  reveal and continue; E is not a gate.
-- `card R`: shows the Hebrew name and numbered Latin options. A wrong choice
-  re-prompts without revealing; a second wrong reveals the correct Latin.
-  Shared-Hebrew names are all accepted.
-- `card C`: shows the Hebrew name and a one-line scaffold: the concatenated
-  word shapes, then the part lengths and Hebrew glosses. The genus is one word
-  even when split. The user types the full Latin; normalization is NFC,
-  whitespace collapse and casefold. A near miss shows the exact spelling and
-  moves on; a wrong answer gets one retry, then reveals.
-- `card F`: shows only the Hebrew name, with no scaffold; the user types the
-  full Latin. Grading and feedback are the same as C. Hints are not wired yet.
-- A card command also accepts a search query. One match is a single card;
-  several matches form a one-pass run in search order. Enter advances;
-  exit/quit/Ctrl-D/Esc stops the run. E, R, C and F runs skip ineligible birds
-  and report the count. This is a learner-driven study tool ("search with
-  benefits"), not saved progress or the scheduler.
-- A search command matches identity fields and the etymology elements of a
-  bird's name, so `summit` finds the `Acrocephalus` birds. Result rows carry a
-  `matched` explanation (`acrido (=locust)`, in the searched language), and a
-  following `Elements matching ...` section lists the dictionary entries with
-  glosses, theme, origin and bird count. Name matches sort first. Session
-  filters stay names-only; card commands use the full search.
-- A search command opens a read-only `search>` mode. Every line there is a
-  query (a leading `/` is optional) except `?` (help); a bare `/` opens the
-  mode without listing all birds. Exiting returns to the same element and
-  keeps answers already given.
-- Each `card E` or `card R` uses a fresh random option seed; `--seed N`
-  reproduces one exact card. E, R, C and F practise from a shell as well as
-  inside the client; L only prints.
-  `--answer` and `--reveal` do not exist; `card L` is the reference view and
-  the practice flow reveals answers.
-- `exit`, `quit`, Ctrl-D and Esc (press Esc, then Enter) go one prompt up; from
-  `card>` they leave the client. Ctrl-C leaves the client.
-- Progress is saved through the Worker profile/session store; `session run`
-  resumes the open queue.
-
-## Data edge cases and grading
-
-- 5 no-Hebrew species: excluded from H→L.
-- Shared Hebrew name (`סלעית לבנת-כנף`): accept either *Oenanthe* species as correct; show both in feedback.
-- 29 families without Hebrew: never shown as a Hebrew family; family context optional.
-- 238 species with no etymology: no E card.
-- Partial etymology: E asks only about the split words.
-- Hebrew grading: normalize ASCII hyphen / maqaf / space, geresh/gershayim; no niqqud in the source.
-- English grading (later): case-insensitive, hyphens/apostrophes/spaces normalized.
-- Latin grading: NFC, trim/collapse whitespace, casefold; genus and epithet
-  scored separately; near-miss when word count matches, first letters match,
-  and total Damerau-Levenshtein distance is at most 2; otherwise wrong.
-- E choices are graded by Hebrew gloss; R by Latin option; C by typed Latin.
-- Status markers (`A`, `I`, `Ex`, `X`) are context, not v1 quiz targets.
-- English directions, whole-name deck, and element free-typing are later.
-
-## Decisions locked
-
-- Browser app published on GitHub Pages, with progress in private Cloudflare R2 behind a Worker file API. Online-only for progress; no local server and no local progress store.
-- Hebrew book-style UI; English names shown; English quizzing later.
-- No session timer; pure card-count scheduling; global counter across sessions.
-- L is display-only with only "next"; E is a reveal-and-continue element check; R is a Latin choice; C is typed with a scaffold; F is typed without one; V later.
-- Pass F = unaided correct; passed birds are profile-global and excluded from new/reloaded sessions.
-- Session learning is independent; passed birds and V reviews are shared.
-- Active-chain cap 7; random bird draw from the filtered, shuffled pool; no family blocks.
-- Queue lookahead ~50; failure moves 30–50 cards; repeat once; fall back one card on second failure.
-- V levels 20/60/150/400; no time-based promotion; V skip snoozes 100 cards.
-- Out-of-scope V cards on by default with skip; global due count.
-- Look-ahead 5 cards, Hebrew name + card type, no Latin.
-- Collect events now; analyse later.
-- Implement in small, user-reviewed slices; the foundation data layer is in
-  place, the remaining components are still design-only.
-
-## Open / later
-
-- Write the one-page implementation spec (file structures, exact state transitions, screen flow).
-- Out-of-scope V hand-back UX: a future "needs relearning" badge; today the bird is simply no longer passed and is available to normal sessions.
-- Optional dedicated "Review due" run/session.
-- Global search (future): `/` from anywhere opens a grouped search screen
-  (families, completed birds, elements, cards); results open read-only card
-  previews; previews do not advance the queue or the global counter. Requires
-  dataset search indexes and pure, session-independent card views from the
-  start. No family/genus pages are planned.
-- English directions (v2/v3), whole-name deck, element free-typing.
-- Typo tolerance and near-miss presentation.
-- Images/audio, cross-device sync, session export/import.
-
-## Working agreement
-
-- Work closely with the user; no large autonomous implementation.
-- Propose the plan/diff for each small slice and wait for review.
-- Do not change `data/` or `book/` without explicit approval.
-- Do not commit unless asked.
+- Global search: `/` from any screen; grouped read-only results (families,
+  completed birds, elements, cards) opening card previews; never changes
+  progress. Needs dataset search indexes and session-independent card views;
+  no family/genus pages.
+- English directions, whole-name deck, element free-typing, typography
+  tolerance, images/audio, export/import.

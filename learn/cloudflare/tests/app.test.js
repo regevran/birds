@@ -513,6 +513,7 @@ test("a full L-E-R-C-F chain passes the bird", async () => {
   assert.equal(response.session.current, null);
   assert.equal(response.session.session.status, "completed");
   assert.equal(response.session.session.session_card_count, 5);
+  assert.equal(response.session.session.percent_completed, 100);
 
   const profile = await appRequest(env, token, "/app/profile");
   assert.equal(profile.document.passed_count, 1);
@@ -627,6 +628,11 @@ test("sessions are listed without an active pointer and any can be deleted", asy
   assert.ok(
     list.document.sessions.every(
       (session) => !Object.hasOwn(session, "active"),
+    ),
+  );
+  assert.ok(
+    list.document.sessions.every(
+      (session) => session.percent_completed === 0,
     ),
   );
 

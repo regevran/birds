@@ -213,9 +213,10 @@ The `default` session contains every eligible bird and cannot be deleted.
 Names, ids and id prefixes match case-insensitively.
 
 Session counters:
-  cards           cards consumed in this session
-  queue           cards waiting in the session queue
-  pool            eligible birds not yet added to the queue
+  completed cards  cards consumed in this session
+  % completed      birds already learned, 0-100%
+  queue            cards waiting in the session queue
+  pool             eligible birds not yet added to the queue
 """
 
 _SESSION_ACTION_USAGE = {
@@ -1157,7 +1158,12 @@ def _session_row(
     marker = "*" if selected else " "
     row = f"{marker} {name:<{name_width}}  {session_id:<20}"
     if cards:
-        row += f"  cards {session.get('session_card_count', 0)}"
+        count = session.get("session_card_count", 0)
+        row += f"  completed cards {count}"
+    percent = session.get("percent_completed")
+    if percent is None:
+        percent = 100 if session.get("status") == "completed" else 0
+    row += f"  {percent}%"
     row += (
         f"  queue {session.get('queue_size', 0)}"
         f"  pool {session.get('pool_size', 0)}"

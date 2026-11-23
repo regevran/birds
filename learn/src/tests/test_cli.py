@@ -1088,6 +1088,7 @@ def _session_view(card=None, *, status="active", count=0, queue=5):
             "name": "Test",
             "status": status,
             "session_card_count": count,
+            "percent_completed": 100 if status == "completed" else 0,
             "global_counter": count,
             "initial_pool_size": 1,
             "pool_size": 0,
@@ -1194,8 +1195,24 @@ class SessionCommandTests(unittest.TestCase):
         text = _run(app, ["session", "list"])
         self.assertIn("  default", text)
         self.assertIn("* Test", text)
-        self.assertIn("cards 3", text)
+        self.assertIn("completed cards 3", text)
         self.assertNotIn("open", text)
+
+    def test_session_list_shows_completed_cards_and_percent(self) -> None:
+        app = FakeCloudApp("", "")
+        app.sessions = [
+            {
+                "session_id": "s2",
+                "name": "Done",
+                "session_card_count": 5,
+                "percent_completed": 100,
+                "queue_size": 0,
+                "pool_size": 0,
+            }
+        ]
+        text = _run(app, ["session", "list"])
+        self.assertIn("completed cards 5", text)
+        self.assertIn("100%", text)
 
     def test_session_run_advances_the_selected_session(self) -> None:
         app = FakeCloudApp("", "")

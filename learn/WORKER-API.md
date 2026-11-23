@@ -317,6 +317,11 @@ curl -s "$BASE/app/profile" \
 }
 ```
 
+`passed_count` is the size of the profile-global `passed` table. The table
+itself lives in the profile document (keyed by species id, with the per-skill
+V level and due counter) but is not exposed as a list and has no endpoint for
+removing an entry.
+
 ## Sessions
 
 A session is a saved queue of cards. Sessions are independent documents with
@@ -341,6 +346,9 @@ curl -s "$BASE/app/sessions" \
 ```
 
 The `default` session is listed first. `name` is `null` for an unnamed session.
+`session_card_count` counts completed cards. `percent_completed` is the share of
+the session's initial birds that are now passed, rounded down; it reaches 100
+only when the queue and pool are empty.
 
 ```json
 {
@@ -350,6 +358,7 @@ The `default` session is listed first. `name` is `null` for an unnamed session.
       "name": "default",
       "status": "active",
       "session_card_count": 0,
+      "percent_completed": 0,
       "initial_pool_size": 551,
       "queue_size": 7,
       "pool_size": 544,
@@ -361,6 +370,7 @@ The `default` session is listed first. `name` is `null` for an unnamed session.
       "name": "Demo",
       "status": "active",
       "session_card_count": 0,
+      "percent_completed": 0,
       "initial_pool_size": 1,
       "queue_size": 5,
       "pool_size": 0,
@@ -391,6 +401,7 @@ curl -s -X POST "$BASE/app/sessions/resolve" \
     "name": "Demo",
     "status": "active",
     "session_card_count": 0,
+    "percent_completed": 0,
     "initial_pool_size": 1,
     "queue_size": 5,
     "pool_size": 0,
@@ -451,6 +462,7 @@ Response `201` is a session view:
     "name": "Demo",
     "status": "active",
     "session_card_count": 0,
+    "percent_completed": 0,
     "global_counter": 0,
     "initial_pool_size": 1,
     "pool_size": 0,
