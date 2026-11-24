@@ -348,7 +348,10 @@ curl -s "$BASE/app/sessions" \
 The `default` session is listed first. `name` is `null` for an unnamed session.
 `session_card_count` counts completed cards. `percent_completed` is the share of
 the session's initial birds that are now passed, rounded down; it reaches 100
-only when the queue and pool are empty.
+only when the queue and pool are empty. `created_from` is the Worker-formatted
+origin: the search text and filter criteria at creation, e.g.
+`search "acrocephalus-agricola" · status: accidental`; it is `null` for
+`default`. `active_cap` is the session's active cap at creation.
 
 ```json
 {
@@ -362,6 +365,8 @@ only when the queue and pool are empty.
       "initial_pool_size": 551,
       "queue_size": 7,
       "pool_size": 544,
+      "created_from": null,
+      "active_cap": 7,
       "created_at": "2026-11-22T18:31:00.000Z",
       "updated_at": "2026-11-22T18:31:00.000Z"
     },
@@ -374,6 +379,8 @@ only when the queue and pool are empty.
       "initial_pool_size": 1,
       "queue_size": 5,
       "pool_size": 0,
+      "created_from": "search \"acrocephalus-agricola\" · status: accidental",
+      "active_cap": 1,
       "created_at": "2026-11-22T18:31:00.000Z",
       "updated_at": "2026-11-22T18:31:00.000Z"
     }
@@ -405,6 +412,8 @@ curl -s -X POST "$BASE/app/sessions/resolve" \
     "initial_pool_size": 1,
     "queue_size": 5,
     "pool_size": 0,
+    "created_from": "search \"acrocephalus-agricola\" · status: accidental",
+    "active_cap": 1,
     "created_at": "2026-11-22T18:31:00.000Z",
     "updated_at": "2026-11-22T18:31:00.000Z"
   }
@@ -466,7 +475,9 @@ Response `201` is a session view:
     "global_counter": 0,
     "initial_pool_size": 1,
     "pool_size": 0,
-    "queue_size": 5
+    "queue_size": 5,
+    "created_from": "search \"acrocephalus-agricola\" · status: accidental",
+    "active_cap": 1
   },
   "current": {
     "uid": "c_c5cfa622f7a5",

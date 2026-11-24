@@ -51,7 +51,11 @@ no `r2.dev` URL and is read/written only by the Worker.
 - Identity: `session_id`, `profile_id`, `name`, timestamps, `data_version`.
 - `skill` (`he_to_latin`), `status` (`active` / `completed`).
 - `filter`: `families`, `orders`, `genera`, `statuses`, `search`.
-- `settings`, `seed`, `initial_pool_size`.
+- `created_from`: the Worker-formatted search and criteria at creation, e.g.
+  `search "acrocephalus-agricola" · status: accidental`; absent in old
+  sessions (their summaries format the stored filter) and empty for `default`
+  (returned as `null`).
+- `settings` (including `active_cap`), `seed`, `initial_pool_size`.
 - `pool`: species ids not yet started. `queue`: concrete card descriptors
   (`uid`, `species_id`, `type`, `attempt`, `seed`, `hint_level`, `retry`,
   `revealed`); `queue[0]` is current.
@@ -76,7 +80,8 @@ the profile, not the session.
 
 - Card views never contain an explicit correct answer; L intentionally shows
   the full name. Look-ahead exposes only Hebrew, type and review flags.
-- Session summaries carry `session_card_count` and `percent_completed`.
+- Session summaries carry `session_card_count`, `percent_completed`,
+  `created_from` and `active_cap`.
 - Session selection and naming rules are in `learn-reference.md`.
 
 ## Concurrency

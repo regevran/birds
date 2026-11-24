@@ -15,6 +15,9 @@ __pycache__/
 /learn/cloudflare/.dev.vars
 /learn/cloudflare/.wrangler/
 
+# just design
+/learn/design/
+
 # Editor / tags
 *.swp
 /tags

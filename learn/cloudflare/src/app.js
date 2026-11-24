@@ -13,12 +13,14 @@ import { GradeError } from "./trainer/grading.js";
 import { searchBirds } from "./trainer/search.js";
 import {
   SchedulerError,
+  activeCapOf,
   assertCurrent,
   cardFor,
   consume,
   completionPercent,
   createProfile,
   createSession,
+  createdFromOf,
   markRetry,
   prunePassed,
   sessionView,
@@ -231,6 +233,8 @@ function sessionSummary(session) {
     initial_pool_size: session.initial_pool_size,
     queue_size: session.queue.length,
     pool_size: session.pool.length,
+    created_from: createdFromOf(session),
+    active_cap: activeCapOf(session),
     created_at: session.created_at,
     updated_at: session.updated_at,
   };

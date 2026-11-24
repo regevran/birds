@@ -23,6 +23,7 @@ birds/
     src/tests/            Python tests
     cloudflare/           progress Worker: src/core.js, src/app.js,
                           src/trainer/, Node tests, wrangler.toml
+    design/               browser UI design mocks (design only)
     tools/                account provisioning
     data/                 placeholder; progress is not stored locally
 ```
@@ -33,7 +34,7 @@ birds/
   book output. `learn/` has no `out`; it runs from `learn/src`.
 - Progress lives in private Cloudflare R2 behind `learn/cloudflare/`; there is
   no local progress store. The browser client is not written yet; its design
-  is `.ai/learn-ui.md`.
+  is `.ai/learn-ui.md`, with visual options in `learn/design/`.
 - `.ai/` is the durable AI context described in `.ai/README.md`.
 
 ## Data contract
@@ -83,6 +84,7 @@ preview targets are in `book-reference.md`; Worker deployment is in
   documented in `learn/README.md` and `learn/CLI-USAGE.md`; session/card design
   is in `learn-reference.md`.
 - **Tests:** 113 Python tests through `learn-test` (three live Worker tests
-  skip unless `BIRDS_TEST_*` is set); 91 Worker tests through
+  skip unless `BIRDS_TEST_*` is set); 96 Worker tests through
   `learn-worker-test`.
-- **Next:** the browser client. Deferred trainer work is listed in `TODO.md`.
+- **Next:** the browser client; three visual options are in `learn/design/`.
+  Deferred trainer work is listed in `TODO.md`.

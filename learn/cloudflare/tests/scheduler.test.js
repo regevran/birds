@@ -3,13 +3,16 @@ import test from "node:test";
 
 import { catalog } from "../src/trainer/dataset.js";
 import {
+  activeCapOf,
   activeCount,
   assertCurrent,
   completionPercent,
   consume,
   createProfile,
   createSession,
+  createdFromOf,
   currentCard,
+  formatCreatedFrom,
   markRetry,
   matchesFilter,
   refill,
@@ -372,4 +375,70 @@ test("refill pulls a bird when an active slot frees", () => {
   assert.ok(
     session.queue.some((card) => card.species_id === "turdus-merula"),
   );
+});
+
+test("created_from is the Worker-formatted search and criteria", () => {
+  assert.equal(
+    formatCreatedFrom({ search: "acrocephalus-agricola" }),
+    'search "acrocephalus-agricola"',
+  );
+  assert.equal(
+    formatCreatedFrom({
+      search: "acro",
+      families: ["Acrocephalidae"],
+      statuses: ["accidental"],
+    }),
+    'search "acro" · family: Acrocephalidae · status: accidental',
+  );
+  assert.equal(formatCreatedFrom({ statuses: [] }), "");
+  assert.equal(formatCreatedFrom({}), "");
+  assert.equal(
+    formatCreatedFrom({ search: "acro", statuses: ["introduced", "regular"] }),
+    'search "acro"',
+  );
+});
+
+test("a session stores its origin and active cap", () => {
+  const owner = profile();
+  const session = createSession(catalog, owner, {
+    name: "Test session",
+    filter: { search: "acro", statuses: ["accidental"] },
+    settings: { active_cap: 2 },
+    seed: 7,
+    sessionId: "s1",
+    uid: idFactory(),
+    now: NOW,
+  });
+  assert.equal(session.created_from, 'search "acro" · status: accidental');
+  assert.equal(createdFromOf(session), 'search "acro" · status: accidental');
+  assert.equal(activeCapOf(session), 2);
+  const view = sessionView(catalog, owner, session);
+  assert.equal(
+    view.session.created_from,
+    'search "acro" · status: accidental',
+  );
+  assert.equal(view.session.active_cap, 2);
+});
+
+test("the default session has no origin and the default cap", () => {
+  const owner = profile();
+  const session = createSession(catalog, owner, {
+    filter: { statuses: [] },
+    settings: {},
+    sessionId: "default",
+    uid: idFactory(),
+    now: NOW,
+  });
+  assert.equal(session.created_from, "");
+  assert.equal(createdFromOf(session), null);
+  assert.equal(activeCapOf(session), 7);
+});
+
+test("an old session formats its stored filter", () => {
+  const { session } = sessionFor("acrocephalus-agricola", {
+    filter: { search: "acro", statuses: ["accidental"] },
+  });
+  const old = { ...session };
+  delete old.created_from;
+  assert.equal(createdFromOf(old), 'search "acro" · status: accidental');
 });

@@ -71,7 +71,9 @@ POOL / SET                        ACTIVE (max 7)                 QUEUE (~50 card
 - E options are deduplicated by Hebrew gloss; any element with the chosen
   gloss is accepted.
 - The L **bridge** line heuristically shows Hebrew-word ↔ Latin-part matches;
-  it is display-only, never graded, and can be turned off.
+  it is display-only, never graded, and can be turned off. The browser L face
+  does not render it — the parts decomposition carries the glosses — but the
+  CLI still prints it.
 - **Hints** (future): request length/first letters → 4–5 options → reveal.
   Assisted or revealed answers are soft returns; R's options are its hint, and
   L has no hints.
@@ -137,6 +139,12 @@ ad-hoc variants.
 - Create: filter → eligible set minus passed → shuffled with a stored seed →
   pool and initial queue; birds are drawn randomly, with no family blocks.
   Eligibility defaults to regular + introduced; `default` has no status filter.
+- The session stores `created_from`, the Worker-formatted search and criteria
+  (e.g. `search "acrocephalus-agricola" · status: accidental`), and the
+  `active_cap` it was created with; the summary/view returns both. The browser
+  shows the origin read-only, so CLI-only family/order/genus/status criteria
+  are visible; `default` has none. The string is also the base for future
+  custom series.
 - Two sessions may learn the same not-yet-passed bird; only `passed` is
   globally excluded. Broadening scope means creating a new session; the old
   one remains.
@@ -190,7 +198,10 @@ Design recorded for later; not implemented.
 - States: no profile; empty pool (explain why); data mismatch; stale card
   (reload); save failed (do not advance); server down.
 - Bird illustrations: https://github.com/alchaincyf/huashu-bird-sticker (CC BY
-  4.0, attribution required) are available but not integrated.
+  4.0, credit next to the image) cover every species and are in v1, on every
+  card. A reader speaks visible names from pre-generated clips (Latin
+  required; English and Hebrew later); the pronunciation convention is not
+  chosen. Details: `learn-ui.md`.
 
 ## Later
 

@@ -44,7 +44,10 @@ canonical files linked here; working rules are in `README.md`.
   filters and cannot be deleted or renamed; it is the fallback. Names are
   optional and unique; handle resolution and card-run eligibility are
   Worker-side. Two clients on one session see each other's progress; conflicts
-  reload the session.
+  reload the session. A session stores a Worker-formatted `created_from` (the
+  search and criteria at creation) and its `active_cap`; the summary returns
+  both, and the clients show the origin read-only. The string is the base for
+  future custom series.
 - **Progress:** passing F retires the bird into the profile-global `passed`
   table. Session rows show completed cards and a completion percentage. There
   is no unpass command.
@@ -60,6 +63,11 @@ canonical files linked here; working rules are in `README.md`.
 - **UI:** book-like paper styling, Hebrew RTL with Latin/English LTR runs. A
   collapsible look-ahead of five cards shows Hebrew name + card type, never
   Latin.
+- **Browser media:** the bird illustration is always visible, F included, so
+  picture→Latin is a second accepted route to the name. A reader speaks
+  visible names from pre-generated clips (Latin required; English and Hebrew
+  later). Card titles and search actions use the full names, not the
+  L/E/R/C/F shorthand.
 - **Scope:** the text client currently covers L/E/R/C/F; V, hints and the
   browser UI are design-only.
 - **Client/Worker versioning:** one version. The client expects the current

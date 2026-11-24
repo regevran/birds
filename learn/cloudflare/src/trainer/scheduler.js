@@ -100,6 +100,47 @@ function normalizedFilter(filter = {}) {
   };
 }
 
+/* The session's provenance, e.g. 'search "acrocephalus-agricola" · status:
+ * accidental'. Stored at creation as a string, so a future custom series can
+ * set its own origin without the clients knowing its structure.
+ */
+export function formatCreatedFrom(filter = {}) {
+  const normalized = normalizedFilter(filter);
+  const parts = [];
+  const search = normalized.search.trim();
+  if (search) {
+    parts.push(`search "${search}"`);
+  }
+  if (normalized.families.length > 0) {
+    parts.push(`family: ${normalized.families.join(", ")}`);
+  }
+  if (normalized.orders.length > 0) {
+    parts.push(`order: ${normalized.orders.join(", ")}`);
+  }
+  if (normalized.genera.length > 0) {
+    parts.push(`genus: ${normalized.genera.join(", ")}`);
+  }
+  const defaultStatuses = new Set(DEFAULT_FILTER.statuses);
+  const sameAsDefault =
+    normalized.statuses.length === DEFAULT_FILTER.statuses.length &&
+    normalized.statuses.every((status) => defaultStatuses.has(status));
+  if (normalized.statuses.length > 0 && !sameAsDefault) {
+    parts.push(`status: ${normalized.statuses.join(", ")}`);
+  }
+  return parts.join(" · ");
+}
+
+/* `created_from` for old sessions that predate the stored field. */
+export function createdFromOf(session) {
+  const text =
+    session.created_from ?? formatCreatedFrom(session.filter ?? {});
+  return text || null;
+}
+
+export function activeCapOf(session) {
+  return session.settings?.active_cap ?? DEFAULT_SETTINGS.active_cap;
+}
+
 export function createProfile({
   profileId,
   name = profileId,
@@ -362,6 +403,7 @@ export function createSession(
     skill: "he_to_latin",
     status: "active",
     filter: normalized,
+    created_from: formatCreatedFrom(normalized), // e.g. 'search "acrocephalus-agricola" · status: accidental'
     settings: chosenSettings,
     seed: chosenSeed,
     initial_pool_size: eligible.length,
@@ -528,6 +570,8 @@ export function sessionView(catalog, profile, session, limit = LOOKAHEAD) {
       initial_pool_size: session.initial_pool_size,
       pool_size: session.pool.length,
       queue_size: session.queue.length,
+      created_from: createdFromOf(session),
+      active_cap: activeCapOf(session),
     },
     current: card
       ? {

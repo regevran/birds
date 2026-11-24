@@ -456,6 +456,8 @@ test("a new profile starts with the protected all-birds default session", async 
   assert.equal(session.name, "default");
   assert.ok(!Object.hasOwn(session, "active"));
   assert.ok(session.initial_pool_size > 0);
+  assert.equal(session.created_from, null);
+  assert.equal(session.active_cap, 7);
 
   const object = await env.PROGRESS.get("users/alice/sessions/default.json");
   const document = await object.json();
@@ -468,6 +470,30 @@ test("a new profile starts with the protected all-birds default session", async 
   assert.equal(refused.status, 409);
   assert.equal(refused.document.error, "session_default");
   assert.match(refused.document.message, /\(protected\)/);
+});
+
+test("a session reports its formatted origin and active cap", async () => {
+  const env = makeEnv();
+  const token = await tokenFor();
+  const view = await createSession(env, token);
+  const expected =
+    `search "${SPECIES}" · status: regular, introduced, accidental, historical, extinct`;
+  assert.equal(view.session.created_from, expected);
+  assert.equal(view.session.active_cap, 1);
+
+  const list = await appRequest(env, token, "/app/sessions");
+  const created = list.document.sessions.find(
+    (session) => session.session_id === sessionId(view),
+  );
+  assert.equal(created.created_from, expected);
+  assert.equal(created.active_cap, 1);
+
+  const resolved = await appRequest(env, token, "/app/sessions/resolve", {
+    method: "POST",
+    body: { handle: sessionId(view) },
+  });
+  assert.equal(resolved.document.session.created_from, expected);
+  assert.equal(resolved.document.session.active_cap, 1);
 });
 
 test("a full L-E-R-C-F chain passes the bird", async () => {
