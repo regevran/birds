@@ -98,3 +98,5 @@ add_custom_target(learn-worker-deploy
 
 add_dependencies(learn-worker-dev learn-worker-data)
 add_dependencies(learn-worker-deploy learn-worker-data)
+
+add_subdirectory(web)

@@ -1,0 +1,50 @@
+/* Option B — specimen sheet. Crisp panels, a type-coloured head band, sans
+   chrome and a serif name; the densest of the three. */
+body.opt-b {
+  --bg: var(--cream);
+  --card: #fffdf6;
+  --line: rgba(47, 39, 20, .18);
+  --hairline: rgba(47, 39, 20, .09);
+  --text: var(--ink);
+  --text-muted: var(--muted);
+  --accent: var(--ochre);
+  --accent-find: var(--software);
+  --track: rgba(47, 39, 20, .12);
+  --search-bg: rgba(239, 223, 192, .45);
+  --input-bg: #fffdf6;
+  --chip-bg: #fffdf6;
+  --radius: 6px;
+  --small-radius: 4px;
+  --shadow: 0 16px 40px rgba(47, 39, 20, .10), 0 1px 0 rgba(47, 39, 20, .04);
+  --on-type: var(--cream);
+  --font-body: "Noto Sans", "Droid Sans Hebrew", sans-serif;
+  --font-chrome: "Noto Sans Mono", ui-monospace, "Liberation Mono", monospace;
+  --font-name: "Noto Serif", "Droid Sans Hebrew", serif;
+}
+body.opt-b {
+  background:
+    linear-gradient(180deg, rgba(239, 223, 192, .28), transparent 340px),
+    var(--cream);
+}
+body.opt-b .card { border-top: 0; padding-top: 28px; position: relative; overflow: hidden; }
+body.opt-b .card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 6px; background: var(--type);
+}
+body.opt-b .type-mark { border-radius: 2px; }
+body.opt-b .card-title-he { font-weight: 600; }
+body.opt-b .parts {
+  margin-top: 16px; padding: 0 14px;
+  background: rgba(239, 223, 192, .25);
+  border: 1px solid var(--hairline); border-radius: 4px;
+}
+body.opt-b .sticker {
+  padding: 10px 10px 6px;
+  background: rgba(239, 223, 192, .55);
+  border: 1px solid var(--hairline); border-radius: 6px;
+}
+body.opt-b .sticker figcaption { margin-top: 4px; }
+body.opt-b .next {
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  letter-spacing: .02em; text-transform: none; padding: 11px 26px;
+}
+body.opt-b .lookahead { border-top: 1px solid var(--line); }

@@ -1,0 +1,22 @@
+/* Palette carried over from ../personal_portfolio (design/assets/design.css).
+   The trainer defines its own roles; the type accents are provisional until
+   the colour-template task. */
+:root {
+  --sand: #efdfc0;
+  --cream: #fff9ec;
+  --ink: #2f2714;
+  --ochre: #7a4e12;
+  --gold: #ecb652;
+  --wood: #c98b45;
+  --wood-light: #e7c487;
+  --software: #3e6b89;
+  --nature: #9a9a5b;
+  --nature-dark: #5f6232;
+  --muted: #6f634d;
+
+  --t-L: var(--ochre);
+  --t-E: var(--nature-dark);
+  --t-R: var(--software);
+  --t-C: var(--wood);
+  --t-F: var(--gold);
+}

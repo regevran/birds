@@ -1,0 +1,145 @@
+/* Client-only additions on top of the design styles. */
+
+.search-input {
+  appearance: none;
+  outline: none;
+  width: 300px;
+  height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: var(--small-radius);
+  background: var(--input-bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  direction: ltr;
+  text-align: left;
+}
+.search-input::placeholder { color: var(--text-muted); opacity: .7; }
+
+.search-clear {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.search-clear:hover { color: var(--text); border-color: var(--text-muted); }
+
+/* Look-ahead: intrinsic height; the separator is on the strip itself. */
+.lookahead {
+  height: auto;
+  min-height: 46px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.la-inner { border-top: 0; padding-top: 0; }
+
+/* Search results scroll under the fixed column header. */
+.search-left { min-height: 0; }
+.results { flex: 1; min-height: 0; }
+#results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* No selected bird: no empty panel box. */
+.bird-panel:empty { display: none; }
+
+button:disabled { opacity: .45; cursor: default; }
+
+.status {
+  position: fixed;
+  left: 20px;
+  bottom: 14px;
+  max-width: 60ch;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--small-radius);
+  background: var(--cream);
+  font-family: var(--font-chrome);
+  font-size: 10px;
+  letter-spacing: .02em;
+  color: var(--ochre);
+  display: none;
+}
+.status.visible { display: block; }
+
+.card-empty,
+.card-placeholder {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+.card-placeholder .ph-type {
+  font-family: var(--font-chrome);
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--type);
+}
+.card-placeholder .ph-bird {
+  font-family: var(--font-name);
+  font-size: 28px;
+  color: var(--text);
+}
+.card-placeholder .ph-note {
+  font-family: var(--font-chrome);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.lookahead.collapsed .la-track,
+.lookahead.collapsed .nest { display: none; }
+
+.result-row { cursor: pointer; }
+.result-row:hover { background: rgba(239, 223, 192, .3); }
+.result-row .match {
+  background: transparent;
+  font-weight: 700;
+  color: var(--accent-find);
+}
+.r-family-cell { display: flex; flex-direction: column; gap: 1px; }
+.r-family-he {
+  font-family: "Droid Sans Hebrew", "Noto Sans Hebrew", sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.r-why {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-chrome);
+  font-size: 11px;
+  letter-spacing: .02em;
+  color: var(--text-muted);
+  white-space: normal;
+}
+.r-why .why-label {
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.r-why .why-id { opacity: .75; }
+.results-empty {
+  padding: 24px 8px;
+  font-family: var(--font-chrome);
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+}
+
+.token.he { font-family: "Droid Sans Hebrew", "Noto Sans Hebrew", sans-serif; }

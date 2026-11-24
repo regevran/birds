@@ -330,13 +330,14 @@ async function routeApp(request, env, url, cors, identity) {
     throw new HttpError(404, "not_found", "not found");
   }
   const [, sessionId, action] = match;
+  const lookahead = viewLimit(url);
 
   if (!action) {
     if (method === "GET") {
       const profile = await loadProfile(env, identity);
       const session = await loadSession(env, identity, sessionId);
       return jsonResponse(
-        sessionView(catalog, profile.document, session.document),
+        sessionView(catalog, profile.document, session.document, lookahead),
         200,
         cors,
       );
@@ -351,21 +352,35 @@ async function routeApp(request, env, url, cors, identity) {
     if (method !== "POST") {
       throw new HttpError(405, "method_not_allowed", "method not allowed");
     }
-    return await prepareSession(env, identity, sessionId, cors);
+    return await prepareSession(env, identity, sessionId, lookahead, cors);
   }
 
   if (action === "rename") {
     if (method !== "POST") {
       throw new HttpError(405, "method_not_allowed", "method not allowed");
     }
-    return await renameSession(env, identity, sessionId, request, cors);
+    return await renameSession(
+      env,
+      identity,
+      sessionId,
+      request,
+      lookahead,
+      cors,
+    );
   }
 
   if (action === "answer") {
     if (method !== "POST") {
       throw new HttpError(405, "method_not_allowed", "method not allowed");
     }
-    return await answerRequest(env, identity, sessionId, request, cors);
+    return await answerRequest(
+      env,
+      identity,
+      sessionId,
+      request,
+      lookahead,
+      cors,
+    );
   }
 
   throw new HttpError(404, "not_found", "not found");
@@ -383,6 +398,18 @@ async function searchRequest(request, cors) {
     200,
     cors,
   );
+}
+
+function viewLimit(url) {
+  const raw = url.searchParams.get("lookahead");
+  if (raw === null || raw === "") {
+    return undefined;
+  }
+  const limit = Number(raw);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 20) {
+    throw new HttpError(400, "invalid_request", "lookahead must be 1..20");
+  }
+  return limit;
 }
 
 async function cardViewRequest(request, cors) {
@@ -712,7 +739,7 @@ async function createSessionRequest(env, identity, request, cors) {
   );
 }
 
-async function prepareSession(env, identity, sessionId, cors) {
+async function prepareSession(env, identity, sessionId, lookahead, cors) {
   const profile = await loadProfile(env, identity);
   await ensureDefaultSession(env, identity, profile);
   const session = await loadSession(env, identity, sessionId);
@@ -725,13 +752,13 @@ async function prepareSession(env, identity, sessionId, cors) {
     session.revision,
   );
   return jsonResponse(
-    sessionView(catalog, profile.document, session.document),
+    sessionView(catalog, profile.document, session.document, lookahead),
     200,
     cors,
   );
 }
 
-async function renameSession(env, identity, sessionId, request, cors) {
+async function renameSession(env, identity, sessionId, request, lookahead, cors) {
   const body = requireObjectBody(await readJson(request));
   if (!Object.hasOwn(body, "name")) {
     throw new HttpError(
@@ -775,7 +802,7 @@ async function renameSession(env, identity, sessionId, request, cors) {
     session.revision,
   );
   return jsonResponse(
-    sessionView(catalog, profile.document, session.document),
+    sessionView(catalog, profile.document, session.document, lookahead),
     200,
     cors,
   );
@@ -796,7 +823,7 @@ async function deleteSession(env, identity, sessionId, cors) {
   return new Response(null, { status: 204, headers: cors });
 }
 
-async function answerRequest(env, identity, sessionId, request, cors) {
+async function answerRequest(env, identity, sessionId, request, lookahead, cors) {
   const body = requireObjectBody(await readJson(request));
   const profile = await loadProfile(env, identity);
   const session = await loadSession(env, identity, sessionId);
@@ -860,6 +887,7 @@ async function answerRequest(env, identity, sessionId, request, cors) {
         catalog,
         profile.document,
         session.document,
+        lookahead,
       ),
     },
     200,

@@ -208,6 +208,45 @@ function compareBirds(left, right) {
   return 0;
 }
 
+function pushToken(tokens, kind, text) {
+  const value = String(text ?? "").trim();
+  if (!value) {
+    return;
+  }
+  if (tokens.some((token) => token.kind === kind && token.text === value)) {
+    return;
+  }
+  tokens.push({ kind, text: value });
+}
+
+function pushWords(tokens, kind, text) {
+  for (const word of String(text ?? "").trim().split(/\s+/)) {
+    pushToken(tokens, kind, word);
+  }
+}
+
+/* Every creatable token for the selected-row panel: the names, the Latin
+ * words, the etymology parts, the family and the order. The client renders
+ * them; it never derives them from the text.
+ */
+export function birdTokens(bird) {
+  const tokens = [];
+  pushToken(tokens, "species", bird.latin);
+  pushToken(tokens, "latin_word", bird.genus);
+  pushToken(tokens, "latin_word", bird.epithet);
+  for (const part of [...bird.genus_parts, ...bird.epithet_parts]) {
+    pushToken(tokens, "part", part.latin);
+  }
+  pushToken(tokens, "family", bird.family);
+  pushToken(tokens, "family_he", bird.family_he);
+  pushToken(tokens, "order", bird.order);
+  pushToken(tokens, "english", bird.english);
+  pushWords(tokens, "english_word", bird.english);
+  pushToken(tokens, "hebrew", bird.hebrew);
+  pushWords(tokens, "hebrew_word", bird.hebrew);
+  return tokens;
+}
+
 function publicBird(bird, matched) {
   return {
     species_id: bird.species_id,
@@ -222,5 +261,6 @@ function publicBird(bird, matched) {
     has_hebrew: bird.has_hebrew,
     has_parts: bird.has_parts,
     matched,
+    tokens: birdTokens(bird),
   };
 }

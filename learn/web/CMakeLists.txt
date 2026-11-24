@@ -1,0 +1,44 @@
+# Browser client. Static HTML/CSS/JS staged under build/web; the Worker
+# remains the only data path (local or remote by the page's meta tag).
+#
+# Targets:
+#   learn-web-build   stage the client files in build/web
+#   learn-web-token   mint a local dev token into build/web/dev-login.html
+#   learn-web-serve   stage and serve them on http://localhost:8001
+
+set(WEB_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
+set(WEB_OUT "${CMAKE_BINARY_DIR}/web")
+set(WEB_PORT 8001)
+
+file(GLOB_RECURSE WEB_FILES CONFIGURE_DEPENDS
+    "${WEB_SRC}/index.html"
+    "${WEB_SRC}/src/*.js"
+    "${WEB_SRC}/assets/*")
+
+# Remove only the staged client files, so the generated dev-login.html (a
+# development credential) survives a restage.
+add_custom_target(learn-web-build
+    COMMAND "${CMAKE_COMMAND}" -E rm -rf
+        "${WEB_OUT}/index.html" "${WEB_OUT}/src" "${WEB_OUT}/assets"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${WEB_OUT}"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory "${WEB_SRC}" "${WEB_OUT}"
+    DEPENDS ${WEB_FILES}
+    COMMENT "Staging the browser client in ${WEB_OUT}"
+    VERBATIM)
+
+add_custom_target(learn-web-token
+    COMMAND "${Python3_EXECUTABLE}"
+        "${BIRDS_ROOT}/learn/tools/mint_token.py"
+        --out "${WEB_OUT}/dev-login.html"
+        --serve-url "http://localhost:${WEB_PORT}"
+    DEPENDS learn-web-build
+    COMMENT "Minting a local dev token for the browser client"
+    VERBATIM)
+
+add_custom_target(learn-web-serve
+    COMMAND "${Python3_EXECUTABLE}" -m http.server ${WEB_PORT}
+        --directory "${WEB_OUT}"
+    DEPENDS learn-web-build
+    COMMENT "Serving the browser client on http://localhost:${WEB_PORT}"
+    USES_TERMINAL
+    VERBATIM)
