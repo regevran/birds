@@ -25,7 +25,7 @@ test("usernames are normalized and validated", () => {
   assert.equal(normalizeUsername("  Ran  "), "ran");
   assert.equal(normalizeUsername(null), "");
   assert.equal(scopeBase("profile", "ran"), "users/ran/");
-  assert.equal(scopeBase("tests", "ran"), "tests/");
+  assert.throws(() => scopeBase("tests", "ran"), HttpError);
   assert.throws(() => scopeBase("profile", "../ran"), HttpError);
   assert.throws(() => scopeBase("nope", "ran"), HttpError);
 });
@@ -69,7 +69,7 @@ test("physical and logical keys round-trip", () => {
     "sessions/a.json",
   );
   assert.equal(logicalPath("profile", "alice", "users/bob/x.json"), null);
-  assert.equal(physicalKey("tests", "alice", "fixture.json"), "tests/fixture.json");
+  assert.throws(() => physicalKey("tests", "alice", "fixture.json"), HttpError);
 });
 
 test("revisions are opaque strings without optional quotes", () => {

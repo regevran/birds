@@ -20,7 +20,6 @@ sys.path.insert(0, str(LEARN / "src"))
 
 from trainer.foundation.passwords import (  # noqa: E402
     DEFAULT_ITERATIONS,
-    SCOPES,
     add_user,
 )
 
@@ -39,12 +38,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=int,
         default=DEFAULT_ITERATIONS,
         help=f"PBKDF2 iterations (default {DEFAULT_ITERATIONS})",
-    )
-    parser.add_argument(
-        "--scope",
-        choices=SCOPES,
-        default="profile",
-        help="profile for a learner, tests for a test fixture account",
     )
     parser.add_argument(
         "--file",
@@ -94,7 +87,6 @@ def main(argv: list[str] | None = None) -> int:
             document,
             args.username,
             password,
-            scope=args.scope,
             iterations=args.iterations,
         )
     except ValueError as exc:
@@ -105,16 +97,10 @@ def main(argv: list[str] | None = None) -> int:
     args.file.write_text(text, encoding="utf-8")
     os.chmod(args.file, 0o600)
 
-    print(
-        f"Added {args.username!r} (scope: {args.scope}) to {args.file}"
-    )
-    print("Upload it to R2 as users.json, for example:")
-    print(
-        "  npx wrangler r2 object put birds-progress/users.json "
-        f"--file {args.file} --content-type application/json --remote"
-    )
-    print("(--remote is required; without it wrangler writes to its local "
-          "emulation)")
+    print(f"Added {args.username!r} to {args.file}")
+    print("Upload the generated file with one of:")
+    print("  cmake --build build --target learn-worker-users-upload")
+    print("  cmake --build build --target learn-worker-users-deploy")
     return 0
 
 

@@ -56,6 +56,8 @@ add_custom_target(usage
     COMMAND ${CMAKE_COMMAND} -E echo "Worker test:   cmake --build build --target learn-worker-test"
     COMMAND ${CMAKE_COMMAND} -E echo "Worker dev:    cmake --build build --target learn-worker-dev"
     COMMAND ${CMAKE_COMMAND} -E echo "Worker deploy: cmake --build build --target learn-worker-deploy"
+    COMMAND ${CMAKE_COMMAND} -E echo "Users upload:  cmake --build build --target learn-worker-users-upload"
+    COMMAND ${CMAKE_COMMAND} -E echo "Users deploy:  cmake --build build --target learn-worker-users-deploy"
     COMMAND ${CMAKE_COMMAND} -E echo "--------------- Learn CLI ----------------------------"
     COMMAND ${CMAKE_COMMAND} -E echo "Learn run:     cmake --build build --target learn-run"
     COMMAND ${CMAKE_COMMAND} -E echo "Learn test:    cmake --build build --target learn-test"

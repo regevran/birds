@@ -14,15 +14,15 @@ import { searchBirds } from "./trainer/search.js";
 import {
   SchedulerError,
   activeCapOf,
-  assertCurrent,
   cardFor,
+  classifyCard,
   consume,
   completionPercent,
   createProfile,
   createSession,
-  createdFromOf,
+  historyView,
   markRetry,
-  prunePassed,
+  redo,
   sessionView,
 } from "./trainer/scheduler.js";
 import { ViewError, cardView } from "./trainer/views.js";
@@ -190,24 +190,6 @@ async function ensureDefaultSession(env, identity, profile) {
     );
     defaultSession = { document, revision };
   }
-
-  let changed = false;
-  // Session selection is client-local; remove old profile pointers.
-  for (const field of ["active_session_id", "open_session_id"]) {
-    if (Object.hasOwn(profile.document, field)) {
-      delete profile.document[field];
-      changed = true;
-    }
-  }
-  if (changed) {
-    profile.document.updated_at = new Date().toISOString();
-    profile.revision = await writeJsonObject(
-      env.PROGRESS,
-      profileKey(identity),
-      profile.document,
-      profile.revision,
-    );
-  }
   return defaultSession;
 }
 
@@ -216,7 +198,6 @@ function profileSummary(profile) {
     profile_id: profile.profile_id,
     name: profile.name,
     global_counter: profile.global_counter,
-    passed_count: Object.keys(profile.passed).length,
     settings: profile.settings,
     created_at: profile.created_at,
     updated_at: profile.updated_at,
@@ -232,8 +213,9 @@ function sessionSummary(session) {
     percent_completed: completionPercent(session),
     initial_pool_size: session.initial_pool_size,
     queue_size: session.queue.length,
-    pool_size: session.pool.length,
-    created_from: createdFromOf(session),
+    pending_size: session.pending.length,
+    history_size: session.history.length,
+    created_from: session.created_from || null,
     active_cap: activeCapOf(session),
     created_at: session.created_at,
     updated_at: session.updated_at,
@@ -324,7 +306,7 @@ async function routeApp(request, env, url, cors, identity) {
   }
 
   const match = url.pathname.match(
-    /^\/app\/sessions\/([A-Za-z0-9_-]+)(?:\/(prepare|answer|rename))?$/,
+    /^\/app\/sessions\/([A-Za-z0-9_-]+)(?:\/(prepare|answer|rename|history))?$/,
   );
   if (!match) {
     throw new HttpError(404, "not_found", "not found");
@@ -383,6 +365,21 @@ async function routeApp(request, env, url, cors, identity) {
     );
   }
 
+  if (action === "history") {
+    if (method !== "GET") {
+      throw new HttpError(405, "method_not_allowed", "method not allowed");
+    }
+    const session = await loadSession(env, identity, sessionId);
+    return jsonResponse(
+      historyView(catalog, session.document, {
+        before: historyBefore(url),
+        limit: historyLimit(url),
+      }),
+      200,
+      cors,
+    );
+  }
+
   throw new HttpError(404, "not_found", "not found");
 }
 
@@ -410,6 +407,34 @@ function viewLimit(url) {
     throw new HttpError(400, "invalid_request", "lookahead must be 1..20");
   }
   return limit;
+}
+
+function historyBefore(url) {
+  const raw = url.searchParams.get("before");
+  if (raw === null || raw === "") {
+    return undefined;
+  }
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0) {
+    throw new HttpError(
+      400,
+      "invalid_request",
+      "before must be a non-negative integer",
+    );
+  }
+  return value;
+}
+
+function historyLimit(url) {
+  const raw = url.searchParams.get("limit");
+  if (raw === null || raw === "") {
+    return undefined;
+  }
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1 || value > 50) {
+    throw new HttpError(400, "invalid_request", "limit must be 1..50");
+  }
+  return value;
 }
 
 async function cardViewRequest(request, cors) {
@@ -743,7 +768,6 @@ async function prepareSession(env, identity, sessionId, lookahead, cors) {
   const profile = await loadProfile(env, identity);
   await ensureDefaultSession(env, identity, profile);
   const session = await loadSession(env, identity, sessionId);
-  prunePassed(catalog, profile.document, session.document);
   session.document.updated_at = new Date().toISOString();
   await writeJsonObject(
     env.PROGRESS,
@@ -827,13 +851,50 @@ async function answerRequest(env, identity, sessionId, request, lookahead, cors)
   const body = requireObjectBody(await readJson(request));
   const profile = await loadProfile(env, identity);
   const session = await loadSession(env, identity, sessionId);
-  const card = assertCurrent(session.document, String(body.card_uid ?? ""));
+  const cardUid = String(body.card_uid ?? "");
+  const position = classifyCard(session.document, cardUid);
+  if (position.kind === "missing") {
+    throw new HttpError(
+      409,
+      "stale_card",
+      "the submitted card is not in this session",
+    );
+  }
+  if (position.kind === "future") {
+    throw new HttpError(
+      409,
+      "not_current",
+      "an unseen card can only be answered at the frontier",
+    );
+  }
+  const card = position.card;
   const view = cardFor(catalog, card);
   const action = String(body.action ?? "");
+  const mode = position.kind === "history" ? "redo" : "live";
 
   let feedback = null;
 
-  if (card.type === "L") {
+  if (position.kind === "history") {
+    let result;
+    if (card.type === "L") {
+      requireAction(action, "advance");
+      result = "advance";
+    } else {
+      requireAction(action, "answer");
+      const graded = gradeAnswer(
+        catalog,
+        card.species_id,
+        card.type,
+        view,
+        body,
+        Math.max(2, card.attempt),
+      );
+      feedback = graded.feedback;
+      // Only "wrong" invalidates; the rest are recorded by redo().
+      result = graded.outcome;
+    }
+    redo(catalog, profile.document, session.document, cardUid, result);
+  } else if (card.type === "L") {
     requireAction(action, "advance");
     consume(catalog, profile.document, session.document, "advance");
   } else {
@@ -883,6 +944,7 @@ async function answerRequest(env, identity, sessionId, request, lookahead, cors)
   return jsonResponse(
     {
       feedback,
+      mode,
       session: sessionView(
         catalog,
         profile.document,

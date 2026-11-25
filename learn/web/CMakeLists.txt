@@ -9,6 +9,7 @@
 set(WEB_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
 set(WEB_OUT "${CMAKE_BINARY_DIR}/web")
 set(WEB_PORT 8001)
+set(BIRDS_DEV_USER "ran" CACHE STRING "Account used by learn-web-token")
 
 file(GLOB_RECURSE WEB_FILES CONFIGURE_DEPENDS
     "${WEB_SRC}/index.html"
@@ -29,10 +30,11 @@ add_custom_target(learn-web-build
 add_custom_target(learn-web-token
     COMMAND "${Python3_EXECUTABLE}"
         "${BIRDS_ROOT}/learn/tools/mint_token.py"
+        --user "${BIRDS_DEV_USER}"
         --out "${WEB_OUT}/dev-login.html"
         --serve-url "http://localhost:${WEB_PORT}"
     DEPENDS learn-web-build
-    COMMENT "Minting a local dev token for the browser client"
+    COMMENT "Minting a local dev token for ${BIRDS_DEV_USER} (learn-web-token USER=... to override)"
     VERBATIM)
 
 add_custom_target(learn-web-serve

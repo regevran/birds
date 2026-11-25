@@ -1,8 +1,9 @@
 # Trainer design
 
-Status: implementation is the Worker (see `learn-cloudflare.md`). The Python
-text client renders JSON and stores credentials. This file records the trainer
-design; V, hints and the browser UI are not implemented yet.
+Status: the Worker is implemented (see `learn-cloudflare.md`) and the browser
+L face is in development. The Python text client renders JSON and stores
+credentials. This file records the trainer design; hints and review levels are
+not implemented, and passing/mastery was removed (see "Deferred" below).
 
 Canonical companions: `learn-cloudflare.md` (storage/Worker implementation),
 `learn/WORKER-API.md` (endpoint contract), `learn/CLI-USAGE.md` (text client),
@@ -17,22 +18,24 @@ any time, resume the saved queue.
 
 ## Vocabulary
 
-- **Profile** — a person; settings, global `passed` table and global counter.
-- **Session** — a saved queue with its own filter, pool, active chains and
-  card counter. Sessions are independent; `passed` and reviews are shared.
-- **Pool** — the session's filtered birds minus passed birds, shuffled; birds
-  not yet started.
-- **Active chain** — the remaining cards for one bird: `L→E→R→C→F` or
+- **Profile** — a person; settings and the global counter. There is no
+  mastery table.
+- **Session** — a saved timeline with its own filter and card counter.
+  Sessions are independent.
+- **Pending** — ordered per-bird groups of card specs not yet in the queue.
+  Every eligible bird starts with its chain here; pulling a bird moves its
+  group into the queue.
+- **Active chain** — the queued cards of one bird: `L→E→R→C→F` or
   `L→R→C→F`.
-- **Queue** — the ordered cards to present; `queue[0]` is current.
-- **Passed** — profile-global map of birds that passed F, with V level and
-  due counter.
-- **Global counter** — one increment per consumed card in any session.
+- **Queue** — the materialised unseen cards; `queue[0]` is the frontier.
+- **History** — completed cards in timeline order; the client may browse it.
+- **Global counter** — one increment per consumed card (or wrong redo).
 
 ```text
-POOL / SET                        ACTIVE (max 7)                 QUEUE (~50 cards)
-[bird8] [bird9] ...  ──pull──>  A: L✓ E R C F  ──interleave──>  [B/R] [A/E] [C/R] ...
-                                B: L✓ R C F
+PENDING (per bird, ordered)        ACTIVE (max 7)                 QUEUE
+A: [L E R C F]  ──pull whole─>  A: L✓ E R C F  ──interleave──>  [B/R] [A/E] [C/R] ...
+B: [L R C F]
+C: [L E R C F] ...
 ```
 
 ## Dataset facts that shape the trainer
@@ -59,11 +62,10 @@ POOL / SET                        ACTIVE (max 7)                 QUEUE (~50 card
 | **R** | Recognize | Hebrew → choose the Latin from 4–5 options. No English/family. Wrong: one retry; second wrong reveals. |
 | **C** | Construct | Hebrew → type the Latin with a one-line scaffold of word shapes and part lengths/glosses. Near miss reveals and moves on; wrong: one retry, then reveals. |
 | **F** | Produce | Hebrew → type the Latin unaided. Same grading as C. |
-| **V** | Review | Same as F, when due; skippable. Future design. |
 
-- **Passing F** = unaided correct. A correct retry after a wrong answer counts
-  as a pass for F; V treats a retry as not advancing. A bird always goes
-  through its chain once.
+- F is the last card of a bird's chain. A correct F completes the chain; there
+  is no passing, retirement or review-level state. A bird may appear again in
+  a later session.
 - Genus and epithet are scored separately for partial credit.
 - R distractors come from the same genus, then family, then order, then any;
   the correct answer and all accepted answers are excluded. Shared-Hebrew
@@ -95,37 +97,37 @@ persistence (ephemeral or saved, with or without concurrency), progression
 (retiring a bird, reviews) and completion.
 
 A session is one series instance — the complex one. A card run is another —
-query, one card type, search order, ephemeral, no `passed` changes. The chain
-`L→E→R→C→F` is just the ordering the session series allows; `R→C`, `R→E` and
-others are different orderings over the same cards, not different card types.
-New series are a group-level design question, taken together rather than as
-ad-hoc variants.
+query, one card type, search order, ephemeral. The chain `L→E→R→C→F` is just
+the ordering the session series allows; `R→C`, `R→E` and others are different
+orderings over the same cards, not different card types. Because the pending
+pool is card-based, a future series (for example every bird's C card) is a
+selection over the same inventory. New series are a group-level design
+question, taken together rather than as ad-hoc variants.
 
 ## Scheduling
 
-- Each consumed card increments `global_counter` and the session's
-  `session_card_count` exactly once. Opening, presenting and hints do not.
-- `queue` is the source of truth. `queue[0]` is current; the pool is disjoint;
-  a bird is active while it has non-V cards. Only chain order is constrained;
-  cards of one bird may be adjacent.
-- Active cap **7** (settings 5/7/10). Look-ahead target ~50 is soft; with 4–5
-  card chains the queue is normally 28–35. Never start more than 7 birds just
-  to fill the queue.
-- Refill: due V cards (future), then next cards of active chains, then a new
-  bird's L when below the cap.
-- **Soft return** (near miss, assisted, revealed): move the card and its later
-  chain 30–50 cards ahead; no failure escalation; `attempt` stays 1.
+- A live consumed card increments `global_counter` and moves from `queue[0]`
+  to `history`. Opening, presenting and hints do not. `session_card_count` is
+  the history length.
+- `queue` is the source of truth for the future. `queue[0]` is the frontier;
+  `pending` is disjoint from it. A bird is active while it has queued cards.
+  Only chain order is constrained; cards of one bird may be adjacent.
+- Active cap **7** (settings 5/7/10). With 4–5 card chains the queue is
+  normally 28–35. Never start more than 7 birds just to fill the queue.
+- Refill: pull whole pending groups and interleave them while fewer than
+  `active_cap` birds are active.
+- **Soft return** (near miss): move the card (as a fresh instance) and its
+  later chain 30–50 cards ahead; `attempt` stays 1.
 - **Hard fail:** first wrong moves the card (attempt 2) and later chain ahead.
   Second wrong falls back one card (`F→C`, `C→R`, `R→L`); the fallback starts
   at attempt 1 and the bird stays active.
 - E always advances after its one-pass check; L advances.
-- Passing F adds the bird to `passed` (`level: 1`, `due_at: counter + 20`) and
-  frees the active slot.
-- A session is `completed` when queue and pool are empty; it stays saved.
-- `percent_completed` = share of the session's initial birds now passed,
-  floored; 100 only when done.
+- A correct F completes the chain; no bird is retired.
+- A session is `completed` when queue and pending are empty; it stays saved.
+- `percent_completed` = share of the session's initial birds with no pending
+  or queued cards, floored; 100 only when done.
 
-## Sessions and passed birds
+## Sessions, history and redo
 
 - Sessions are independent Worker documents with **no active one**. Each
   client selects a session locally per server/account
@@ -136,48 +138,43 @@ ad-hoc variants.
   selection or its selection disappeared. Other names are optional and unique.
 - Handles resolve Worker-side: exact name → exact id → unique id prefix,
   case-insensitive. `--name` forces a name match.
-- Create: filter → eligible set minus passed → shuffled with a stored seed →
-  pool and initial queue; birds are drawn randomly, with no family blocks.
-  Eligibility defaults to regular + introduced; `default` has no status filter.
+- Create: filter → eligible birds (Hebrew only) → one pending group per bird,
+  shuffled with a stored seed → initial queue; birds are drawn randomly, with
+  no family blocks. Eligibility defaults to regular + introduced; `default`
+  has no status filter.
 - The session stores `created_from`, the Worker-formatted search and criteria
   (e.g. `search "acrocephalus-agricola" · status: accidental`), and the
   `active_cap` it was created with; the summary/view returns both. The browser
   shows the origin read-only, so CLI-only family/order/genus/status criteria
   are visible; `default` has none. The string is also the base for future
   custom series.
-- Two sessions may learn the same not-yet-passed bird; only `passed` is
-  globally excluded. Broadening scope means creating a new session; the old
-  one remains.
-- Before practising, `/prepare` drops newly passed birds from queue and pool.
-  Resume re-shows `queue[0]`; reload prunes and refills.
+- Two sessions may contain the same bird. Broadening scope means creating a
+  new session; the old one remains.
+- `/prepare` refreshes the view only; it no longer prunes anything.
+- Session documents are schema version 2 only; there is no migration from the
+  earlier species-pool shape.
 - Rename changes or clears a name; the id, queue, progress and client
   selections do not change. Delete removes any non-`default` session; a client
   whose selection vanished falls back to `default`.
-- Two clients on one session see each other's progress. A consumed card returns
-  `409 stale_card`; a stale write returns `412`; the client reloads and
-  continues.
-- `passed` is profile-global, keyed by species and skill. It excludes birds
-  from new and prepared sessions. There is no unpass command; until V exists,
-  a passed bird simply retires from saved sessions.
+- Two clients on one session see each other's progress. The answer route
+  classifies the submitted uid: the frontier is a live answer, a history card
+  is a redo, an unseen non-frontier card is `409 not_current`, an unknown uid
+  is `409 stale_card`. A stale write returns `412`; the client reloads.
+- The client holds the browsing cursor; the Worker serves history windows
+  (`GET /app/sessions/<id>/history?before=&limit=`) and the frontier.
+- **Redo:** a correct/advance redo records only — no refill, no new bird, the
+  future is unchanged. A wrong redo truncates history after the redone card,
+  pours the invalidated cards (completed future and planned queue) back into
+  their birds' pending groups in timeline order, re-applies the failure retry,
+  and returns a view where everything after the redone card is unseen. Redo
+  grading is a final attempt (at least 2), so a single wrong answer is `wrong`.
 
-## V reviews (future)
+## Deferred: passing, mastery and V reviews
 
-Design recorded for later; not implemented.
-
-- Levels V1–V4; intervals after the previous review: 20, 60, 150, 400 cards.
-  Pure card count, no time-based promotion. V4 pass sets `mastered` and clears
-  `due_at`.
-- Unaided first-try V pass advances; retry or hint-assisted pass repeats the
-  level. First failure retries once after 30–50 cards.
-- Second failure removes the bird from `passed`. In-scope: insert a fresh F
-  chain and re-add on pass. Out-of-scope: hand the bird back to normal
-  sessions without inserting a chain.
-- Skip is allowed only on V: snooze 100 cards, keep level and passed status.
-- Out-of-scope V cards are allowed by default, marked and skippable; a session
-  setting can disable them.
-- Claims: only a V card at the front at save time (`paused_review`) is
-  persisted; other V cards are re-derived from the due pool. With no active
-  session, the cross-session claim model is still open.
+Removed from the model in November 2026 to simplify the history/redo work. A
+bird may be replayed in a new session. Reintroducing mastery or review levels
+later should build on the card-level pending pool and the redo rules above;
+the earlier V1–V4 design is not part of the current schema.
 
 ## Browser UI (next)
 

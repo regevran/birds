@@ -64,23 +64,23 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
   (the CLI keeps it).
 - A session and a run present identically; only the context line (name vs
   `C run · 14 birds · acro`) and the ending differ.
-- Look-ahead: up to about ten upcoming Hebrew names, type-coloured, packed
+- Look-ahead: seven upcoming Hebrew names, type-coloured, packed
   left-to-right with arrows from the card's left; the strip fits its content
   and a nest closes the queue. The binocular is the only control, no label;
   collapsible; never Latin, English, family or ids.
 
 ## Progress
 
-- A percentage, always in the context line: session share of initial birds now
-  passed (Worker rule; moves on F); run share of its matches. No lifetime
-  counters.
+- A percentage, always in the context line: session share of initial birds
+  with no pending or queued cards left (Worker rule); run share of its matches.
+  No lifetime counters.
 
 ## Sessions
 
 - `default` always exists and is protected. Creating from a search scope makes
   a new session; duplicate criteria under different names (or unnamed) are
-  allowed, while names stay unique. A completed match may have no unpassed
-  birds, so the create returns an empty pool and the UI explains it.
+  allowed, while names stay unique. A match with no eligible birds returns an
+  empty pool and the UI explains it.
   Create-or-switch is deferred to the open questions.
 - Independent; the selected session is browser-local. Switching goes straight
   to the current card. Two clients on one session see each other's progress; a
@@ -113,7 +113,7 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
   none. Session filters are identity-only: a meaning-only query can run cards
   but not create a session (`Session` disabled with the reason). Card runs use
   the card-run filter (E split parts; R/C/F Hebrew), show skipped birds and the
-  reason, and never touch `passed`.
+  reason, and never change session state.
 
 ## Search region
 
@@ -201,3 +201,14 @@ browser-local resume pointer — client-only, no API/Worker/CLI change; add only
 if tab-close loss bites. Out of scope: a Worker document or session mode,
 resumable with the sessions' concurrency; revisit when a second persistent
 series is designed as a group.
+
+## History and redo
+
+The timeline is linear. The client keeps a browsing cursor over completed
+history plus the frontier; the Worker serves history windows and the frontier.
+A card in history is not read-only: answering it is a redo (the Worker
+classifies the submitted card uid, so the client never declares the mode).
+A correct/advance redo records only and leaves the future unchanged; a wrong
+redo invalidates everything after that card and the client returns to the new
+frontier. Placeholder E/R/C/F cards need an explicit Skip (a live advance)
+until their faces exist. Phase-4 UI work.

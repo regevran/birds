@@ -72,18 +72,24 @@ class PasswordTests(unittest.TestCase):
 
     def test_add_user_returns_a_new_document(self) -> None:
         original = {"users": {}}
-        updated = add_user(original, "Ran", "secret", scope="profile")
+        updated = add_user(original, "Ran", "secret")
         self.assertEqual(original, {"users": {}})
+        self.assertEqual(updated["version"], 2)
         self.assertIn("ran", updated["users"])
-        self.assertEqual(updated["users"]["ran"]["scope"], "profile")
+        entry = updated["users"]["ran"]
+        self.assertEqual(set(entry), {"salt", "hash"})
         self.assertTrue(
-            verify_password("secret", updated["users"]["ran"])
+            verify_password(
+                "secret", entry, iterations=updated["iterations"]
+            )
         )
 
         with self.assertRaises(ValueError):
             add_user(updated, "../ran", "secret")
         with self.assertRaises(ValueError):
-            add_user(updated, "ran", "secret", scope="admin")
+            add_user(
+                updated, "ran", "secret", iterations=2_000
+            )
 
 
 class ProvisionScriptTests(unittest.TestCase):
@@ -97,8 +103,6 @@ class ProvisionScriptTests(unittest.TestCase):
                     "tester",
                     "--password",
                     "tester-password",
-                    "--scope",
-                    "tests",
                     "--file",
                     str(path),
                 ],
@@ -108,12 +112,16 @@ class ProvisionScriptTests(unittest.TestCase):
             )
             self.assertIn("Added 'tester'", result.stdout)
             document = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(document["version"], 2)
+            self.assertIn("iterations", document)
             self.assertTrue(
                 verify_password(
-                    "tester-password", document["users"]["tester"]
+                    "tester-password",
+                    document["users"]["tester"],
+                    iterations=document["iterations"],
                 )
             )
-            self.assertEqual(document["users"]["tester"]["scope"], "tests")
+            self.assertNotIn("scope", document["users"]["tester"])
             self.assertEqual(
                 stat.S_IMODE(path.stat().st_mode) & 0o777, 0o600
             )

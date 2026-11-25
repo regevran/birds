@@ -442,7 +442,7 @@ class CloudApp:
         return self._json("GET", self._session_path(session_id))
 
     def prepare_session(self, session_id: str) -> dict[str, Any]:
-        """Prune passed birds and return the session view."""
+        """Refresh and return the session view."""
         return self._json(
             "POST", f"{self._session_path(session_id)}/prepare"
         )

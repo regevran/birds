@@ -25,11 +25,11 @@ function makeEnv() {
   };
 }
 
-function tokenFor(username = "alice", scope = "profile") {
+function tokenFor(username = "alice") {
   return signToken(
     {
       u: username,
-      s: scope,
+      s: "profile",
       exp: Math.floor(Date.now() / 1000) + 3600,
     },
     SECRET,
@@ -137,31 +137,10 @@ test("the app creates a profile lazily in the user's scope", async () => {
   assert.equal(response.headers.get("Cache-Control"), "no-store");
   assert.equal(response.document.profile_id, "alice");
   assert.equal(response.document.global_counter, 0);
-  assert.equal(response.document.passed_count, 0);
   assert.ok(!Object.hasOwn(response.document, "active_session_id"));
 
   assert.ok(env.PROGRESS.objects.has("users/alice/profile.json"));
   assert.ok(env.PROGRESS.objects.has("users/alice/sessions/default.json"));
-});
-
-test("old session pointers are removed from the profile", async () => {
-  const env = makeEnv();
-  const token = await tokenFor();
-  const view = await createSession(env, token);
-  const id = sessionId(view);
-  const key = "users/alice/profile.json";
-  const object = await env.PROGRESS.get(key);
-  const profile = await object.json();
-  profile.open_session_id = id;
-  profile.active_session_id = id;
-  await env.PROGRESS.put(key, JSON.stringify(profile));
-
-  const response = await appRequest(env, token, "/app/profile");
-  assert.ok(!Object.hasOwn(response.document, "active_session_id"));
-
-  const migrated = await (await env.PROGRESS.get(key)).json();
-  assert.ok(!Object.hasOwn(migrated, "active_session_id"));
-  assert.ok(!Object.hasOwn(migrated, "open_session_id"));
 });
 
 test("a session can be renamed and cleared without changing its id", async () => {
@@ -496,14 +475,14 @@ test("a session reports its formatted origin and active cap", async () => {
   assert.equal(resolved.document.session.active_cap, 1);
 });
 
-test("a full L-E-R-C-F chain passes the bird", async () => {
+test("a full L-E-R-C-F chain completes the session", async () => {
   const env = makeEnv();
   const token = await tokenFor();
   let view = await createSession(env, token);
 
   assert.equal(view.current.type, "L");
   assert.equal(view.current.card.species_id, SPECIES);
-  assert.equal(view.session.pool_size, 0);
+  assert.equal(view.session.pending_size, 0);
 
   let response = await answer(env, token, view, { action: "advance" });
   assert.equal(response.feedback, null);
@@ -542,7 +521,6 @@ test("a full L-E-R-C-F chain passes the bird", async () => {
   assert.equal(response.session.session.percent_completed, 100);
 
   const profile = await appRequest(env, token, "/app/profile");
-  assert.equal(profile.document.passed_count, 1);
   assert.equal(profile.document.global_counter, 5);
 });
 
@@ -575,7 +553,7 @@ test("a first wrong R answer is retried without consuming", async () => {
   assert.equal(response.session.session.session_card_count, 3);
 });
 
-test("a C near miss moves the card back instead of passing it", async () => {
+test("a C near miss moves the card back", async () => {
   const env = makeEnv();
   const token = await tokenFor();
   let view = await createSession(env, token);
@@ -592,7 +570,6 @@ test("a C near miss moves the card back instead of passing it", async () => {
   assert.equal(view.session.session_card_count, 4);
 
   const profile = await appRequest(env, token, "/app/profile");
-  assert.equal(profile.document.passed_count, 0);
 });
 
 test("a second wrong F answer falls back to C", async () => {
@@ -619,7 +596,6 @@ test("a second wrong F answer falls back to C", async () => {
   assert.equal(response.session.current.type, "C");
 
   const profile = await appRequest(env, token, "/app/profile");
-  assert.equal(profile.document.passed_count, 0);
 });
 
 test("a card that is no longer current is rejected", async () => {
@@ -727,24 +703,6 @@ test("a filter with no eligible birds is rejected", async () => {
   assert.equal(response.document.error, "empty_pool");
 });
 
-test("a test-scoped token keeps app state under tests", async () => {
-  const env = makeEnv();
-  const token = await tokenFor("tester", "tests");
-  const view = await createSession(env, token);
-
-  const keys = [...env.PROGRESS.objects.keys()];
-  assert.ok(keys.includes("tests/profile.json"));
-  assert.ok(keys.includes(`tests/sessions/${sessionId(view)}.json`));
-  assert.equal(
-    keys.filter((key) => key.startsWith("users/")).length,
-    0,
-  );
-
-  const profile = await appRequest(env, token, "/app/profile");
-  assert.equal(profile.document.profile_id, "tester");
-  assert.ok(!env.PROGRESS.objects.has("users/tester/profile.json"));
-});
-
 test("seeded sessions are reproducible through the API", async () => {
   const env = makeEnv();
   const token = await tokenFor();
@@ -756,3 +714,111 @@ test("seeded sessions are reproducible through the API", async () => {
     second.lookahead.map((item) => [item.type, item.hebrew]),
   );
 });
+
+test("answering a history card is a redo and keeps the future", async () => {
+  const env = makeEnv();
+  const token = await tokenFor();
+  let view = await createSession(env, token);
+  const firstUid = view.current.uid;
+
+  let response = await answer(env, token, view, { action: "advance" });
+  view = response.session;
+  const currentUid = view.current.uid;
+  const queueSize = view.session.queue_size;
+  const historySize = view.session.history_size;
+
+  const redo = await appRequest(
+    env,
+    token,
+    `/app/sessions/${sessionId(view)}/answer`,
+    {
+      method: "POST",
+      body: { card_uid: firstUid, action: "advance" },
+    },
+  );
+  assert.equal(redo.status, 200);
+  assert.equal(redo.document.mode, "redo");
+  assert.equal(redo.document.session.current.uid, currentUid);
+  assert.equal(redo.document.session.session.queue_size, queueSize);
+  assert.equal(redo.document.session.session.history_size, historySize);
+});
+
+test("an unseen card that is not the frontier cannot be answered", async () => {
+  const env = makeEnv();
+  const token = await tokenFor();
+  const view = await createSession(env, token);
+  const key = `users/alice/sessions/${sessionId(view)}.json`;
+  const document = await (await env.PROGRESS.get(key)).json();
+  const future = document.queue[1];
+
+  const response = await appRequest(
+    env,
+    token,
+    `/app/sessions/${sessionId(view)}/answer`,
+    {
+      method: "POST",
+      body: { card_uid: future.uid, action: "advance" },
+    },
+  );
+  assert.equal(response.status, 409);
+  assert.equal(response.document.error, "not_current");
+});
+
+test("the session history endpoint pages completed cards", async () => {
+  const env = makeEnv();
+  const token = await tokenFor();
+  const view = await createSession(env, token);
+  await answer(env, token, view, { action: "advance" });
+
+  const response = await appRequest(
+    env,
+    token,
+    `/app/sessions/${sessionId(view)}/history?limit=5`,
+  );
+  assert.equal(response.status, 200);
+  assert.equal(response.document.history_size, 1);
+  assert.equal(response.document.entries.length, 1);
+  assert.equal(response.document.entries[0].type, "L");
+  assert.equal(response.document.entries[0].result, "advance");
+});
+
+test("a wrong redo of a completed card rewinds the future", async () => {
+  const env = makeEnv();
+  const token = await tokenFor();
+  let view = await createSession(env, token);
+  let response = await answer(env, token, view, { action: "advance" });
+  view = response.session;
+  response = await answer(env, token, view, answerBody(view));
+  view = response.session;
+  const recognizeUid = view.current.uid;
+  const wrong = view.current.card.options.find(
+    (option) => option.species_id !== view.current.card.species_id,
+  );
+  response = await answer(env, token, view, answerBody(view));
+  view = response.session;
+  assert.equal(view.current.type, "C");
+
+  const redo = await appRequest(
+    env,
+    token,
+    `/app/sessions/${sessionId(view)}/answer`,
+    {
+      method: "POST",
+      body: {
+        card_uid: recognizeUid,
+        action: "answer",
+        choice: wrong.species_id,
+      },
+    },
+  );
+  assert.equal(redo.status, 200);
+  assert.equal(redo.document.mode, "redo");
+  const session = redo.document.session;
+  assert.equal(session.current.type, "L");
+  assert.equal(session.session.history_size, 3);
+  assert.deepEqual(
+    session.history_tail.map((entry) => [entry.type, entry.result]).at(-1),
+    ["R", "wrong"],
+  );
+});
+

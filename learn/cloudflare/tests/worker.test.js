@@ -282,51 +282,6 @@ test("users cannot escape their prefix", async () => {
   assert.equal(bobProfile.status, 404);
 });
 
-test("a test-scoped token writes under tests and sees only tests", async () => {
-  const env = makeEnv();
-  await seedUsers(env);
-  const tester = await tokenFor(env, "tester", "tester-password");
-  const alice = await tokenFor(env, "alice", "alice-password");
-
-  const payload = await verifyToken(tester, env.AUTH_SECRET);
-  assert.equal(payload.s, "tests");
-
-  const created = await worker.fetch(
-    request("/fs/fixture/profile.json", {
-      method: "PUT",
-      token: tester,
-      body: { fixture: true },
-    }),
-    env,
-  );
-  assert.equal(created.status, 200);
-  assert.equal(
-    env.PROGRESS.objects.has("tests/fixture/profile.json"),
-    true,
-  );
-
-  const listed = await worker.fetch(
-    request("/fs?prefix=fixture/", { token: tester }),
-    env,
-  );
-  assert.deepEqual(
-    (await listed.json()).objects.map((object) => object.path),
-    ["fixture/profile.json"],
-  );
-
-  const aliceList = await worker.fetch(
-    request("/fs?prefix=", { token: alice }),
-    env,
-  );
-  assert.deepEqual((await aliceList.json()).objects, []);
-
-  const escape = await worker.fetch(
-    request("/fs/%252e%252e/users/alice/profile.json", { token: tester }),
-    env,
-  );
-  assert.equal(escape.status, 400);
-});
-
 test("CORS allows the configured origin and rejects others", async () => {
   const env = makeEnv();
   await seedUsers(env);

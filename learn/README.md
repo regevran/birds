@@ -40,13 +40,13 @@ and taxonomy plus the meanings of a bird's etymology parts; results show the
 matching element and text and list the matching element entries. Search, card
 views and grading require a stored login and a reachable Worker. The V card,
 hints and the web UI are still to come. There are 113 Python tests (three live
-Worker tests skip unless configured) and 91 Worker tests.
+Worker tests skip unless configured) and 100 Worker tests.
 
 ## Progress Worker
 
 The Worker is an authenticated store over R2 with a raw file API and the
 `/app` trainer API that owns card views, grading and the scheduler. The bucket
-is private; the Worker scopes each token to one user's prefix or to `tests/`.
+is private; every token maps to one user's prefix (`users/<username>/`).
 See `cloudflare/README.md` for setup and `WORKER-API.md` for the endpoint
 contract.
 
@@ -56,8 +56,10 @@ cmake --build build --target learn-worker-dev
 cmake --build build --target learn-worker-deploy
 ```
 
-The Worker is at `https://birds-progress.regevran.workers.dev`; the stateless
-card/search routes still need a deployment. Provision accounts with:
+The Worker is deployed at `https://birds-progress.regevran.workers.dev`; that
+deployment predates the v2 session model and users.json format, so it is only
+updated together with a client release. Provision accounts with a generated
+`users.json`:
 
 ```sh
 python3 learn/tools/provision_user.py <username>
@@ -111,12 +113,15 @@ queue or progress. `session new` accepts `--search`, `--status`, `--family`,
 different options and OR within one option's comma/space-separated list; by
 default only `regular` and `introduced` birds are eligible. See `python3 -m
 trainer session new --help`. Every session except `default` can be deleted;
-deleting the selected session falls back to `default`. Live Worker tests use a
-`tests`-scoped account:
+deleting the selected session falls back to `default`. Live Worker tests run
+against a local `wrangler dev` and a local account; they write under a random
+`probe/` prefix in that account's own space:
 
 ```sh
-BIRDS_TEST_SERVER=https://birds-progress.regevran.workers.dev \
-BIRDS_TEST_USER=tester BIRDS_TEST_PASSWORD=... \
+cmake --build build --target learn-worker-dev   # in another terminal
+
+BIRDS_TEST_SERVER=http://127.0.0.1:8787 \
+BIRDS_TEST_USER=ran BIRDS_TEST_PASSWORD=... \
 cmake --build build --target learn-test-live
 ```
 

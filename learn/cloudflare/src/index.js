@@ -7,6 +7,7 @@
 
 import { handleApp } from "./app.js";
 import {
+  DEFAULT_ITERATIONS,
   DEFAULT_TOKEN_TTL_SECONDS,
   HttpError,
   MAX_LOGIN_BYTES,
@@ -122,7 +123,8 @@ async function handleLogin(request, env, cors) {
     );
   }
 
-  const users = await loadUsers(env.PROGRESS);
+  const accounts = await loadUsers(env.PROGRESS);
+  const users = accounts.users;
   const entry = users[username];
 
   if (
@@ -134,12 +136,16 @@ async function handleLogin(request, env, cors) {
     throw new HttpError(401, "invalid_credentials", "invalid username or password");
   }
 
-  const matches = await verifyPassword(password, entry);
+  const matches = await verifyPassword(
+    password,
+    entry,
+    accounts.iterations,
+  );
   if (!matches) {
     throw new HttpError(401, "invalid_credentials", "invalid username or password");
   }
 
-  const scope = entry.scope === "tests" ? "tests" : "profile";
+  const scope = "profile";
   const now = Math.floor(Date.now() / 1000);
   const ttl = tokenTtl(env);
   const expires = now + ttl;
@@ -191,7 +197,19 @@ async function loadUsers(bucket) {
   ) {
     throw new HttpError(500, "users_invalid", "users.json has no users map");
   }
-  return document.users;
+  const iterations = Number(document.iterations ?? DEFAULT_ITERATIONS);
+  if (
+    !Number.isInteger(iterations) ||
+    iterations < 1 ||
+    iterations > 1_000_000
+  ) {
+    throw new HttpError(
+      500,
+      "users_invalid",
+      "users.json has an invalid iterations value",
+    );
+  }
+  return { users: document.users, iterations };
 }
 
 async function authenticate(request, env) {

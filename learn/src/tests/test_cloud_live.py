@@ -1,8 +1,8 @@
-"""Live tests against the deployed Worker.
+"""Live tests against a local Worker.
 
 They are skipped unless BIRDS_TEST_SERVER, BIRDS_TEST_USER and
-BIRDS_TEST_PASSWORD are set. Use a ``tests``-scoped account: all paths are
-written under the Worker's ``tests/`` prefix.
+BIRDS_TEST_PASSWORD are set. Run them against a local ``wrangler dev`` and a
+local account; there is no shared R2 test prefix.
 """
 
 from __future__ import annotations

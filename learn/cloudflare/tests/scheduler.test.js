@@ -6,15 +6,17 @@ import {
   activeCapOf,
   activeCount,
   assertCurrent,
+  classifyCard,
   completionPercent,
   consume,
   createProfile,
   createSession,
-  createdFromOf,
   currentCard,
   formatCreatedFrom,
+  historyView,
   markRetry,
   matchesFilter,
+  redo,
   refill,
   sessionView,
 } from "../src/trainer/scheduler.js";
@@ -65,7 +67,7 @@ function isolate(session, types) {
     session.queue.find((card) => card.type === type),
   );
   session.queue = cards.filter(Boolean);
-  session.pool = [];
+  session.pending = [];
   session.status = "active";
   return session;
 }
@@ -97,7 +99,7 @@ test("profile and session creation fill the active cap", () => {  const owner = 
   });
 
   assert.equal(session.initial_pool_size, 2);
-  assert.equal(session.pool.length, 0);
+  assert.equal(session.pending.length, 0);
   assert.equal(activeCount(session), 2);
   assert.ok(session.queue.length >= 9);
   assert.equal(new Set(session.queue.map((card) => card.uid)).size, session.queue.length);
@@ -140,7 +142,7 @@ test("the same seed produces the same initial queue", () => {
   );
 });
 
-test("eligibility excludes no-Hebrew and passed birds", () => {
+test("eligibility excludes no-Hebrew birds", () => {
   const empty = createSession(catalog, profile(), {
     filter: { search: "butorides-striata", statuses: ALL_STATUSES },
     seed: 1,
@@ -151,16 +153,6 @@ test("eligibility excludes no-Hebrew and passed birds", () => {
   assert.equal(empty.queue.length, 0);
   assert.equal(empty.initial_pool_size, 0);
 
-  const owner = profile();
-  owner.passed["acrocephalus-agricola"] = { latin: { level: 1 } };
-  const passed = createSession(catalog, owner, {
-    filter: { search: "paddyfield", statuses: ALL_STATUSES },
-    seed: 1,
-    sessionId: "s2",
-    now: NOW,
-  });
-  assert.equal(passed.initial_pool_size, 0);
-  assert.equal(passed.status, "completed");
 });
 
 test("filters use status categories and AND semantics", () => {
@@ -311,23 +303,21 @@ test("C near miss moves the card and its chain forward", () => {
   assert.equal(session.queue[0].uid, "c_other");
 });
 
-test("F correct passes the bird and schedules V1", () => {
+test("F correct completes the chain without passing the bird", () => {
   const { profile: owner, session } = sessionFor(
     "acrocephalus-agricola",
   );
   isolate(session, ["F"]);
   const result = consume(catalog, owner, session, "correct");
-  assert.equal(result.passed, true);
+  assert.equal(result.card.type, "F");
   assert.equal(owner.global_counter, 1);
-  const entry = owner.passed["acrocephalus-agricola"].latin;
-  assert.equal(entry.level, 1);
-  assert.equal(entry.due_at, 21);
-  assert.equal(entry.mastered, false);
-  assert.equal(entry.last_result, "correct");
+  assert.equal(owner.passed, undefined);
+  assert.equal(session.history.length, 1);
+  assert.equal(session.history[0].result, "correct");
   assert.equal(session.status, "completed");
 });
 
-test("F second wrong inserts C before F and does not pass", () => {
+test("F second wrong inserts C before F", () => {
   const { profile: owner, session } = sessionFor(
     "acrocephalus-agricola",
   );
@@ -338,7 +328,6 @@ test("F second wrong inserts C before F and does not pass", () => {
     session.queue.map((card) => card.type),
     ["C", "F"],
   );
-  assert.equal(owner.passed["acrocephalus-agricola"], undefined);
 });
 
 test("a retry marks the current card without consuming it", () => {
@@ -367,11 +356,11 @@ test("refill pulls a bird when an active slot frees", () => {
   const { profile: owner, session } = sessionFor(
     "acrocephalus-agricola",
   );
-  session.pool = ["turdus-merula"];
+  session.pending = [{ species_id: "turdus-merula", cards: [{ type: "L" }] }];
   session.settings.active_cap = 2;
   refill(catalog, owner, session);
   assert.equal(activeCount(session), 2);
-  assert.equal(session.pool.length, 0);
+  assert.equal(session.pending.length, 0);
   assert.ok(
     session.queue.some((card) => card.species_id === "turdus-merula"),
   );
@@ -410,7 +399,6 @@ test("a session stores its origin and active cap", () => {
     now: NOW,
   });
   assert.equal(session.created_from, 'search "acro" · status: accidental');
-  assert.equal(createdFromOf(session), 'search "acro" · status: accidental');
   assert.equal(activeCapOf(session), 2);
   const view = sessionView(catalog, owner, session);
   assert.equal(
@@ -430,15 +418,82 @@ test("the default session has no origin and the default cap", () => {
     now: NOW,
   });
   assert.equal(session.created_from, "");
-  assert.equal(createdFromOf(session), null);
+  assert.equal(sessionView(catalog, owner, session).session.created_from, null);
   assert.equal(activeCapOf(session), 7);
 });
 
-test("an old session formats its stored filter", () => {
-  const { session } = sessionFor("acrocephalus-agricola", {
-    filter: { search: "acro", statuses: ["accidental"] },
-  });
-  const old = { ...session };
-  delete old.created_from;
-  assert.equal(createdFromOf(old), 'search "acro" · status: accidental');
+test("cards classify as current, future, history or missing", () => {
+  const { profile: owner, session } = sessionFor("acrocephalus-agricola");
+  const head = session.queue[0];
+  const ahead = session.queue[1];
+  assert.equal(classifyCard(session, head.uid).kind, "current");
+  assert.equal(classifyCard(session, ahead.uid).kind, "future");
+  assert.equal(classifyCard(session, "nope").kind, "missing");
+  consume(catalog, owner, session, "advance");
+  assert.equal(classifyCard(session, head.uid).kind, "history");
+});
+
+test("a correct redo records without changing the future", () => {
+  const { profile: owner, session } = sessionFor("acrocephalus-agricola");
+  isolate(session, ["L", "E"]);
+  consume(catalog, owner, session, "advance");
+  const queueBefore = session.queue.map((card) => card.uid);
+  const counterBefore = owner.global_counter;
+  const pendingBefore = session.pending.length;
+  redo(catalog, owner, session, session.history[0].card.uid, "correct");
+  assert.equal(session.history[0].result, "correct");
+  assert.deepEqual(session.queue.map((card) => card.uid), queueBefore);
+  assert.equal(session.pending.length, pendingBefore);
+  assert.equal(owner.global_counter, counterBefore);
+});
+
+test("a wrong redo truncates, pours cards back and retries", () => {
+  const { profile: owner, session } = sessionFor("acrocephalus-agricola");
+  isolate(session, ["L", "E", "R", "C", "F"]);
+  consume(catalog, owner, session, "advance");
+  consume(catalog, owner, session, "advance");
+  const other = {
+    ...session.queue[0],
+    uid: "c_other",
+    species_id: "turdus-merula",
+    type: "L",
+  };
+  session.queue.push(other);
+  const redone = session.history[1].card.uid;
+  const result = redo(catalog, owner, session, redone, "wrong");
+
+  assert.equal(result.invalidated, 4);
+  assert.equal(session.history.length, 2);
+  assert.equal(session.history[1].result, "wrong");
+  assert.equal(session.session_card_count, 2);
+  assert.equal(session.pending.length, 0);
+  assert.deepEqual(
+    session.queue.map((card) => card.type).sort(),
+    ["C", "E", "F", "L", "R"],
+  );
+  assert.ok(
+    session.queue.some((card) => card.species_id === "turdus-merula"),
+  );
+  assert.equal(
+    new Set(session.queue.map((card) => card.uid)).size,
+    session.queue.length,
+  );
+  assert.ok(!session.queue.some((card) => card.uid === redone));
+});
+
+test("history windows page backwards", () => {
+  const { profile: owner, session } = sessionFor("acrocephalus-agricola");
+  isolate(session, ["L", "E", "R", "C", "F"]);
+  for (let index = 0; index < 3; index += 1) {
+    consume(catalog, owner, session, "advance");
+  }
+  const view = sessionView(catalog, owner, session);
+  assert.equal(view.session.history_size, 3);
+  assert.equal(view.history_tail.length, 3);
+  const page = historyView(catalog, session, { before: 2, limit: 1 });
+  assert.equal(page.start, 1);
+  assert.equal(page.end, 2);
+  assert.equal(page.entries.length, 1);
+  assert.equal(page.entries[0].index, 1);
+  assert.equal(page.entries[0].result, "advance");
 });

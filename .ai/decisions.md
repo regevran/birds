@@ -30,8 +30,9 @@ canonical files linked here; working rules are in `README.md`.
   scheduler. Python and browser clients only render JSON, collect answers and
   store credentials; they never duplicate scheduling or grading.
 - **Card chain:** with parts `L → E → R → C → F`; without parts
-  `L → R → C → F`; `V` when due. L is display-only; E is a separate element
-  check (the earlier idea of putting parts on L was dropped).
+  `L → R → C → F`. L is display-only; E is a separate element check (the
+  earlier idea of putting parts on L was dropped). F is terminal. Review
+  levels (`V`) are deferred/removed; see Progress.
 - **Card choices:** E offers one Hebrew gloss per element within the element's
   theme (the theme is a hint); R chooses a Latin name from taxonomically
   proximate options and accepts every species sharing the Hebrew prompt; C
@@ -48,9 +49,28 @@ canonical files linked here; working rules are in `README.md`.
   search and criteria at creation) and its `active_cap`; the summary returns
   both, and the clients show the origin read-only. The string is the base for
   future custom series.
-- **Progress:** passing F retires the bird into the profile-global `passed`
-  table. Session rows show completed cards and a completion percentage. There
-  is no unpass command.
+- **Card-level pending pool:** a session keeps `pending` as ordered per-bird
+  groups of card specs, `queue` as the materialised unseen cards (frontier at
+  `queue[0]`) and `history` as completed cards. Pulling a bird moves its group
+  into the queue; invalidation pours cards back. This keeps a partially learned
+  bird's remaining cards and makes future series (e.g. every bird's C card) a
+  selection over the same inventory.
+- **History and redo:** the timeline is linear. The answer route classifies a
+  submitted uid by data: frontier = live, history = redo, unseen non-frontier
+  = `409 not_current`, unknown = `409 stale_card`. The client holds the
+  browsing cursor; the Worker owns history and the frontier. A correct or
+  advance redo records only and never mutates the plan; only a `wrong` redo
+  invalidates the future — it truncates after the redone card, pours the
+  invalidated cards back into pending, re-applies the retry, and makes
+  everything after that card unseen. Redo grading is a final attempt (>= 2).
+  The client is not asked to declare live vs redo, so CLI and browser share one
+  implementation.
+- **Progress:** there is no passing or mastery table (removed, along with
+  V1–V4 review levels, to simplify history/redo). Correct F completes a bird's
+  chain; a bird may be replayed in a new session. `global_counter` is a
+  monotonic scheduling/seed counter shared by the profile's sessions.
+  `session_card_count` is the history length; percent counts birds with no
+  pending or queued cards.
 - **Card commands** are ephemeral study tools; saved progress uses sessions.
   Search matches names, taxonomy and element meanings, while saved-session
   filters stay names-only. The CLI's help split, prompts and keys are in
@@ -61,15 +81,15 @@ canonical files linked here; working rules are in `README.md`.
   orderings (for example R→C or R→E) are a group-level design question, not
   ad-hoc variants. Card runs stay ephemeral in v1.
 - **UI:** book-like paper styling, Hebrew RTL with Latin/English LTR runs. A
-  collapsible look-ahead of five cards shows Hebrew name + card type, never
+  collapsible look-ahead of seven cards shows Hebrew name + card type, never
   Latin.
 - **Browser media:** the bird illustration is always visible, F included, so
   picture→Latin is a second accepted route to the name. A reader speaks
   visible names from pre-generated clips (Latin required; English and Hebrew
   later). Card titles and search actions use the full names, not the
   L/E/R/C/F shorthand.
-- **Scope:** the text client currently covers L/E/R/C/F; V, hints and the
-  browser UI are design-only.
+- **Scope:** the text client covers L/E/R/C/F; hints are future. The browser
+  L face is in development; E/R/C/F faces and navigation UI follow.
 - **Client/Worker versioning:** one version. The client expects the current
   response shape; a release deploys both together.
 
@@ -78,9 +98,16 @@ canonical files linked here; working rules are in `README.md`.
 - Progress lives in **private Cloudflare R2** behind this repository's Worker;
   the static client will live on GitHub Pages. The Worker is the single source
   of truth, and the tool is online-only except for local credential handling.
-- Accounts are owner-provisioned in a private `users.json`; no signup or OAuth
-  yet. Passwords are a deliberate speed bump over a private bucket, not a
-  vault. Tokens are HMAC-signed; `tests` accounts are scoped to `tests/`.
+- Accounts are owner-provisioned in a generated `users.json`; no signup or
+  OAuth yet. Passwords are a deliberate speed bump over a private bucket, not a
+  vault. Tokens are HMAC-signed and every account has the single `profile`
+  scope, mapping to `users/<username>/`. Test fixtures live in the developer's
+  local R2, not in a shared remote prefix; there is no `tests` scope or account.
+- `users.json` is generated by the provisioning tool and is only a staging
+  input; the Worker reads R2, so the file reaches it only through the
+  `learn-worker-users-upload` / `learn-worker-users-deploy` targets. Never edit
+  either copy by hand. `.dev.vars` (signing secret) and `users.json` (account
+  verifiers) serve different purposes and neither replaces the other.
 - Progress is one profile document plus one document per session, both in
   private R2; there is no event log.
 - Storage and concurrency details: `learn-cloudflare.md`; endpoint contract:
@@ -88,7 +115,7 @@ canonical files linked here; working rules are in `README.md`.
 
 ## Deferred
 
-- V cards, due reviews, hints and the passed-bird lifecycle — until after the
-  GUI and real practice.
+- V cards, due reviews, hints and the passing/mastery lifecycle (removed in
+  November 2026; see Progress) — until after the GUI and real practice.
 - Event log and analytics; OAuth/login throttling; global search; English
   directions.

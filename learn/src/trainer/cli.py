@@ -228,8 +228,8 @@ Creates a session, selects it for this client and prints it. With no X the
 session is unnamed. X is the new name, not an existing session; names are
 unique and an existing name is rejected. The session is not started.
 
-Eligible birds have Hebrew and are not passed. The `default` session contains
-every eligible bird and is always present.
+Eligible birds have Hebrew. The `default` session contains every eligible
+bird and is always present.
 
 Options:
   --name N        the same as X; give the name once
@@ -1166,7 +1166,8 @@ def _session_row(
     row += f"  {percent}%"
     row += (
         f"  queue {session.get('queue_size', 0)}"
-        f"  pool {session.get('pool_size', 0)}"
+        f"  pending {session.get('pending_size', 0)}"
+        f"  history {session.get('history_size', 0)}"
     )
     return row
 

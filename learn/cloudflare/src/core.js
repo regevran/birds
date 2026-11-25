@@ -11,7 +11,7 @@ export const DEFAULT_ITERATIONS = 1000;
 export const DEFAULT_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const MAX_BODY_BYTES = 1024 * 1024;
 export const MAX_LOGIN_BYTES = 8 * 1024;
-export const SCOPES = new Set(["profile", "tests"]);
+export const SCOPES = new Set(["profile"]);
 
 export class HttpError extends Error {
   constructor(status, code, message) {
@@ -141,16 +141,10 @@ export function normalizePrefix(value) {
 }
 
 export function scopeBase(scope, username) {
-  if (scope === "tests") {
-    return "tests/";
+  if (scope !== "profile" || !isValidUsername(username)) {
+    throw new HttpError(401, "unauthorized", "invalid token");
   }
-  if (scope === "profile") {
-    if (!isValidUsername(username)) {
-      throw new HttpError(401, "unauthorized", "invalid token");
-    }
-    return `users/${username}/`;
-  }
-  throw new HttpError(401, "unauthorized", "invalid token");
+  return `users/${username}/`;
 }
 
 export function physicalKey(scope, username, path) {
@@ -261,12 +255,16 @@ export async function derivePassword(password, salt, iterations) {
   return new Uint8Array(bits);
 }
 
-export async function verifyPassword(password, entry) {
+export async function verifyPassword(
+  password,
+  entry,
+  defaultIterations = DEFAULT_ITERATIONS,
+) {
   try {
     if (entry === null || typeof entry !== "object") {
       return false;
     }
-    const iterations = Number(entry.iterations);
+    const iterations = Number(entry.iterations ?? defaultIterations);
     if (
       !Number.isInteger(iterations) ||
       iterations < 1 ||

@@ -96,6 +96,22 @@ add_custom_target(learn-worker-deploy
     USES_TERMINAL
     VERBATIM)
 
+add_custom_target(learn-worker-users-upload
+    COMMAND npx wrangler r2 object put birds-progress/users.json
+        --file users.json --content-type application/json
+    WORKING_DIRECTORY "${LEARN_CLOUDFLARE}"
+    COMMENT "Uploading users.json to the local R2 emulation"
+    USES_TERMINAL
+    VERBATIM)
+
+add_custom_target(learn-worker-users-deploy
+    COMMAND npx wrangler r2 object put birds-progress/users.json
+        --file users.json --content-type application/json --remote
+    WORKING_DIRECTORY "${LEARN_CLOUDFLARE}"
+    COMMENT "Uploading users.json to the deployed bucket (deploy the Worker first)"
+    USES_TERMINAL
+    VERBATIM)
+
 add_dependencies(learn-worker-dev learn-worker-data)
 add_dependencies(learn-worker-deploy learn-worker-data)
 

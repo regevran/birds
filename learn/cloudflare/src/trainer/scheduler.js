@@ -1,14 +1,24 @@
 /* Profile/session state and the pure queue scheduler.
  *
- * This module owns the transition rules. It mutates the passed session and
- * profile documents, like a small in-memory state machine; the Worker loads
- * them from R2, calls one function, and saves them back.
+ * A session keeps three ordered structures:
+ *   pending  per-bird groups of card specs not yet in the queue
+ *   queue    materialised unseen cards; queue[0] is the frontier
+ *   history  completed cards in timeline order
+ *
+ * A live answer consumes queue[0] into history. A correct redo of a history
+ * card records only; a wrong redo truncates the timeline after that card and
+ * pours every invalidated card back into pending. There is no passing or
+ * review-level state: a bird may appear again in a later session.
+ *
+ * This module owns the transition rules. It mutates the session and profile
+ * documents, like a small in-memory state machine; the Worker loads them from
+ * R2, calls one function, and saves them back.
  */
 
 import { hashSeed, randomInt, seededRandom, shuffle } from "./random.js";
 import { cardView } from "./views.js";
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const APP_VERSION = "0.1.0";
 export const DEFAULT_SETTINGS = Object.freeze({
   active_cap: 7,
@@ -28,6 +38,7 @@ const CHAIN_WITH_PARTS = ["L", "E", "R", "C", "F"];
 const CHAIN_WITHOUT_PARTS = ["L", "R", "C", "F"];
 const FALLBACK = { R: "L", C: "R", F: "C" };
 const LOOKAHEAD = 5;
+const HISTORY_TAIL = 12;
 
 export class SchedulerError extends Error {
   constructor(code, message) {
@@ -130,13 +141,6 @@ export function formatCreatedFrom(filter = {}) {
   return parts.join(" · ");
 }
 
-/* `created_from` for old sessions that predate the stored field. */
-export function createdFromOf(session) {
-  const text =
-    session.created_from ?? formatCreatedFrom(session.filter ?? {});
-  return text || null;
-}
-
 export function activeCapOf(session) {
   return session.settings?.active_cap ?? DEFAULT_SETTINGS.active_cap;
 }
@@ -160,7 +164,6 @@ export function createProfile({
     updated_at: stamp,
     settings: normalizedSettings(settings),
     global_counter: 0,
-    passed: {},
   };
 }
 
@@ -202,12 +205,9 @@ export function matchesFilter(bird, filter) {
   return true;
 }
 
-export function eligibleBirds(catalog, filter, profile) {
+export function eligibleBirds(catalog, filter) {
   return catalog.birds.filter(
-    (bird) =>
-      bird.has_hebrew &&
-      !Object.hasOwn(profile.passed, bird.species_id) &&
-      matchesFilter(bird, filter),
+    (bird) => bird.has_hebrew && matchesFilter(bird, filter),
   );
 }
 
@@ -218,9 +218,9 @@ export function activeCount(session) {
 export function completionPercent(session) {
   const total = Number(session.initial_pool_size) || 0;
   if (total <= 0) {
-    return session.queue.length === 0 && session.pool.length === 0 ? 100 : 0;
+    return session.queue.length === 0 && session.pending.length === 0 ? 100 : 0;
   }
-  const done = total - session.pool.length - activeCount(session);
+  const done = total - session.pending.length - activeCount(session);
   return Math.max(0, Math.min(100, Math.floor((done / total) * 100)));
 }
 
@@ -235,22 +235,35 @@ function cardSeed(sessionSeed, counter, speciesId, type, index) {
   );
 }
 
-function buildChain(session, profile, bird, { uid = newCardUid } = {}) {
+function chainSpecs(bird) {
   const types = bird.has_parts ? CHAIN_WITH_PARTS : CHAIN_WITHOUT_PARTS;
-  return types.map((type, index) => ({
+  return types.map((type) => ({ type }));
+}
+
+function cardSpec(card) {
+  return {
+    type: card.type,
+    attempt: card.attempt,
+    retry: card.retry,
+    hint_level: card.hint_level,
+  };
+}
+
+function buildCards(session, profile, group, { uid = newCardUid } = {}) {
+  return group.cards.map((spec, index) => ({
     uid: uid(),
-    species_id: bird.species_id,
-    type,
-    attempt: 1,
+    species_id: group.species_id,
+    type: spec.type,
+    attempt: spec.attempt ?? 1,
     seed: cardSeed(
       session.seed,
       profile.global_counter,
-      bird.species_id,
-      type,
+      group.species_id,
+      spec.type,
       index,
     ),
-    hint_level: 0,
-    retry: false,
+    hint_level: spec.hint_level ?? 0,
+    retry: Boolean(spec.retry),
     revealed: false,
   }));
 }
@@ -268,24 +281,27 @@ function interleaveChains(chains, next) {
   return result;
 }
 
+function setStatus(session) {
+  session.status =
+    session.queue.length === 0 && session.pending.length === 0
+      ? "completed"
+      : "active";
+}
+
 function initialFill(catalog, profile, session, options = {}) {
   const chains = [];
   while (
     chains.length < session.settings.active_cap &&
-    session.pool.length > 0
+    session.pending.length > 0
   ) {
-    const speciesId = session.pool.shift();
-    const bird = catalog.bird(speciesId);
-    chains.push(buildChain(session, profile, bird, options));
+    const group = session.pending.shift();
+    chains.push(buildCards(session, profile, group, options));
   }
   session.queue = interleaveChains(
     chains,
     seededRandom(`${session.seed}:initial`),
   );
-  session.status =
-    session.queue.length === 0 && session.pool.length === 0
-      ? "completed"
-      : "active";
+  setStatus(session);
 }
 
 function insertChain(session, chain, next) {
@@ -351,22 +367,35 @@ function takeLaterCards(session, speciesId) {
   return later;
 }
 
+function hardFailChain(card, uid = newCardUid) {
+  const fallback = FALLBACK[card.type];
+  if (!fallback) {
+    return [];
+  }
+  const fresh = {
+    ...card,
+    uid: uid(),
+    type: fallback,
+    attempt: 1,
+    retry: false,
+    revealed: false,
+    seed: hashSeed(`${card.seed}:${fallback}`) % 1_000_000_000,
+  };
+  return [fresh];
+}
+
 export function refill(catalog, profile, session, options = {}) {
   const next = seededRandom(
     `${session.seed}:refill:${profile.global_counter}:${session.queue.length}`,
   );
   while (
     activeCount(session) < session.settings.active_cap &&
-    session.pool.length > 0
+    session.pending.length > 0
   ) {
-    const speciesId = session.pool.shift();
-    const bird = catalog.bird(speciesId);
-    insertChain(session, buildChain(session, profile, bird, options), next);
+    const group = session.pending.shift();
+    insertChain(session, buildCards(session, profile, group, options), next);
   }
-  session.status =
-    session.queue.length === 0 && session.pool.length === 0
-      ? "completed"
-      : "active";
+  setStatus(session);
 }
 
 export function createSession(
@@ -385,11 +414,12 @@ export function createSession(
   const normalized = normalizedFilter(filter);
   const chosenSettings = normalizedSettings(settings);
   const chosenSeed = Number.isInteger(seed) ? seed : newSeed();
-  const eligible = eligibleBirds(catalog, normalized, profile);
-  const pool = shuffle(
-    eligible.map((bird) => bird.species_id),
-    seededRandom(`${chosenSeed}:pool`),
-  );
+  const eligible = eligibleBirds(catalog, normalized);
+  const groups = eligible.map((bird) => ({
+    species_id: bird.species_id,
+    cards: chainSpecs(bird),
+  }));
+  const pending = shuffle(groups, seededRandom(`${chosenSeed}:pool`));
   const stamp = nowIso(now);
   const session = {
     schema_version: SCHEMA_VERSION,
@@ -407,43 +437,14 @@ export function createSession(
     settings: chosenSettings,
     seed: chosenSeed,
     initial_pool_size: eligible.length,
-    pool,
+    pending,
     queue: [],
+    history: [],
     session_card_count: 0,
     paused_review: null,
   };
   initialFill(catalog, profile, session, { uid });
   return session;
-}
-
-function passBird(profile, session, bird, stamp) {
-  profile.passed[bird.species_id] = {
-    latin: {
-      level: 1,
-      due_at: profile.global_counter + 20,
-      mastered: false,
-      last_result: "correct",
-      last_at: stamp,
-      last_session_id: session.session_id,
-    },
-  };
-}
-
-function hardFailChain(card, uid = newCardUid) {
-  const fallback = FALLBACK[card.type];
-  if (!fallback) {
-    return [];
-  }
-  const fresh = {
-    ...card,
-    uid: uid(),
-    type: fallback,
-    attempt: 1,
-    retry: false,
-    revealed: false,
-    seed: hashSeed(`${card.seed}:${fallback}`) % 1_000_000_000,
-  };
-  return [fresh];
 }
 
 export function consume(
@@ -457,21 +458,18 @@ export function consume(
   if (!card) {
     throw new SchedulerError("no_current_card", "the queue is empty");
   }
-  const bird = catalog.bird(card.species_id);
   profile.global_counter += 1;
-  session.session_card_count += 1;
   const stamp = nowIso(now);
 
-  if (result === "advance" || result === "correct") {
-    if (card.type === "F") {
-      passBird(profile, session, bird, stamp);
-      takeLaterCards(session, card.species_id);
-    }
-  } else if (result === "near_miss") {
+  if (result === "near_miss") {
     const later = takeLaterCards(session, card.species_id);
+    const retryCard = {
+      ...card,
+      uid: uid ? uid() : newCardUid(),
+    };
     reinsertAhead(
       session,
-      [card, ...later],
+      [retryCard, ...later],
       seededRandom(`${session.seed}:soft:${profile.global_counter}`),
     );
   } else if (result === "wrong" || result === "revealed") {
@@ -490,7 +488,7 @@ export function consume(
       [...fallback, failed, ...later],
       seededRandom(`${session.seed}:hard:${profile.global_counter}`),
     );
-  } else {
+  } else if (result !== "advance" && result !== "correct") {
     throw new SchedulerError(
       "invalid_result",
       `unknown result ${JSON.stringify(result)}`,
@@ -498,9 +496,11 @@ export function consume(
   }
 
   refill(catalog, profile, session, { uid });
+  session.history.push({ card, result, at: stamp });
+  session.session_card_count = session.history.length;
   session.updated_at = stamp;
   profile.updated_at = stamp;
-  return { card, passed: card.type === "F" && result === "correct" };
+  return { card };
 }
 
 export function markRetry(session, { now = () => new Date() } = {}) {
@@ -525,16 +525,127 @@ export function assertCurrent(session, cardUid) {
   return card;
 }
 
-export function prunePassed(catalog, profile, session, options = {}) {
-  const passed = new Set(Object.keys(profile.passed));
-  session.pool = session.pool.filter(
-    (speciesId) => !passed.has(speciesId),
+/* Where does a submitted uid live? The answer endpoint decides from this,
+ * never from a client-declared mode. */
+export function classifyCard(session, cardUid) {
+  const current = currentCard(session);
+  if (current && current.uid === cardUid) {
+    return { kind: "current", card: current };
+  }
+  const index = session.history.findIndex(
+    (entry) => entry.card.uid === cardUid,
   );
-  session.queue = session.queue.filter(
-    (card) => !passed.has(card.species_id),
+  if (index >= 0) {
+    return { kind: "history", index, card: session.history[index].card };
+  }
+  if (session.queue.some((card) => card.uid === cardUid)) {
+    return { kind: "future" };
+  }
+  return { kind: "missing" };
+}
+
+/* Redo a completed card. Only a wrong answer changes the plan: it truncates
+ * the timeline after the card, pours the invalidated cards back into pending,
+ * and applies the usual failure retry. Everything else records only. */
+export function redo(
+  catalog,
+  profile,
+  session,
+  cardUid,
+  result,
+  { now = () => new Date(), uid } = {},
+) {
+  const index = session.history.findIndex(
+    (entry) => entry.card.uid === cardUid,
   );
-  refill(catalog, profile, session, options);
-  return session;
+  if (index < 0) {
+    throw new SchedulerError(
+      "stale_card",
+      "the submitted card is not in the history",
+    );
+  }
+  const stamp = nowIso(now);
+
+  if (result !== "wrong") {
+    session.history[index].result = result;
+    session.history[index].at = stamp;
+    session.updated_at = stamp;
+    profile.updated_at = stamp;
+    return { card: session.history[index].card, invalidated: 0 };
+  }
+
+  const redone = session.history[index];
+  const tail = session.history.slice(index + 1);
+  const planned = session.queue;
+  const invalidated = tail.length + planned.length;
+
+  session.history = session.history.slice(0, index + 1);
+  session.history[index].result = "wrong";
+  session.history[index].at = stamp;
+  session.queue = [];
+  session.session_card_count = session.history.length;
+
+  const buffers = new Map();
+  const add = (card) => {
+    let cards = buffers.get(card.species_id);
+    if (!cards) {
+      cards = [];
+      buffers.set(card.species_id, cards);
+    }
+    cards.push(cardSpec(card));
+  };
+  for (const entry of tail) {
+    add(entry.card);
+  }
+  for (const card of planned) {
+    add(card);
+  }
+  for (const [speciesId, cards] of buffers) {
+    const group = session.pending.find(
+      (item) => item.species_id === speciesId,
+    );
+    if (group) {
+      group.cards.push(...cards);
+    } else {
+      session.pending.push({ species_id: speciesId, cards });
+    }
+  }
+
+  profile.global_counter += 1;
+
+  // Keep the redone bird's remaining cards for its retry batch, and let
+  // refill fill the active window with the other returned birds.
+  const speciesId = redone.card.species_id;
+  const groupIndex = session.pending.findIndex(
+    (item) => item.species_id === speciesId,
+  );
+  const group =
+    groupIndex >= 0
+      ? session.pending.splice(groupIndex, 1)[0]
+      : { species_id: speciesId, cards: [] };
+  refill(catalog, profile, session, { uid });
+
+  const fallback = hardFailChain(redone.card, uid);
+  const failed = {
+    ...redone.card,
+    uid: uid ? uid() : newCardUid(),
+    attempt: 1,
+    retry: false,
+    revealed: false,
+    seed: hashSeed(`${redone.card.seed}:failed`) % 1_000_000_000,
+  };
+  const later = buildCards(session, profile, group, { uid });
+  reinsertAhead(
+    session,
+    [...fallback, failed, ...later],
+    seededRandom(`${session.seed}:hard:${profile.global_counter}`),
+  );
+  refill(catalog, profile, session, { uid });
+
+  session.session_card_count = session.history.length;
+  session.updated_at = stamp;
+  profile.updated_at = stamp;
+  return { card: redone.card, invalidated };
 }
 
 export function cardFor(catalog, card) {
@@ -557,6 +668,36 @@ export function lookahead(catalog, session, limit = LOOKAHEAD) {
   });
 }
 
+function historyEntryView(catalog, entry, index) {
+  return {
+    index,
+    result: entry.result,
+    at: entry.at,
+    uid: entry.card.uid,
+    type: entry.card.type,
+    card: cardFor(catalog, entry.card),
+  };
+}
+
+export function historyView(
+  catalog,
+  session,
+  { before = session.history.length, limit = 20 } = {},
+) {
+  const end = Math.max(0, Math.min(session.history.length, before));
+  const start = Math.max(0, end - limit);
+  return {
+    start,
+    end,
+    history_size: session.history.length,
+    entries: session.history
+      .slice(start, end)
+      .map((entry, offset) =>
+        historyEntryView(catalog, entry, start + offset),
+      ),
+  };
+}
+
 export function sessionView(catalog, profile, session, limit = LOOKAHEAD) {
   const card = currentCard(session);
   return {
@@ -568,9 +709,10 @@ export function sessionView(catalog, profile, session, limit = LOOKAHEAD) {
       percent_completed: completionPercent(session),
       global_counter: profile.global_counter,
       initial_pool_size: session.initial_pool_size,
-      pool_size: session.pool.length,
+      pending_size: session.pending.length,
       queue_size: session.queue.length,
-      created_from: createdFromOf(session),
+      history_size: session.history.length,
+      created_from: session.created_from || null,
       active_cap: activeCapOf(session),
     },
     current: card
@@ -584,6 +726,15 @@ export function sessionView(catalog, profile, session, limit = LOOKAHEAD) {
         }
       : null,
     lookahead: card ? lookahead(catalog, session, limit) : [],
+    history_tail: session.history
+      .slice(-HISTORY_TAIL)
+      .map((entry, offset) =>
+        historyEntryView(
+          catalog,
+          entry,
+          session.history.length - Math.min(HISTORY_TAIL, session.history.length) + offset,
+        ),
+      ),
   };
 }
 

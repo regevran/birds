@@ -65,6 +65,8 @@ cmake --build build --target book-one-file
 cmake --build build --target book-install
 cmake --build build --target learn-test
 cmake --build build --target learn-worker-test
+cmake --build build --target learn-worker-users-upload
+cmake --build build --target learn-worker-users-deploy
 cmake --build build --target learn-run
 cmake --build build --target learn-web-build
 cmake --build build --target learn-web-token
@@ -91,8 +93,8 @@ preview targets are in `book-reference.md`; Worker deployment is in
   documented in `learn/README.md` and `learn/CLI-USAGE.md`; session/card design
   is in `learn-reference.md`.
 - **Tests:** 113 Python tests through `learn-test` (three live Worker tests
-  skip unless `BIRDS_TEST_*` is set); 96 Worker tests through
-  `learn-worker-test`.
+  skip unless `BIRDS_TEST_*` is set); 100 Worker tests through
+  `learn-worker-test`. Live tests target a local Worker and a local account.
 - **Next:** browser client card faces and the session drawer; three visual
   options are in `learn/design/`. Deferred trainer work is listed in
   `TODO.md`.

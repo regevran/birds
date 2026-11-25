@@ -22,8 +22,7 @@ cd learn/cloudflare
 test -f .dev.vars || cp .dev.vars.example .dev.vars
 
 # Once: make the provisioned accounts visible to the local Worker.
-npx wrangler r2 object put birds-progress/users.json \
-  --file users.json --local
+cmake --build ../../build --target learn-worker-users-upload
 
 # Start the Worker.
 cmake --build ../../build --target learn-worker-dev
@@ -33,16 +32,17 @@ The server is at `http://127.0.0.1:8787`. If `users.json` does not exist yet,
 create an account first:
 
 ```sh
-python3 ../tools/provision_user.py <username> --scope tests
+python3 ../tools/provision_user.py <username>
 ```
 
-then repeat the local `r2 object put ... --local` command.
+then repeat the upload target. `users.json` is generated; the Worker reads the
+copy in R2, so the repository file is only the upload input.
 
-The deployed bucket is updated separately, with `--remote`:
+The deployed bucket is updated separately, and only after the Worker that
+understands the current file format is deployed:
 
 ```sh
-npx wrangler r2 object put birds-progress/users.json \
-  --file users.json --content-type application/json --remote
+cmake --build ../../build --target learn-worker-users-deploy
 ```
 
 ## Get a token
@@ -89,9 +89,24 @@ curl -s "$BASE/app/profile" \
 ```
 
 Tokens are HMAC-SHA256 signed and valid for 30 days by default
-(`TOKEN_TTL_SECONDS`). `scope` is `profile` for a normal account and `tests`
-for a test account. A `tests`-scoped token only sees the shared `tests/`
-prefix. Never commit a token or a `.dev.vars` file.
+(`TOKEN_TTL_SECONDS`). Every account has the single `profile` scope and sees
+only `users/<username>/`; the token's `s` claim is the storage scope. Never
+commit a token or a `.dev.vars` file.
+
+`users.json` is a generated document:
+
+```json
+{
+  "version": 2,
+  "iterations": 1000,
+  "users": { "ran": { "salt": "base64", "hash": "base64" } }
+}
+```
+
+PBKDF2-HMAC-SHA256 is implied. `iterations` applies to the whole document; a
+per-entry `iterations` override is accepted for imported accounts. The
+provisioning tool is the only writer, and no user carries an `algorithm` or
+`scope` field.
 
 ## Conventions
 
@@ -146,8 +161,9 @@ Common status codes:
 | POST | `/app/sessions` | create a session |
 | POST | `/app/sessions/resolve` | resolve a name, id or id prefix |
 | GET | `/app/sessions/<id>` | read one session view |
+| GET | `/app/sessions/<id>/history?before=&limit=` | page completed cards |
 | DELETE | `/app/sessions/<id>` | delete a non-default session |
-| POST | `/app/sessions/<id>/prepare` | prune passed birds, then return the view |
+| POST | `/app/sessions/<id>/prepare` | refresh the session view |
 | POST | `/app/sessions/<id>/rename` | set or clear a session name |
 | POST | `/app/sessions/<id>/answer` | grade one session answer |
 | POST | `/app/birds` | search birds and etymology element meanings |
@@ -192,11 +208,10 @@ Missing credentials return `400 invalid_request`.
 
 ## File API
 
-The file API stores arbitrary logical files under the token's scope. The
+The file API stores arbitrary logical files under the account's prefix. The
 client never supplies a username in a path.
 
-- A normal token maps `profile.json` to `users/<username>/profile.json`.
-- A `tests` token maps it to `tests/profile.json`.
+- Every token maps `profile.json` to `users/<username>/profile.json`.
 - Paths are relative, use `/`, and may contain letters, digits, `.`, `_`, `-`.
   Empty segments, `.`, `..`, backslashes and control characters are rejected.
 
@@ -305,7 +320,6 @@ curl -s "$BASE/app/profile" \
   "profile_id": "ran",
   "name": "ran",
   "global_counter": 0,
-  "passed_count": 0,
   "settings": {
     "active_cap": 7,
     "lookahead_target": 50,
@@ -317,10 +331,10 @@ curl -s "$BASE/app/profile" \
 }
 ```
 
-`passed_count` is the size of the profile-global `passed` table. The table
-itself lives in the profile document (keyed by species id, with the per-skill
-V level and due counter) but is not exposed as a list and has no endpoint for
-removing an entry.
+The profile has no mastery or review table. `global_counter` is the
+monotonic counter used for scheduling and card seeds; it is shared by all of
+the profile's sessions. Documents are schema version 2; older
+documents are not migrated or supported.
 
 ## Sessions
 
@@ -335,8 +349,8 @@ and can be deleted at any time.
 Which session a client is working on is client state, not Worker state; the
 CLI keeps it locally, the way git keeps the checked-out branch. Two clients may
 select different sessions, or the same session. In the latter case they see
-each other's progress, and a card that another client already consumed is
-rejected with `409 stale_card`.
+each other's progress. An answer for a card that is no longer current and is
+not in the session history returns `409 stale_card`.
 
 ### `GET /app/sessions`
 
@@ -346,10 +360,13 @@ curl -s "$BASE/app/sessions" \
 ```
 
 The `default` session is listed first. `name` is `null` for an unnamed session.
-`session_card_count` counts completed cards. `percent_completed` is the share of
-the session's initial birds that are now passed, rounded down; it reaches 100
-only when the queue and pool are empty. `created_from` is the Worker-formatted
-origin: the search text and filter criteria at creation, e.g.
+`session_card_count` is the number of completed cards in the session timeline.
+`percent_completed` is the share of the session's initial birds that have no
+pending or queued cards left, rounded down; it reaches 100 only when the queue
+and pending pool are empty. `history_size` counts completed cards, and
+`pending_size` counts birds whose card specs are waiting in the pool.
+`created_from` is the Worker-formatted origin: the search text and filter
+criteria at creation, e.g.
 `search "acrocephalus-agricola" · status: accidental`; it is `null` for
 `default`. `active_cap` is the session's active cap at creation.
 
@@ -364,7 +381,8 @@ origin: the search text and filter criteria at creation, e.g.
       "percent_completed": 0,
       "initial_pool_size": 551,
       "queue_size": 7,
-      "pool_size": 544,
+      "pending_size": 544,
+      "history_size": 0,
       "created_from": null,
       "active_cap": 7,
       "created_at": "2026-11-22T18:31:00.000Z",
@@ -378,7 +396,8 @@ origin: the search text and filter criteria at creation, e.g.
       "percent_completed": 0,
       "initial_pool_size": 1,
       "queue_size": 5,
-      "pool_size": 0,
+      "pending_size": 0,
+      "history_size": 0,
       "created_from": "search \"acrocephalus-agricola\" · status: accidental",
       "active_cap": 1,
       "created_at": "2026-11-22T18:31:00.000Z",
@@ -411,7 +430,8 @@ curl -s -X POST "$BASE/app/sessions/resolve" \
     "percent_completed": 0,
     "initial_pool_size": 1,
     "queue_size": 5,
-    "pool_size": 0,
+    "pending_size": 0,
+    "history_size": 0,
     "created_from": "search \"acrocephalus-agricola\" · status: accidental",
     "active_cap": 1,
     "created_at": "2026-11-22T18:31:00.000Z",
@@ -457,7 +477,7 @@ Request fields:
 | `settings.show_bridge` | stored flag; default true |
 | `seed` | non-negative integer; makes the queue reproducible |
 
-Only birds with Hebrew are eligible, and already-passed birds are excluded.
+Only birds with Hebrew are eligible. A bird can appear in a new session even if it was completed before.
 If no birds match, the response is `422 empty_pool`. A supplied name is
 trimmed and must be unique among the profile's sessions; a duplicate returns
 `409 session_name_taken`.
@@ -474,7 +494,8 @@ Response `201` is a session view:
     "percent_completed": 0,
     "global_counter": 0,
     "initial_pool_size": 1,
-    "pool_size": 0,
+    "pending_size": 0,
+    "history_size": 0,
     "queue_size": 5,
     "created_from": "search \"acrocephalus-agricola\" · status: accidental",
     "active_cap": 1
@@ -560,7 +581,23 @@ Response `201` is a session view:
 ```
 
 `current` is `null` and `lookahead` is empty when the session is complete.
-Creating a session does not change what any client has selected.
+`history_tail` holds the last up to 12 completed cards, oldest first:
+
+```json
+"history_tail": [
+  {
+    "index": 0,
+    "result": "advance",
+    "at": "2026-11-22T12:05:00.000Z",
+    "uid": "c_c5cfa622f7a5",
+    "type": "L",
+    "card": { }
+  }
+]
+```
+
+`session.history_size` and `session.pending_size` are the other two timeline
+counts. Creating a session does not change what any client has selected.
 
 ### `GET /app/sessions/<id>`
 
@@ -569,7 +606,9 @@ curl -s "$BASE/app/sessions/20261122-1831-3c34" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Returns the same session view.
+Returns the same session view. The `lookahead` query parameter limits the
+planned future list (`1..20`, default 5); the answer, prepare and rename
+routes accept it too. It changes only the returned view, never the session.
 
 ### `DELETE /app/sessions/<id>`
 
@@ -583,11 +622,41 @@ Returns `204`. A missing session is `404 session_not_found`. Deleting the
 `default` session returns `409 session_default`; every other session can be
 deleted, including one a client currently has selected.
 
+### `GET /app/sessions/<id>/history`
+
+Returns a window of completed cards, newest last. `before` is the exclusive
+end index (default: history size); `limit` is 1..50 (default 20).
+
+```sh
+curl -s "$BASE/app/sessions/20261122-1831-3c34/history?before=20&limit=10" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "start": 10,
+  "end": 20,
+  "history_size": 34,
+  "entries": [
+    {
+      "index": 10,
+      "result": "advance",
+      "at": "2026-11-22T12:05:00.000Z",
+      "uid": "c_c5cfa622f7a5",
+      "type": "L",
+      "card": { }
+    }
+  ]
+}
+```
+
+Clients keep the browsing cursor locally; the Worker only serves history
+windows and the frontier.
+
 ### `POST /app/sessions/<id>/prepare`
 
-Drops birds that already passed from the session queue and pool, then returns
-the updated session view. A client calls this before practising so a session
-that has been idle for a while does not re-ask already-learned birds.
+Returns the current session view after touching its `updated_at`. It no
+longer prunes anything; prepare is kept as a no-op refresh for clients.
 
 ```sh
 curl -s -X POST "$BASE/app/sessions/20261122-1831-3c34/prepare" \
@@ -668,21 +737,34 @@ For C/F:
 }
 ```
 
-A stale or non-current `card_uid` returns `409 stale_card`; this is also how a
-client learns that another client working on the same session consumed the
-card first.
+The Worker classifies the submitted `card_uid` itself; clients never declare
+whether they are answering the current card or a history card:
+
+- the frontier (`queue[0]`) is a **live** answer and schedules normally;
+- a card in the completed history is a **redo**;
+- an unseen card behind the frontier returns `409 not_current`;
+- an unknown or discarded uid returns `409 stale_card`.
 
 Response:
 
 ```json
 {
   "feedback": null,
+  "mode": "live",
   "session": { }
 }
 ```
 
-`feedback` is `null` for L. Otherwise it is one of the feedback forms below.
-`session` is the next session view.
+`mode` is `"live"` or `"redo"`. `feedback` is `null` for L. Otherwise it is one
+of the feedback forms below. `session` is the next session view.
+
+A **correct or advance redo** records the result only: no cards are inserted,
+no bird is introduced, and the future does not change. A **wrong redo**
+truncates the history after the redone card, pours every invalidated card
+(completed future and planned queue) back into the per-bird pending pool,
+re-applies the failure retry, and returns a view in which everything after the
+redone card is unseen. Redo grading is a final attempt (`attempt` at least 2),
+so the first wrong answer is `wrong`, not `retry`.
 
 #### Session feedback
 
@@ -768,8 +850,9 @@ Session rules:
 - First wrong R/C/F: retry, card stays current with `attempt: 2`.
 - Second wrong or revealed: consume the card and insert the fallback chain.
 - Near miss on C/F: consume and move the card plus its chain ahead.
-- Correct F: add the bird to `passed` and schedule V1 at `global_counter + 20`.
+- Correct F completes the chain; there is no passing or review-level state.
 - L and E advance the queue after their result.
+- Redos follow the same grading, but only a `wrong` redo changes the plan.
 
 ## Stateless cards
 
@@ -832,6 +915,21 @@ identity field (id, Latin, English, Hebrew, family, Hebrew family, order) or an
 etymology element of the bird's name (`element_id`, `display`, `en`, `he` or a
 `forms` variant). Name matches come first and element-only matches follow,
 each in family, genus and Latin order.
+
+Each bird also carries `tokens`: the Worker-owned creatable tokens for the
+selected-row panel (species, Latin words, etymology parts, family, order,
+English and Hebrew words), e.g.:
+
+```json
+"tokens": [
+  {"kind": "species", "text": "Acrocephalus agricola"},
+  {"kind": "part", "text": "Acro"},
+  {"kind": "family_he", "text": "קניתיים"},
+  {"kind": "hebrew_word", "text": "אורז"}
+]
+```
+
+Clients render this list; they never derive it.
 
 `matched` says why each bird was returned:
 
@@ -1070,6 +1168,7 @@ curl -s "$BASE/app/sessions/20261122-1831-3c34/answer" \
 | `no_hebrew` | 400 | R/C/F card for a bird without Hebrew |
 | `no_split_elements` | 400 | E card for a bird without split elements |
 | `invalid_credentials` | 401 | wrong username or password |
+| `not_current` | 409 | an unseen card behind the frontier was answered |
 | `unauthorized` | 401 | missing or malformed token |
 | `token_expired` | 401 | token past `expires_at` |
 | `forbidden_origin` | 403 | browser origin not allowed |

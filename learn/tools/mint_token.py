@@ -5,8 +5,10 @@ The Worker verifies a token by recomputing an HMAC-SHA256 over the payload
 with ``AUTH_SECRET``; it does not store tokens. This tool signs the same
 payload locally and writes a small page that stores the token under
 ``localStorage["birds.token"]`` and opens the app, so no password is needed
-for local work. The token is only accepted by a Worker running with the same
-``.dev.vars``; it is a development credential and must not be deployed.
+for local work. It reads only the local secret: the account name is explicit
+and the token scope is always the user's own prefix. The token is only
+accepted by a Worker running with the same ``.dev.vars``; it is a development
+credential and must not be deployed.
 """
 
 from __future__ import annotations
@@ -23,10 +25,8 @@ from pathlib import Path
 
 LEARN = Path(__file__).resolve().parents[1]
 DEFAULT_SECRET_FILE = LEARN / "cloudflare" / ".dev.vars"
-DEFAULT_USERS_FILE = LEARN / "cloudflare" / "users.json"
 DEFAULT_OUT = Path(__file__).resolve().parents[2] / "build" / "web" / "dev-login.html"
 DEFAULT_SERVE_URL = "http://localhost:8001"
-SCOPES = ("profile", "tests")
 USERNAME = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 
 PAGE = """<!doctype html>
@@ -50,14 +50,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--user",
-        default="ran",
-        help="account name carried by the token (default ran)",
-    )
-    parser.add_argument(
-        "--scope",
-        choices=SCOPES,
-        help="token scope (default: the account's scope in users.json, "
-        "else tests)",
+        required=True,
+        help="account name carried by the token",
     )
     parser.add_argument(
         "--days",
@@ -70,12 +64,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_SECRET_FILE,
         help=f"file holding AUTH_SECRET (default {DEFAULT_SECRET_FILE})",
-    )
-    parser.add_argument(
-        "--users-file",
-        type=Path,
-        default=DEFAULT_USERS_FILE,
-        help=f"accounts file used to pick the scope (default {DEFAULT_USERS_FILE})",
     )
     parser.add_argument(
         "--out",
@@ -108,28 +96,16 @@ def read_secret(path: Path) -> str:
     raise SystemExit(f"{path} has no non-empty AUTH_SECRET")
 
 
-def read_scope(users_file: Path, user: str) -> str | None:
-    if not users_file.exists():
-        return None
-    try:
-        document = json.loads(users_file.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    entry = (document.get("users") or {}).get(user)
-    scope = entry.get("scope") if isinstance(entry, dict) else None
-    return scope if scope in SCOPES else None
-
-
 def b64url(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
 
-def mint(secret: str, user: str, scope: str, days: int) -> str:
+def mint(secret: str, user: str, days: int) -> str:
     if not USERNAME.match(user):
         raise SystemExit(f"invalid account name: {user!r}")
     payload = {
         "u": user,
-        "s": scope,
+        "s": "profile",
         "exp": int(time.time()) + days * 86400,
     }
     body = b64url(
@@ -146,16 +122,7 @@ def mint(secret: str, user: str, scope: str, days: int) -> str:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     secret = read_secret(args.secret_file)
-
-    scope = args.scope or read_scope(args.users_file, args.user)
-    if scope is None:
-        scope = "tests"
-        print(
-            f"note: {args.user!r} is not in {args.users_file}; "
-            f"using scope {scope!r}"
-        )
-
-    token = mint(secret, args.user, scope, args.days)
+    token = mint(secret, args.user, args.days)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(PAGE.format(token=token), encoding="utf-8")
     os.chmod(args.out, 0o600)
@@ -164,8 +131,7 @@ def main(argv: list[str] | None = None) -> int:
         "%Y-%m-%d %H:%M", time.localtime(int(time.time()) + args.days * 86400)
     )
     print(
-        f"Minted a dev token for {args.user!r} "
-        f"(scope {scope!r}, expires {expires})."
+        f"Minted a dev token for {args.user!r} (expires {expires})."
     )
     print(f"Wrote {args.out} (development only; never deploy it).")
     print(f"Open: {args.serve_url.rstrip('/')}/dev-login.html")
