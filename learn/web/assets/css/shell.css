@@ -13,7 +13,18 @@ body {
 .he { font-family: "Droid Sans Hebrew", "Noto Sans Hebrew", sans-serif; }
 .ltr { direction: ltr; unicode-bidi: isolate; }
 
-.app { height: 100vh; display: grid; grid-template-rows: 46px minmax(0, 1fr) 316px; }
+.app { height: 100vh; display: grid; grid-template-rows: 46px minmax(0, 1fr) 340px auto; }
+
+/* Illustration credit (CC BY 4.0); one persistent line, not per plate. */
+.site-footer {
+  padding: 5px 40px 7px; border-top: 1px solid var(--line);
+  text-align: center;
+  background: var(--bg);
+  font-family: var(--font-chrome); font-size: 10px;
+  letter-spacing: .02em; color: var(--text-muted);
+}
+.site-footer a { color: inherit; text-underline-offset: 2px; }
+.site-footer a:hover { color: var(--text); }
 
 /* Session bar */
 .sessionbar {
@@ -97,10 +108,6 @@ body {
 
 .sticker { margin: 0; }
 .sticker img { display: block; width: 100%; height: auto; }
-.sticker figcaption {
-  margin-top: 6px; text-align: center;
-  font-family: var(--font-chrome); font-size: 8.5px; line-height: 1.45; color: var(--text-muted); opacity: .85;
-}
 
 /* Parts */
 .parts { margin-top: 18px; border-top: 1px solid var(--line); }

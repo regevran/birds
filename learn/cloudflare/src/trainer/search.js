@@ -219,9 +219,29 @@ function pushToken(tokens, kind, text) {
   tokens.push({ kind, text: value });
 }
 
-function pushWords(tokens, kind, text) {
-  for (const word of String(text ?? "").trim().split(/\s+/)) {
-    pushToken(tokens, kind, word);
+function pushWords(tokens, kind, text, pattern = /\s+/) {
+  const whole = String(text ?? "").trim();
+  for (const word of whole.split(pattern)) {
+    if (word.trim() && word.trim() !== whole) {
+      pushToken(tokens, kind, word.trim());
+    }
+  }
+}
+
+/* Hebrew names may join words with a hyphen or maqaf. Split on whitespace and
+ * those separators, but do not repeat the whole name when it is one word. */
+const HEBREW_BREAK = /[-\s\u05be\u2010-\u2015]+/u;
+
+function pushHebrewWords(tokens, text) {
+  for (const word of String(text ?? "").trim().split(HEBREW_BREAK)) {
+    const value = word.trim();
+    if (!value) {
+      continue;
+    }
+    if (tokens.some((token) => token.kind.startsWith("hebrew") && token.text === value)) {
+      continue;
+    }
+    pushToken(tokens, "hebrew_word", value);
   }
 }
 
@@ -243,7 +263,7 @@ export function birdTokens(bird) {
   pushToken(tokens, "english", bird.english);
   pushWords(tokens, "english_word", bird.english);
   pushToken(tokens, "hebrew", bird.hebrew);
-  pushWords(tokens, "hebrew_word", bird.hebrew);
+  pushHebrewWords(tokens, bird.hebrew);
   return tokens;
 }
 

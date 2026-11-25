@@ -120,16 +120,19 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
 
 - One input at the left; the six query actions sit immediately beside it as
   "this search".
-- Results are an LTR table held left (~1000px), only as wide as the longest
-  line plus headroom: Latin, Order, Family, English, Hebrew. Drag grips reorder
-  the columns; the order is browser-local.
-- Selecting a row highlights it and fills the right panel: names and selectable
-  parts at the left, the illustration at the right. The parts are every
-  creatable token — whole names, words, etymology parts, family, order — as
-  chips.
-- A constant 3×2 create grid follows the parts directly, aligned with them and
-  sized to its widest label. Three steps: row → element → button. The
-  illustration is the selected row's bird; the footer carries the credit.
+- Results are an LTR table held left in the remaining width, only as wide as
+  the longest line plus headroom: Latin, Order, Family, English, Hebrew. Drag
+  grips reorder the columns; the order is browser-local.
+- Selecting a row highlights it and fills the right panel (380–460px wide) with
+  two columns. The left column holds the names, then the selectable parts, then
+  the create controls; the illustration fills a full-height box on the right.
+  The parts are every creatable token — whole names, words, etymology parts,
+  family, order — as chips that wrap onto as many lines as needed.
+- The panel has a fixed height (the search row) and no internal scrolling. The
+  constant 3×2 create grid is pinned to the bottom of the left column, aligned
+  to its widest label. Three steps: row → element → button. The illustration is
+  the selected row's bird; the footer carries the credit. Layout is verified
+  for every bird; the densest panels still fit without a scrollbar.
 - Both scopes stay: "this search" for the whole result set, the panel's buttons
   for the selected element.
 

@@ -1,8 +1,11 @@
 /* Browser client: reads the Worker; the Worker owns the data and the queue. */
 
-const API_BASE =
+const API_BASE = (
   document.querySelector('meta[name="birds-api"]')?.content ||
-  "http://localhost:8787";
+  "http://localhost:8787"
+).replace(/\/+$/, "");
+const MEDIA_VERSION =
+  document.querySelector('meta[name="birds-media-version"]')?.content || "v1";
 const TOKEN_KEY = "birds.token";
 const SESSION_KEY = "birds.session";
 const LOOKAHEAD = 7;
@@ -109,8 +112,11 @@ function illustration(speciesId, alt) {
   if (!speciesId) {
     return "";
   }
-  const file = speciesId.replaceAll("-", "_");
-  return `<img src="assets/illustrations/${escapeHtml(file)}.webp" alt="${escapeHtml(alt)}" loading="lazy">`;
+  const file = encodeURIComponent(speciesId);
+  const src =
+    `${API_BASE}/media/illustrations/${encodeURIComponent(MEDIA_VERSION)}` +
+    `/${file}.webp`;
+  return `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async">`;
 }
 
 function factline(view) {
@@ -175,7 +181,6 @@ function renderCard(current) {
     <div class="card-main-l">
       <figure class="sticker">
         <div class="plate">${illustration(view.species_id, view.english ?? view.latin)}</div>
-        <figcaption><a class="credit" href="https://github.com/alchaincyf/huashu-bird-sticker" target="_blank" rel="noopener noreferrer">Bird Album / huashu-bird-sticker · CC BY 4.0</a></figcaption>
       </figure>
       <div class="content">
         <div class="latin-line">
@@ -430,46 +435,43 @@ function renderPanel() {
   }
   const selected = state.selectedToken;
   panel.innerHTML = `
-    <span class="panel-kicker">selected bird</span>
-    <div class="panel-top">
-      <div class="panel-left">
-        <div class="panel-latin ltr">${escapeHtml(bird.latin)}</div>
-        <div class="panel-common"><span class="en ltr">${escapeHtml(bird.english ?? "")}</span> · <span class="he">${escapeHtml(bird.hebrew ?? "")}</span></div>
-        <span class="panel-label panel-label--parts">parts</span>
-        <div class="token-row">
-          ${tokens
-            .map((token, index) => {
-              const classes = ["token"];
-              if (PART_KINDS.has(token.kind)) {
-                classes.push("token--part");
-              }
-              if (HEBREW_KINDS.has(token.kind)) {
-                classes.push("he");
-              }
-              if (selected && token.kind === selected.kind && token.text === selected.text) {
-                classes.push("selected");
-              }
-              return `<button class="${classes.join(" ")}" type="button" data-index="${index}">${escapeHtml(token.text)}</button>`;
-            })
-            .join("")}
+    <div class="panel-info">
+      <span class="panel-kicker">selected bird</span>
+      <div class="panel-latin ltr">${escapeHtml(bird.latin)}</div>
+      <div class="panel-common"><span class="en ltr">${escapeHtml(bird.english ?? "")}</span> · <span class="he">${escapeHtml(bird.hebrew ?? "")}</span></div>
+      <span class="panel-label panel-label--parts">parts</span>
+      <div class="token-row">
+        ${tokens
+          .map((token, index) => {
+            const classes = ["token"];
+            if (PART_KINDS.has(token.kind)) {
+              classes.push("token--part");
+            }
+            if (HEBREW_KINDS.has(token.kind)) {
+              classes.push("he");
+            }
+            if (selected && token.kind === selected.kind && token.text === selected.text) {
+              classes.push("selected");
+            }
+            return `<button class="${classes.join(" ")}" type="button" data-index="${index}">${escapeHtml(token.text)}</button>`;
+          })
+          .join("")}
+      </div>
+      <div class="panel-create">
+        <span class="panel-label">create from <b class="sel-name">${escapeHtml(selected?.text ?? "—")}</b></span>
+        <div class="create-grid">
+          <button class="create-btn" type="button" disabled style="--type: var(--t-L)"><span class="dot"></span>Learn</button>
+          <button class="create-btn" type="button" disabled style="--type: var(--t-E)"><span class="dot"></span>Elements</button>
+          <button class="create-btn" type="button" disabled style="--type: var(--t-R)"><span class="dot"></span>Recognize</button>
+          <button class="create-btn" type="button" disabled style="--type: var(--t-C)"><span class="dot"></span>Construct</button>
+          <button class="create-btn" type="button" disabled style="--type: var(--t-F)"><span class="dot"></span>Produce</button>
+          <button class="create-btn" type="button" disabled><span class="dot dot--neutral"></span>Session</button>
         </div>
       </div>
-      <figure class="panel-sticker">
-        <div class="plate">${illustration(bird.species_id, bird.english ?? bird.latin)}</div>
-        <figcaption><a class="credit" href="https://github.com/alchaincyf/huashu-bird-sticker" target="_blank" rel="noopener noreferrer">Bird Album / huashu-bird-sticker · CC BY 4.0</a></figcaption>
-      </figure>
     </div>
-    <div class="panel-create">
-      <span class="panel-label">create from <b class="sel-name">${escapeHtml(selected?.text ?? "—")}</b></span>
-      <div class="create-grid">
-        <button class="create-btn" type="button" disabled style="--type: var(--t-L)"><span class="dot"></span>Learn</button>
-        <button class="create-btn" type="button" disabled style="--type: var(--t-E)"><span class="dot"></span>Elements</button>
-        <button class="create-btn" type="button" disabled style="--type: var(--t-R)"><span class="dot"></span>Recognize</button>
-        <button class="create-btn" type="button" disabled style="--type: var(--t-C)"><span class="dot"></span>Construct</button>
-        <button class="create-btn" type="button" disabled style="--type: var(--t-F)"><span class="dot"></span>Produce</button>
-        <button class="create-btn" type="button" disabled><span class="dot dot--neutral"></span>Session</button>
-      </div>
-    </div>`;
+    <figure class="panel-sticker">
+      <div class="plate">${illustration(bird.species_id, bird.english ?? bird.latin)}</div>
+    </figure>`;
   for (const button of panel.querySelectorAll(".token")) {
     button.addEventListener("click", () => {
       state.selectedToken = tokens[Number(button.dataset.index)];

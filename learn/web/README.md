@@ -20,13 +20,19 @@ by configuration, no offline mode, no sample data.
 4. API base: the `meta[name="birds-api"]` tag in `index.html` (default
    `http://localhost:8787`). The local Worker's `ALLOWED_ORIGINS` must include
    `http://localhost:8001` (see `.dev.vars.example`).
+5. Illustrations: `cmake --build build --target learn-web-illustrations` then
+   `cmake --build build --target learn-web-illustrations-upload-local`. The
+   client loads them from `<birds-api>/media/illustrations/<version>/...`; the
+   `meta[name="birds-media-version"]` tag must match `asset_version` in
+   `illustrations.json`.
 
 ## Scope
 
 Now: session bar and context, the L card, the look-ahead (7 ahead), search
 results (empty until typed; the × button or Esc clears them) and the
 selected-row panel, and the L Next (other card types show a placeholder).
-The Worker now supports history windows and redo (a card uid is classified
-live vs redo server-side), but the client navigation UI is not built yet. The
-create buttons and the session actions are displayed but inert. The drawer,
-the E/R/C/F faces and tests follow.
+Illustrations load from the Worker's public media route; a persistent footer
+carries the CC BY credit. The Worker now supports history windows and redo (a
+card uid is classified live vs redo server-side), but the client navigation UI
+is not built yet. The create buttons and the session actions are displayed but
+inert. The drawer, the E/R/C/F faces and tests follow.

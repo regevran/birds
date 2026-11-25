@@ -42,7 +42,6 @@ body.opt-b .sticker {
   background: rgba(239, 223, 192, .55);
   border: 1px solid var(--hairline); border-radius: 6px;
 }
-body.opt-b .sticker figcaption { margin-top: 4px; }
 body.opt-b .next {
   font-family: var(--font-body); font-size: 13px; font-weight: 600;
   letter-spacing: .02em; text-transform: none; padding: 11px 26px;

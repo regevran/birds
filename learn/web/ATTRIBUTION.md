@@ -1,4 +1,9 @@
-# Third-party illustrations
+# Credits and licences
+
+The trainer site and its code: © Ran Regev, all rights reserved
+(<https://regevran.github.io/personal_portfolio>).
+
+## Illustrations
 
 The bird illustrations served by the browser client are derived from
 [huashu-bird-sticker](https://github.com/alchaincyf/huashu-bird-sticker)

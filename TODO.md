@@ -18,7 +18,7 @@
 [ ] Revisit create-or-switch for sessions - [details](.ai/learn-ui.md#open-questions)
 [ ] Design color template. Preffered as in ../personal_portfolio
 [x] Generate all bird illustrations from [huashu-bird-sticker](https://github.com/alchaincyf/huashu-bird-sticker) (565/565, R2)
-[ ] Wire the illustrations into the client and add the footer credit
+[x] Wire the illustrations into the client and add the footer credit
 [ ] Add reader, a voice that reads the latin name (must), english (potential), hebrew (potential)
 [ ] Create a short recording for all latin names
 

@@ -955,7 +955,10 @@ English and Hebrew words), e.g.:
 ]
 ```
 
-Clients render this list; they never derive it.
+Clients render this list; they never derive it. Hebrew words split on
+whitespace, hyphens and the Hebrew maqaf (for example `כחול-החזה` yields
+`כחול` and `החזה` as well as the whole name); a one-word Hebrew or English name
+is not repeated as a separate word token.
 
 `matched` says why each bird was returned:
 
