@@ -52,8 +52,9 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
   order and status small, centred), body, feedback slot, answer surface.
 - Names: Hebrew and English equal size on one line; the Latin name is the
   largest object, speaker to its right.
-- Illustration: always visible, F included; the body's right column (~285px);
-  a one-line CC BY credit links to the repository. Picture→Latin is accepted.
+- Illustration: always visible, F included; the body's right column (~285px).
+  The CC BY credit is a single linked line in the persistent page footer, not
+  repeated under each plate. Picture→Latin is accepted.
 - Speakers follow visible names (Latin now; English and Hebrew later); nothing
   invisible is spoken.
 - Full card names; L/E/R/C/F is CLI and internal shorthand. L is the read-only
@@ -128,8 +129,7 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
   chips.
 - A constant 3×2 create grid follows the parts directly, aligned with them and
   sized to its widest label. Three steps: row → element → button. The
-  illustration is the selected row's bird, with the same one-line linked
-  credit.
+  illustration is the selected row's bird; the footer carries the credit.
 - Both scopes stay: "this search" for the whole result set, the panel's buttons
   for the selected element.
 

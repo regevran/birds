@@ -2,9 +2,12 @@
 # remains the only data path (local or remote by the page's meta tag).
 #
 # Targets:
-#   learn-web-build   stage the client files in build/web
-#   learn-web-token   mint a local dev token into build/web/dev-login.html
-#   learn-web-serve   stage and serve them on http://localhost:8001
+#   learn-web-build          stage the client files in build/web
+#   learn-web-illustrations        fetch and resize the images into build/media
+#   learn-web-illustrations-upload-local upload them to the local R2 emulation
+#   learn-web-illustrations-upload-remote upload them to the deployed bucket
+#   learn-web-token                mint a local dev token into build/web/dev-login.html
+#   learn-web-serve          stage and serve them on http://localhost:8001
 
 set(WEB_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
 set(WEB_OUT "${CMAKE_BINARY_DIR}/web")
@@ -25,6 +28,33 @@ add_custom_target(learn-web-build
     COMMAND "${CMAKE_COMMAND}" -E copy_directory "${WEB_SRC}" "${WEB_OUT}"
     DEPENDS ${WEB_FILES}
     COMMENT "Staging the browser client in ${WEB_OUT}"
+    VERBATIM)
+
+add_custom_target(learn-web-illustrations
+    COMMAND "${Python3_EXECUTABLE}"
+        "${BIRDS_ROOT}/learn/tools/build_web_illustrations.py"
+    DEPENDS
+        "${BIRDS_DATA_OUT}/israel_birds_final.json"
+        "${WEB_SRC}/illustrations.json"
+        "${BIRDS_ROOT}/learn/tools/build_web_illustrations.py"
+    COMMENT "Fetching and resizing bird illustrations into build/media"
+    USES_TERMINAL
+    VERBATIM)
+
+add_custom_target(learn-web-illustrations-upload-local
+    COMMAND "${Python3_EXECUTABLE}"
+        "${BIRDS_ROOT}/learn/tools/upload_web_illustrations.py" --local
+    DEPENDS learn-web-illustrations
+    COMMENT "Uploading bird illustrations to the local R2 emulation"
+    USES_TERMINAL
+    VERBATIM)
+
+add_custom_target(learn-web-illustrations-upload-remote
+    COMMAND "${Python3_EXECUTABLE}"
+        "${BIRDS_ROOT}/learn/tools/upload_web_illustrations.py" --remote
+    DEPENDS learn-web-illustrations
+    COMMENT "Uploading bird illustrations to the deployed bucket"
+    USES_TERMINAL
     VERBATIM)
 
 add_custom_target(learn-web-token

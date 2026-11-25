@@ -74,6 +74,64 @@ test("health is public", async () => {
   });
 });
 
+test("illustrations are public and served from the media prefix", async () => {
+  const env = makeEnv();
+  const image = new Uint8Array([82, 73, 70, 70, 1, 2, 3, 4]);
+  await env.PROGRESS.put(
+    "media/illustrations/v1/acrocephalus-agricola.webp",
+    image,
+  );
+
+  const response = await worker.fetch(
+    request("/media/illustrations/v1/acrocephalus-agricola.webp"),
+    env,
+  );
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Content-Type"), "image/webp");
+  assert.equal(
+    response.headers.get("Cache-Control"),
+    "public, max-age=31536000, immutable",
+  );
+  assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff");
+  assert.match(response.headers.get("ETag"), /^"rev-/);
+  assert.deepEqual(
+    new Uint8Array(await response.arrayBuffer()),
+    image,
+  );
+
+  const head = await worker.fetch(
+    request("/media/illustrations/v1/acrocephalus-agricola.webp", {
+      method: "HEAD",
+    }),
+    env,
+  );
+  assert.equal(head.status, 200);
+  assert.equal(head.headers.get("Content-Length"), String(image.byteLength));
+  assert.equal(await head.text(), "");
+
+  const missing = await worker.fetch(
+    request("/media/illustrations/v1/unknown-bird.webp"),
+    env,
+  );
+  assert.equal(missing.status, 404);
+  assert.equal((await missing.json()).error, "not_found");
+
+  const traversed = await worker.fetch(
+    request("/media/illustrations/v1/..%2fusers.json"),
+    env,
+  );
+  assert.equal(traversed.status, 404);
+
+  const wrongMethod = await worker.fetch(
+    request("/media/illustrations/v1/acrocephalus-agricola.webp", {
+      method: "POST",
+      body: {},
+    }),
+    env,
+  );
+  assert.equal(wrongMethod.status, 405);
+});
+
 test("login returns a verifiable token", async () => {
   const env = makeEnv();
   await seedUsers(env);

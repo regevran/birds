@@ -28,12 +28,18 @@ birds-progress/
   users.json                          provisioned accounts, never served
   users/<username>/profile.json       profile, settings, global counter
   users/<username>/sessions/<id>.json session state
+  media/illustrations/v1/<species>.webp  public generated illustrations
 ```
 
 Logical client paths are relative (`profile.json`, `sessions/<id>.json`) and
 every token maps them under `users/<username>/`; there is one scope, `profile`.
 The client never names a user in a path. The bucket is private, has no
-`r2.dev` URL and is read/written only by the Worker.
+`r2.dev` URL and is read/written only by the Worker. The one public read path
+is `GET /media/illustrations/<version>/<species_id>.webp`: it serves only
+generated image keys, never profile or session data. Images are not committed;
+`learn/web/illustrations.json` pins the CC BY 4.0 source, and the
+`learn-web-illustrations` / `-upload-local` / `-upload-remote` targets generate
+and place them. Credit and modification notes: `learn/web/ATTRIBUTION.md`.
 
 ## Documents
 

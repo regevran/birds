@@ -151,6 +151,7 @@ Common status codes:
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | public liveness check |
+| GET | `/media/illustrations/<version>/<species>.webp` | public bird illustration |
 | POST | `/login` | exchange username/password for a token |
 | GET | `/fs?prefix=&limit=&cursor=` | list files in the token's scope |
 | GET | `/fs/<path>` | read a file |
@@ -183,6 +184,31 @@ curl -s "$BASE/health"
   "service": "birds-progress"
 }
 ```
+
+## Media
+
+### `GET /media/illustrations/<version>/<species_id>.webp`
+
+Streams a generated bird illustration from R2. It is public and takes no
+token: an `<img>` element cannot send an `Authorization` header. The bucket
+stays private; only keys under `media/illustrations/` are reachable this way,
+and the path must match `v<digits>/<species_id>.webp` exactly (no traversal, no
+listing).
+
+```sh
+curl -sI "$BASE/media/illustrations/v1/acrocephalus-agricola.webp"
+```
+
+Returns `200` with `Content-Type: image/webp`,
+`Cache-Control: public, max-age=31536000, immutable` and an `ETag`. Unknown
+keys return `404 not_found`. The asset-set version is part of the path, so a
+regenerated set under a new version busts browser caches.
+
+Images are generated, not committed: `learn-web-illustrations` fetches the
+pinned CC BY 4.0 source and writes the files under `build/media/`, and
+`learn-web-illustrations-upload-local` / `learn-web-illustrations-upload-remote` put them
+in the local or deployed bucket. Credit and modification notes are in
+`learn/web/ATTRIBUTION.md`.
 
 ## Login
 

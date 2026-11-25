@@ -60,6 +60,13 @@ export default {
         return await handleLogin(request, env, cors);
       }
 
+      if (url.pathname.startsWith("/media/")) {
+        if (request.method !== "GET" && request.method !== "HEAD") {
+          throw new HttpError(405, "method_not_allowed", "method not allowed");
+        }
+        return await handleMedia(url, env, cors, request.method === "HEAD");
+      }
+
       if (
         url.pathname === "/app" ||
         url.pathname.startsWith("/app/")
@@ -108,6 +115,37 @@ function decodePath(url) {
   } catch {
     throw new HttpError(400, "invalid_path", "invalid path");
   }
+}
+
+const MEDIA_PATH =
+  /^\/media\/illustrations\/(v[0-9]+)\/([a-z0-9][a-z0-9-]{0,79})\.webp$/;
+
+/* Public read-only illustrations. The progress bucket stays private; this
+ * route exposes only generated image keys, never profile or session data. */
+async function handleMedia(url, env, cors, head) {
+  const match = MEDIA_PATH.exec(url.pathname);
+  if (!match) {
+    throw new HttpError(404, "not_found", "not found");
+  }
+  const [, version, speciesId] = match;
+  const object = await env.PROGRESS.get(
+    `media/illustrations/${version}/${speciesId}.webp`,
+  );
+  if (!object) {
+    throw new HttpError(404, "not_found", "illustration not found");
+  }
+  const data = head ? null : await object.arrayBuffer();
+  return new Response(data, {
+    status: 200,
+    headers: {
+      ...cors,
+      "Content-Type": "image/webp",
+      "Content-Length": String(head ? object.size : data.byteLength),
+      "Cache-Control": "public, max-age=31536000, immutable",
+      ETag: `"${revisionOf(object.etag)}"`,
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
 async function handleLogin(request, env, cors) {

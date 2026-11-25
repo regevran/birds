@@ -24,9 +24,10 @@ The private bucket is:
 
 ```text
 birds-progress/
-  users.json                          provisioned accounts
-  users/<username>/profile.json       learner state
-  users/<username>/sessions/<id>.json session state
+  users.json                             provisioned accounts
+  users/<username>/profile.json          learner state
+  users/<username>/sessions/<id>.json    session state
+  media/illustrations/v1/<species>.webp  public bird illustrations
 ```
 
 `users.json` is never served to a client. Every token names one user and maps
@@ -108,6 +109,27 @@ cmake --build build --target learn-worker-dev
 Wrangler emulates R2 under `.wrangler/state` (ignored). Commands such as
 `r2 object put` default to that local emulation; add `--remote` when you mean
 the deployed bucket.
+
+## Illustrations
+
+The browser client's bird images are generated, not committed.
+`learn/web/illustrations.json` pins one CC BY 4.0 sticker per dataset species;
+the tool downloads them from the pinned source, resizes them to 512 px WebP and
+writes them under `build/media/`. The Worker serves them publicly at
+`/media/illustrations/<version>/<species>.webp`; the bucket stays private.
+
+```sh
+cmake --build build --target learn-web-illustrations         # generate
+cmake --build build --target learn-web-illustrations-upload-local  # local R2
+cmake --build build --target learn-web-illustrations-upload-remote  # deployed bucket
+```
+
+The local upload runs one wrangler process at a time (about nine minutes for
+the full set) because wrangler's local R2 state fails under parallel writers;
+the remote upload is parallel. When the source tool or processing changes,
+bump `asset_version` in `../web/illustrations.json`; the version is part of the
+public path, so browsers keep cached images until the path changes.
+Attribution: `../web/ATTRIBUTION.md`.
 
 ## Accounts
 

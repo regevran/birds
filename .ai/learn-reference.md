@@ -195,8 +195,9 @@ the earlier V1–V4 design is not part of the current schema.
 - States: no profile; empty pool (explain why); data mismatch; stale card
   (reload); save failed (do not advance); server down.
 - Bird illustrations: https://github.com/alchaincyf/huashu-bird-sticker (CC BY
-  4.0, credit next to the image) cover every species and are in v1, on every
-  card. A reader speaks visible names from pre-generated clips (Latin
+  4.0, credit in the persistent page footer) cover every species and are in v1,
+  on every card. The set is generated, not committed; the Worker serves it
+  publicly from R2. A reader speaks visible names from pre-generated clips (Latin
   required; English and Hebrew later); the pronunciation convention is not
   chosen. Details: `learn-ui.md`.
 

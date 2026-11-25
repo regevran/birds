@@ -22,6 +22,9 @@ through the Worker in `cloudflare/`. The design is in
   local quickstart.
 - `CLI-USAGE.md` — full text-client usage, commands, practice flow and keys.
 - `tools/provision_user.py` — adds an account to the Worker's `users.json`.
+- `tools/build_web_illustrations.py` and `upload_web_illustrations.py` —
+  generate and upload the pinned CC BY 4.0 bird images (`web/illustrations.json`,
+  `web/ATTRIBUTION.md`).
 
 There is no `learn/build` or `learn/out`: all build artifacts go to the
 top-level disposable `build/`, and the trainer runs from `learn/src`. There is
@@ -39,8 +42,8 @@ scaffold; F asks for a typed Latin name with no scaffold. Search matches names
 and taxonomy plus the meanings of a bird's etymology parts; results show the
 matching element and text and list the matching element entries. Search, card
 views and grading require a stored login and a reachable Worker. The V card,
-hints and the web UI are still to come. There are 113 Python tests (three live
-Worker tests skip unless configured) and 100 Worker tests.
+hints and the web UI are still to come. There are 117 Python tests (three live
+Worker tests skip unless configured) and 101 Worker tests.
 
 ## Progress Worker
 

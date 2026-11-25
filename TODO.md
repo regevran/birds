@@ -17,7 +17,8 @@
 [ ] Session drawer and look-ahead navigation strip
 [ ] Revisit create-or-switch for sessions - [details](.ai/learn-ui.md#open-questions)
 [ ] Design color template. Preffered as in ../personal_portfolio
-[ ] Add drawing of the bird, for example [from](https://github.com/alchaincyf/huashu-bird-sticker)
+[x] Generate all bird illustrations from [huashu-bird-sticker](https://github.com/alchaincyf/huashu-bird-sticker) (565/565, R2)
+[ ] Wire the illustrations into the client and add the footer credit
 [ ] Add reader, a voice that reads the latin name (must), english (potential), hebrew (potential)
 [ ] Create a short recording for all latin names
 

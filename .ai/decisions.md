@@ -88,6 +88,12 @@ canonical files linked here; working rules are in `README.md`.
   visible names from pre-generated clips (Latin required; English and Hebrew
   later). Card titles and search actions use the full names, not the
   L/E/R/C/F shorthand.
+- **Illustration storage:** no image binaries in git. The set is generated from
+  the pinned CC BY 4.0 source in `learn/web/illustrations.json`, resized to
+  512 px WebP under `build/media/`, and uploaded to R2. A public read-only
+  Worker route (`/media/illustrations/<version>/<species>.webp`) serves it
+  from the private progress bucket, so local and deployed environments share
+  one URL pattern. Credit is one linked line in the persistent page footer.
 - **Scope:** the text client covers L/E/R/C/F; hints are future. The browser
   L face is in development; E/R/C/F faces and navigation UI follow.
 - **Client/Worker versioning:** one version. The client expects the current

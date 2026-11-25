@@ -25,7 +25,7 @@ birds/
                           src/trainer/, Node tests, wrangler.toml
     design/               browser UI design mocks (design only)
     web/                  browser client: index.html, src/app.js, assets
-    tools/                account provisioning and local dev tokens
+    tools/                account provisioning, dev tokens, image build/upload
     data/                 placeholder; progress is not stored locally
 ```
 
@@ -69,6 +69,9 @@ cmake --build build --target learn-worker-users-upload
 cmake --build build --target learn-worker-users-deploy
 cmake --build build --target learn-run
 cmake --build build --target learn-web-build
+cmake --build build --target learn-web-illustrations
+cmake --build build --target learn-web-illustrations-upload-local
+cmake --build build --target learn-web-illustrations-upload-remote
 cmake --build build --target learn-web-token
 cmake --build build --target learn-web-serve
 ```
@@ -92,8 +95,8 @@ preview targets are in `book-reference.md`; Worker deployment is in
 - **Trainer:** Worker-owned (`learn-cloudflare.md`); the Python text client is
   documented in `learn/README.md` and `learn/CLI-USAGE.md`; session/card design
   is in `learn-reference.md`.
-- **Tests:** 113 Python tests through `learn-test` (three live Worker tests
-  skip unless `BIRDS_TEST_*` is set); 100 Worker tests through
+- **Tests:** 117 Python tests through `learn-test` (three live Worker tests
+  skip unless `BIRDS_TEST_*` is set); 101 Worker tests through
   `learn-worker-test`. Live tests target a local Worker and a local account.
 - **Next:** browser client card faces and the session drawer; three visual
   options are in `learn/design/`. Deferred trainer work is listed in
