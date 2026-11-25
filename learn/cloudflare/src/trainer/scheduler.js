@@ -675,6 +675,7 @@ function historyEntryView(catalog, entry, index) {
     at: entry.at,
     uid: entry.card.uid,
     type: entry.card.type,
+    hebrew: catalog.bird(entry.card.species_id).hebrew,
     card: cardFor(catalog, entry.card),
   };
 }
@@ -722,6 +723,7 @@ export function sessionView(catalog, profile, session, limit = LOOKAHEAD) {
           attempt: card.attempt,
           retry: card.retry,
           revealed: card.revealed,
+          hebrew: catalog.bird(card.species_id).hebrew,
           card: cardFor(catalog, card),
         }
       : null,

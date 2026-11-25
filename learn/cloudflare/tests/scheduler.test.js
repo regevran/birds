@@ -198,6 +198,10 @@ test("session views expose the current card and a safe lookahead", () => {
   assert.equal(view.current.uid, session.queue[0].uid);
   assert.equal(view.current.type, session.queue[0].type);
   assert.equal(view.current.card.card_type, session.queue[0].type);
+  assert.equal(
+    view.current.hebrew,
+    catalog.bird(session.queue[0].species_id).hebrew,
+  );
   assert.ok(view.lookahead.length <= 5);
   for (const item of view.lookahead) {
     assert.deepEqual(Object.keys(item).sort(), [
@@ -490,10 +494,17 @@ test("history windows page backwards", () => {
   const view = sessionView(catalog, owner, session);
   assert.equal(view.session.history_size, 3);
   assert.equal(view.history_tail.length, 3);
+  for (const entry of view.history_tail) {
+    assert.equal(
+      entry.hebrew,
+      catalog.bird(entry.card.species_id).hebrew,
+    );
+  }
   const page = historyView(catalog, session, { before: 2, limit: 1 });
   assert.equal(page.start, 1);
   assert.equal(page.end, 2);
   assert.equal(page.entries.length, 1);
   assert.equal(page.entries[0].index, 1);
   assert.equal(page.entries[0].result, "advance");
+  assert.ok(page.entries[0].hebrew);
 });

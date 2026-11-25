@@ -21,6 +21,10 @@ const CARD_NAMES = {
 const state = {
   sessionId: null,
   view: null,
+  history: new Map(),
+  frontier: 0,
+  cursor: 0,
+  lookaheadCollapsed: false,
   search: { query: "", birds: [], elements: [], selected: null },
   selectedToken: null,
   searchRequest: 0,
@@ -139,8 +143,8 @@ function renderSession() {
   const percent = view?.session?.percent_completed ?? 0;
   $("#progress-pct").textContent = `${percent}%`;
   $("#progress-fill").style.width = `${percent}%`;
-  renderCard(view?.current);
-  renderLookahead(view?.lookahead ?? []);
+  renderCard(focusedEntry());
+  renderTimeline();
 }
 
 function renderCard(current) {
@@ -155,13 +159,7 @@ function renderCard(current) {
   element.style.setProperty("--type", `var(--t-${type})`);
   if (type !== "L") {
     element.className = "card";
-    const bird = current.card ?? {};
-    element.innerHTML = `
-      <div class="card-placeholder">
-        <span class="ph-type">${escapeHtml(CARD_NAMES[type] ?? type)}</span>
-        <span class="ph-bird ltr">${escapeHtml(bird.latin ?? "")}</span>
-        <span class="ph-note">Card face pending</span>
-      </div>`;
+    renderFace(element, type, current.card);
     return;
   }
 
@@ -222,21 +220,346 @@ function renderCard(current) {
   $("#next").addEventListener("click", next);
 }
 
-function renderLookahead(items) {
-  const track = $("#la-track");
-  track.innerHTML = "";
-  items.forEach((item, index) => {
-    if (index > 0) {
-      const arrow = document.createElement("span");
-      arrow.className = "la-arrow";
-      arrow.textContent = "→";
-      track.append(arrow);
+/* Thin functional faces for E/R/C/F. They carry content and submit the real
+ * Worker answer shapes; visual design follows later. */
+function faceTitle(type) {
+  return `<h2>${escapeHtml(CARD_NAMES[type] ?? type)}</h2>`;
+}
+
+function latinInput(name, label) {
+  return `<p><label>${escapeHtml(label)} <input name="${name}" type="text" dir="ltr" autocomplete="off" autocapitalize="none" spellcheck="false"></label></p>`;
+}
+
+function hintList(parts) {
+  return parts
+    .map((part) => {
+      const hint = `${part.first_letter}… (${part.length})`;
+      return part.hebrew
+        ? `<span class="ltr">${escapeHtml(hint)}</span> <span class="he">${escapeHtml(part.hebrew)}</span>`
+        : `<span class="ltr">${escapeHtml(hint)}</span>`;
+    })
+    .join(" · ");
+}
+
+function faceMessage(feedback) {
+  if (!feedback) {
+    return "";
+  }
+  if (feedback.kind === "elements") {
+    return `Elements: ${feedback.correct}/${feedback.total} correct`;
+  }
+  if (feedback.kind === "retry") {
+    return feedback.message;
+  }
+  if (feedback.kind === "recognize") {
+    return feedback.result.correct
+      ? "Correct"
+      : `Wrong — accepted: ${feedback.result.accepted.join(", ")}`;
+  }
+  if (feedback.kind === "latin") {
+    if (feedback.result.outcome === "correct") {
+      return "Correct";
     }
-    const bird = document.createElement("span");
-    bird.className = "la-bird";
-    bird.style.setProperty("--type", `var(--t-${item.type})`);
-    bird.textContent = item.hebrew ?? "";
-    track.append(bird);
+    const label = feedback.result.outcome === "near_miss" ? "Near miss" : "Wrong";
+    return `${label} — ${feedback.result.expected}`;
+  }
+  return "";
+}
+
+function renderFace(element, type, view) {
+  let form = "";
+  if (type === "E") {
+    form = `
+      <p class="ltr">${escapeHtml(view.latin ?? "")}</p>
+      <form id="face-form">
+        ${view.rows
+          .map(
+            (row) => `
+          <div>
+            <span class="ltr">${escapeHtml(row.latin_forms.join(" / "))}</span>
+            <select name="${escapeHtml(row.element_id)}">
+              <option value="">—</option>
+              ${row.options
+                .map(
+                  (option) =>
+                    `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`,
+                )
+                .join("")}
+            </select>
+          </div>`,
+          )
+          .join("")}
+        <p><button type="submit">Check</button></p>
+      </form>`;
+  } else if (type === "R") {
+    form = `
+      <p class="he">${escapeHtml(view.hebrew ?? "")}</p>
+      <p>${escapeHtml(view.family ?? "")}</p>
+      <form id="face-form">
+        ${view.options
+          .map(
+            (option) => `
+          <div>
+            <label>
+              <input type="radio" name="choice" value="${escapeHtml(option.species_id)}">
+              <span class="ltr">${escapeHtml(option.latin)}</span>
+            </label>
+          </div>`,
+          )
+          .join("")}
+        <p><button type="submit">Check</button></p>
+      </form>`;
+  } else if (type === "C") {
+    form = `
+      <p class="he">${escapeHtml(view.hebrew ?? "")}</p>
+      <p>Genus: ${hintList(view.genus_parts)}</p>
+      <p>Epithet: ${hintList(view.epithet_parts)}</p>
+      <form id="face-form">
+        ${latinInput("response", "Latin name")}
+        <p><button type="submit">Check</button></p>
+      </form>`;
+  } else {
+    form = `
+      <p class="he">${escapeHtml(view.hebrew ?? "")}</p>
+      <form id="face-form">
+        ${latinInput("response", "Latin name")}
+        <p><button type="submit">Check</button></p>
+      </form>`;
+  }
+  element.innerHTML = `${faceTitle(type)}${form}`;
+  $("#face-form").addEventListener("submit", submitFace);
+  const input = element.querySelector('input[name="response"]');
+  if (input) {
+    input.focus();
+  }
+}
+
+async function submitFace(event) {
+  event.preventDefault();
+  const current = focusedEntry();
+  if (!current) {
+    return;
+  }
+  const form = event.currentTarget;
+  const body = { card_uid: current.uid, action: "answer" };
+  if (current.type === "E") {
+    body.choices = {};
+    for (const row of current.card.rows) {
+      const select = form.elements.namedItem(row.element_id);
+      if (!select || !select.value) {
+        showStatus("Choose an answer for every element.");
+        return;
+      }
+      body.choices[row.element_id] = select.value;
+    }
+  } else if (current.type === "R") {
+    const choice = form.querySelector('input[name="choice"]:checked');
+    if (!choice) {
+      showStatus("Choose an answer.");
+      return;
+    }
+    body.choice = choice.value;
+  } else {
+    const response = form.elements.namedItem("response").value.trim();
+    if (!response) {
+      showStatus("Type the Latin name.");
+      return;
+    }
+    body.response = response;
+  }
+
+  clearStatus();
+  try {
+    const result = await api(
+      `/app/sessions/${encodeURIComponent(state.sessionId)}/answer?lookahead=${LOOKAHEAD}`,
+      { method: "POST", body },
+    );
+    applyAnswer(result, current);
+  } catch (error) {
+    showStatus(error.message);
+  }
+}
+
+function maxCursor() {
+  if (!state.view) {
+    return 0;
+  }
+  return state.view.current
+    ? state.frontier
+    : Math.max(0, state.frontier - 1);
+}
+
+function currentEntry() {
+  const current = state.view?.current;
+  if (!current) {
+    return null;
+  }
+  return {
+    index: state.frontier,
+    kind: "current",
+    type: current.type,
+    hebrew: current.hebrew,
+    uid: current.uid,
+    card: current.card,
+    attempt: current.attempt,
+    retry: current.retry,
+  };
+}
+
+function focusedEntry() {
+  if (!state.view) {
+    return null;
+  }
+  if (state.cursor === state.frontier) {
+    return currentEntry();
+  }
+  return state.history.get(state.cursor) ?? null;
+}
+
+function timelineEntry(index) {
+  if (index < 0) {
+    return null;
+  }
+  if (index < state.frontier) {
+    return state.history.get(index) ?? null;
+  }
+  if (index === state.frontier) {
+    return currentEntry();
+  }
+  const item = state.view?.lookahead?.[index - state.frontier - 1];
+  if (!item) {
+    return null;
+  }
+  return { index, kind: "future", type: item.type, hebrew: item.hebrew };
+}
+
+function syncTimeline({ follow = false, reset = false } = {}) {
+  const view = state.view;
+  if (!view) {
+    return;
+  }
+  if (reset) {
+    state.history.clear();
+  }
+  state.frontier = view.session.history_size;
+  for (const entry of view.history_tail ?? []) {
+    state.history.set(entry.index, { ...entry, kind: "history" });
+  }
+  for (const index of [...state.history.keys()]) {
+    if (index >= state.frontier) {
+      state.history.delete(index);
+    }
+  }
+  const max = maxCursor();
+  state.cursor = follow
+    ? max
+    : Math.max(0, Math.min(state.cursor, max));
+}
+
+async function loadOlderHistory() {
+  const loaded = [...state.history.keys()];
+  if (loaded.length === 0) {
+    return;
+  }
+  const earliest = Math.min(...loaded);
+  if (earliest <= 0) {
+    return;
+  }
+  const data = await api(
+    `/app/sessions/${encodeURIComponent(state.sessionId)}/history` +
+      `?before=${earliest}&limit=12`,
+  );
+  for (const entry of data.entries ?? []) {
+    state.history.set(entry.index, { ...entry, kind: "history" });
+  }
+}
+
+async function stepCursor(delta) {
+  const target = state.cursor + delta;
+  if (target < 0 || target > maxCursor()) {
+    return;
+  }
+  if (delta < 0) {
+    const loaded = [...state.history.keys()];
+    const earliest = loaded.length ? Math.min(...loaded) : 0;
+    if (target - 3 < earliest && earliest > 0) {
+      try {
+        await loadOlderHistory();
+      } catch (error) {
+        showStatus(error.message);
+        return;
+      }
+    }
+  }
+  state.cursor = target;
+  renderSession();
+}
+
+function timelineCard(entry) {
+  if (!entry) {
+    return '<span class="timeline-slot" aria-hidden="true"></span>';
+  }
+  const kind = entry.kind ?? "history";
+  const type = escapeHtml(entry.type);
+  const name = escapeHtml(entry.hebrew ?? "");
+  const label = escapeHtml(`${entry.type} · ${entry.hebrew ?? ""}`);
+  return (
+    `<span class="timeline-card timeline-card--${kind}" ` +
+    `style="--type: var(--t-${type})" title="${label}">` +
+    `<span class="timeline-letter">(${type})</span>` +
+    `<span class="timeline-name he">${name}</span></span>`
+  );
+}
+
+function stepIcon(direction) {
+  const path = direction === "prev" ? "M15 5 8 12l7 7" : "M9 5l7 7-7 7";
+  return (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    `<path d="${path}"/></svg>`
+  );
+}
+
+function monocularIcon() {
+  return (
+    '<svg class="monocular" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
+    '<circle cx="11" cy="11" r="6"/><path d="M15.5 15.5 20 20"/></svg>'
+  );
+}
+
+function renderTimeline() {
+  const container = $("#timeline");
+  if (!container || !state.view) {
+    return;
+  }
+  const left = [-3, -2, -1]
+    .map((offset) => timelineCard(timelineEntry(state.cursor + offset)))
+    .join("");
+  const right = [1, 2, 3]
+    .map((offset) => timelineCard(timelineEntry(state.cursor + offset)))
+    .join("");
+  const focus = timelineEntry(state.cursor);
+  const collapsed = state.lookaheadCollapsed;
+  const canPrev = state.cursor > 0;
+  const canNext = state.cursor < maxCursor();
+  container.classList.toggle("is-collapsed", collapsed);
+  container.innerHTML = `
+    ${left}
+    <span class="timeline-center">
+      <button class="timeline-step" id="timeline-prev" type="button" aria-label="Previous card" ${canPrev ? "" : "disabled"}>${stepIcon("prev")}</button>
+      <button class="lens${collapsed ? " lens--collapsed" : ""}" id="timeline-lens" type="button" aria-expanded="${!collapsed}" title="${collapsed ? "Expand look-ahead" : "Collapse look-ahead"}" style="--type: var(--t-${escapeHtml(focus?.type ?? "L")})">
+        ${collapsed ? monocularIcon() : timelineCard(focus)}
+      </button>
+      <button class="timeline-step" id="timeline-next" type="button" aria-label="Next card" ${canNext ? "" : "disabled"}>${stepIcon("next")}</button>
+    </span>
+    ${right}
+  `;
+  $("#timeline-prev").addEventListener("click", () => stepCursor(-1));
+  $("#timeline-next").addEventListener("click", () => stepCursor(1));
+  $("#timeline-lens").addEventListener("click", () => {
+    state.lookaheadCollapsed = !state.lookaheadCollapsed;
+    renderTimeline();
   });
 }
 
@@ -480,8 +803,20 @@ function renderPanel() {
   }
 }
 
+function applyAnswer(result, submitted) {
+  const wasFrontier = submitted.index === state.frontier;
+  state.view = result.session;
+  syncTimeline({ follow: wasFrontier });
+  renderSession();
+  const message = faceMessage(result.feedback);
+  if (message) {
+    showStatus(message);
+  }
+}
+
 async function next() {
-  if (!state.view?.current) {
+  const focus = focusedEntry();
+  if (!focus || focus.type !== "L") {
     return;
   }
   clearStatus();
@@ -491,13 +826,12 @@ async function next() {
       {
         method: "POST",
         body: {
-          card_uid: state.view.current.uid,
+          card_uid: focus.uid,
           action: "advance",
         },
       },
     );
-    state.view = result.session;
-    renderSession();
+    applyAnswer(result, focus);
   } catch (error) {
     showStatus(error.message);
   }
@@ -507,6 +841,7 @@ async function loadSession() {
   state.view = await api(
     `/app/sessions/${encodeURIComponent(state.sessionId)}?lookahead=${LOOKAHEAD}`,
   );
+  syncTimeline({ follow: true, reset: true });
   renderSession();
 }
 
@@ -519,9 +854,6 @@ async function boot() {
     }
   });
   $("#search-clear").addEventListener("click", clearSearch);
-  $("#binocular").addEventListener("click", () => {
-    $("#lookahead").classList.toggle("collapsed");
-  });
   if (!getToken()) {
     showStatus("No token. Set localStorage['birds.token'] and reload.");
     return;

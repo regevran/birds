@@ -65,16 +65,11 @@
 .main-b .next { padding: 10px 26px; font-size: 13px; direction: ltr; }
 .main-b .next .arrow { display: inline-block; margin-inline-start: 8px; }
 
-/* Look-ahead: card width, LTR, binocular only, right-pointing arrows. */
-.main-b .lookahead { direction: ltr; justify-content: flex-start; }
-.la-inner {
-  display: flex; align-items: center; gap: 14px;
-  border-top: 1px dotted var(--line); padding-top: 8px;
+.main-b .lookahead { direction: ltr; }
+.main-b .timeline-name {
+  font-family: "Droid Sans Hebrew", "Noto Sans Hebrew", sans-serif;
+  font-size: 13px;
 }
-.la-track { display: flex; align-items: center; gap: 14px; }
-.nest { width: 20px; height: 20px; flex: none; color: var(--text-muted); opacity: .8; }
-.la-bird { font-family: "Droid Sans Hebrew", "Noto Sans Hebrew", sans-serif; font-size: 15px; color: var(--type-text, var(--type)); }
-.la-arrow { color: var(--text-muted); opacity: .55; font-size: 14px; }
 
 /* Search region: LTR data table at the left, selected bird at the right. */
 .main-b .search { direction: ltr; }

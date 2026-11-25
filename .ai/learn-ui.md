@@ -65,10 +65,16 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
   (the CLI keeps it).
 - A session and a run present identically; only the context line (name vs
   `C run · 14 birds · acro`) and the ending differ.
-- Look-ahead: seven upcoming Hebrew names, type-coloured, packed
-  left-to-right with arrows from the card's left; the strip fits its content
-  and a nest closes the queue. The binocular is the only control, no label;
-  collapsible; never Latin, English, family or ids.
+- Look-ahead is a fixed-centre timeline: three completed cards left of a
+  monocular, three planned cards right. Each side card is a type-coloured
+  rectangle with `(L) Hebrew`; never Latin, English, family or ids. Completed
+  cards are dimmed wherever they sit, including to the right when browsing
+  history. The monocular holds the focused card and is the collapse control:
+  expanded shows the timeline, collapsed leaves only a lens icon. Step
+  chevrons beside the monocular move the focus through history and up to the
+  live frontier; the cards themselves are not clickable. History pages in as
+  needed; completion slides the row one place under the stationary lens. The
+  main card follows the lens.
 
 ## Progress
 

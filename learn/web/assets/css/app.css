@@ -38,10 +38,9 @@
 .lookahead {
   height: auto;
   min-height: 46px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
-.la-inner { border-top: 0; padding-top: 0; }
 
 /* Search results scroll under the fixed column header. */
 .search-left { min-height: 0; }
@@ -103,8 +102,6 @@ button:disabled { opacity: .45; cursor: default; }
   text-transform: uppercase;
 }
 
-.lookahead.collapsed .la-track,
-.lookahead.collapsed .nest { display: none; }
 
 .result-row { cursor: pointer; }
 .result-row:hover { background: rgba(239, 223, 192, .3); }

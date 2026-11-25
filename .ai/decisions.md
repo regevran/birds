@@ -80,9 +80,11 @@ canonical files linked here; working rules are in `README.md`.
   progression. Sessions and card runs are the two instances today; other
   orderings (for example R→C or R→E) are a group-level design question, not
   ad-hoc variants. Card runs stay ephemeral in v1.
-- **UI:** book-like paper styling, Hebrew RTL with Latin/English LTR runs. A
-  collapsible look-ahead of seven cards shows Hebrew name + card type, never
-  Latin.
+- **UI:** book-like paper styling, Hebrew RTL with Latin/English LTR runs.
+  The look-ahead is a fixed-lens timeline (three history, three future) whose
+  cards show `(type) Hebrew`, never Latin; completed cards stay dimmed. The
+  lens toggles collapse; stepping arrows and card completion slide the row
+  under the stationary lens, and the main card follows the lens.
 - **Browser media:** the bird illustration is always visible, F included, so
   picture→Latin is a second accepted route to the name. A reader speaks
   visible names from pre-generated clips (Latin required; English and Hebrew

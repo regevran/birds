@@ -120,8 +120,9 @@ frontier is live, a history card is a redo, an unseen non-frontier card is
 - Browser client (`learn/web`): static HTML/CSS/JS served on
   `http://localhost:8001` against the local Worker, using the same `/app`
   contract and keeping the selected session and token in browser storage. The
-  L face, look-ahead, search and panel are implemented; navigation/redo UI is
-  pending.
+  L face, look-ahead timeline (history/future with a fixed lens), search and
+  panel are implemented, as are thin E/R/C/F answer forms and history/redo
+  navigation; the card-face design pass is pending.
 
 ## Testing
 

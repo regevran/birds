@@ -11,10 +11,10 @@
 
 ## Browser - [details](.ai/learn-reference.md#browser-ui-next)
 
-[ ] History navigation UI: back/forward over completed cards, return to current, redo (phase 4)
-[ ] Skip control on placeholder E/R/C/F cards so development can pass them
-[ ] Implement the E/R/C/F card faces
-[ ] Session drawer and look-ahead navigation strip
+[x] History navigation UI: back/forward over completed cards, return to current, redo (phase 4)
+[x] Look-ahead timeline: 3 history + fixed lens + 3 future, collapse to icon
+[ ] Design the E/R/C/F card faces (thin functional forms exist)
+[ ] Session drawer
 [ ] Revisit create-or-switch for sessions - [details](.ai/learn-ui.md#open-questions)
 [ ] Design color template. Preffered as in ../personal_portfolio
 [x] Generate all bird illustrations from [huashu-bird-sticker](https://github.com/alchaincyf/huashu-bird-sticker) (565/565, R2)

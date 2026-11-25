@@ -532,6 +532,7 @@ Response `201` is a session view:
     "attempt": 1,
     "retry": false,
     "revealed": false,
+    "hebrew": "קנית אורז",
     "card": {
       "card_type": "L",
       "species_id": "acrocephalus-agricola",
@@ -617,6 +618,7 @@ Response `201` is a session view:
     "at": "2026-11-22T12:05:00.000Z",
     "uid": "c_c5cfa622f7a5",
     "type": "L",
+    "hebrew": "קנית אורז",
     "card": { }
   }
 ]
@@ -670,13 +672,15 @@ curl -s "$BASE/app/sessions/20261122-1831-3c34/history?before=20&limit=10" \
       "at": "2026-11-22T12:05:00.000Z",
       "uid": "c_c5cfa622f7a5",
       "type": "L",
+      "hebrew": "קנית אורז",
       "card": { }
     }
   ]
 }
 ```
 
-Clients keep the browsing cursor locally; the Worker only serves history
+`hebrew` is the bird's name in the history/current entry so a client can draw
+the timeline without extra lookups. Clients keep the browsing cursor locally; the Worker only serves history
 windows and the frontier.
 
 ### `POST /app/sessions/<id>/prepare`

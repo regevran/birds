@@ -28,11 +28,14 @@ by configuration, no offline mode, no sample data.
 
 ## Scope
 
-Now: session bar and context, the L card, the look-ahead (7 ahead), search
-results (empty until typed; the × button or Esc clears them) and the
-selected-row panel, and the L Next (other card types show a placeholder).
+Now: session bar and context, the L card, the fixed-lens look-ahead timeline
+(three completed cards, the focused card, three planned cards; collapse to the
+lens icon), search results (empty until typed; the × button or Esc clears
+them), the selected-row panel, and thin functional E/R/C/F answer forms that
+submit the real Worker answer shapes (unstyled, design pass pending).
 Illustrations load from the Worker's public media route; a persistent footer
-carries the CC BY credit. The Worker now supports history windows and redo (a
-card uid is classified live vs redo server-side), but the client navigation UI
-is not built yet. The create buttons and the session actions are displayed but
-inert. The drawer, the E/R/C/F faces and tests follow.
+carries the CC BY credit. The timeline chevrons browse completed cards and
+return to the live frontier; history pages in on demand, and the main card
+follows the lens. Redo answers work through the same thin faces. The create
+buttons and the session actions are displayed but inert. The drawer, face
+design and client tests follow.
