@@ -135,7 +135,7 @@ function factline(view) {
   return parts.filter(Boolean).join(" · ");
 }
 
-function renderSession() {
+function renderSession({ shift = 0 } = {}) {
   const view = state.view;
   const name = view?.session?.name ?? "default";
   $(".session-name").textContent = name;
@@ -144,7 +144,7 @@ function renderSession() {
   $("#progress-pct").textContent = `${percent}%`;
   $("#progress-fill").style.width = `${percent}%`;
   renderCard(focusedEntry());
-  renderTimeline();
+  renderTimeline({ shift });
 }
 
 function renderCard(current) {
@@ -492,22 +492,30 @@ async function stepCursor(delta) {
     }
   }
   state.cursor = target;
-  renderSession();
+  renderSession({ shift: delta });
 }
 
-function timelineCard(entry) {
+function timelineCard(entry, index, distance = 0) {
   if (!entry) {
-    return '<span class="timeline-slot" aria-hidden="true"></span>';
+    return "";
   }
   const kind = entry.kind ?? "history";
+  const depth = Math.min(Math.abs(distance), 3);
   const type = escapeHtml(entry.type);
   const name = escapeHtml(entry.hebrew ?? "");
   const label = escapeHtml(`${entry.type} · ${entry.hebrew ?? ""}`);
   return (
-    `<span class="timeline-card timeline-card--${kind}" ` +
-    `style="--type: var(--t-${type})" title="${label}">` +
+    `<span class="timeline-card timeline-card--${kind} timeline-card--d${depth}" ` +
+    `data-index="${index}" style="--type: var(--t-${type})" title="${label}">` +
     `<span class="timeline-letter">(${type})</span>` +
     `<span class="timeline-name he">${name}</span></span>`
+  );
+}
+
+function timelineCell(index, entry) {
+  return (
+    `<span class="timeline-cell" data-index="${index}">` +
+    `${timelineCard(entry, index, index - state.cursor)}</span>`
   );
 }
 
@@ -521,35 +529,75 @@ function stepIcon(direction) {
 }
 
 function monocularIcon() {
+  // Angled field scope: eyepiece up-left, tapered body, objective ring.
   return (
     '<svg class="monocular" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
-    '<circle cx="11" cy="11" r="6"/><path d="M15.5 15.5 20 20"/></svg>'
+    'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+    'stroke-linejoin="round">' +
+    '<rect x="-3.4" y="-1.4" width="6.8" height="2.8" rx="1" ' +
+    'transform="translate(4.6 9.4) rotate(45)"/>' +
+    '<path d="M5.2 9.9 L17.3 7.9 Q18.6 7.8 18.6 9.1 V14.9 ' +
+    'Q18.6 16.2 17.3 16.1 L5.2 14.1 Q4.1 13.9 4.1 12.9 V11.1 ' +
+    'Q4.1 10.1 5.2 9.9 Z" fill="var(--bg)"/>' +
+    '<ellipse cx="18.6" cy="12" rx="1.9" ry="4.6"/>' +
+    '<path d="M10.8 9 V15"/>' +
+    '</svg>'
   );
 }
 
-function renderTimeline() {
+const REDUCED_MOTION =
+  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+const TIMELINE_SHIFT_MS = 300;
+const TIMELINE_SHIFT_EASING = "cubic-bezier(.22,.61,.36,1)";
+
+function renderTimeline({ shift = 0 } = {}) {
   const container = $("#timeline");
   if (!container || !state.view) {
     return;
   }
+  const collapsed = state.lookaheadCollapsed;
+  const animate =
+    shift !== 0 &&
+    !collapsed &&
+    !REDUCED_MOTION &&
+    container.querySelector(".timeline-cell") !== null;
+  const containerRect = container.getBoundingClientRect();
+  let pitch = 0;
+  const previous = new Map();
+  if (animate) {
+    const cells = container.querySelectorAll(".timeline-cell");
+    if (cells.length >= 2) {
+      pitch =
+        cells[1].getBoundingClientRect().left -
+        cells[0].getBoundingClientRect().left;
+    }
+    for (const node of container.querySelectorAll(".timeline-card[data-index]")) {
+      previous.set(Number(node.dataset.index), {
+        rect: node.getBoundingClientRect(),
+        node,
+        side: node.closest(".timeline-cell") !== null,
+      });
+    }
+  }
   const left = [-3, -2, -1]
-    .map((offset) => timelineCard(timelineEntry(state.cursor + offset)))
+    .map((offset) => timelineCell(state.cursor + offset, timelineEntry(state.cursor + offset)))
     .join("");
   const right = [1, 2, 3]
-    .map((offset) => timelineCard(timelineEntry(state.cursor + offset)))
+    .map((offset) => timelineCell(state.cursor + offset, timelineEntry(state.cursor + offset)))
     .join("");
   const focus = timelineEntry(state.cursor);
-  const collapsed = state.lookaheadCollapsed;
   const canPrev = state.cursor > 0;
   const canNext = state.cursor < maxCursor();
+  const lensBody = collapsed
+    ? monocularIcon()
+    : timelineCard(focus, state.cursor, 0);
   container.classList.toggle("is-collapsed", collapsed);
   container.innerHTML = `
     ${left}
     <span class="timeline-center">
       <button class="timeline-step" id="timeline-prev" type="button" aria-label="Previous card" ${canPrev ? "" : "disabled"}>${stepIcon("prev")}</button>
       <button class="lens${collapsed ? " lens--collapsed" : ""}" id="timeline-lens" type="button" aria-expanded="${!collapsed}" title="${collapsed ? "Expand look-ahead" : "Collapse look-ahead"}" style="--type: var(--t-${escapeHtml(focus?.type ?? "L")})">
-        ${collapsed ? monocularIcon() : timelineCard(focus)}
+        ${lensBody}
       </button>
       <button class="timeline-step" id="timeline-next" type="button" aria-label="Next card" ${canNext ? "" : "disabled"}>${stepIcon("next")}</button>
     </span>
@@ -561,6 +609,63 @@ function renderTimeline() {
     state.lookaheadCollapsed = !state.lookaheadCollapsed;
     renderTimeline();
   });
+  if (!animate || pitch <= 0) {
+    return;
+  }
+  // FLIP: every card that is still visible starts at its old position and
+  // size; new ones enter one slot off the edge; the card that left the window
+  // slides out and fades. The centre slot does not move, so the strip reads
+  // as sliding and growing/shrinking behind the focus.
+  const seen = new Set();
+  for (const node of container.querySelectorAll(".timeline-card[data-index]")) {
+    const index = Number(node.dataset.index);
+    seen.add(index);
+    const rect = node.getBoundingClientRect();
+    const old = previous.get(index);
+    let dx = shift * pitch;
+    let scale = "";
+    if (old) {
+      dx =
+        old.rect.left + old.rect.width / 2 -
+        (rect.left + rect.width / 2);
+      const sx = old.rect.width / rect.width;
+      const sy = old.rect.height / rect.height;
+      if (Math.abs(sx - 1) > 0.01 || Math.abs(sy - 1) > 0.01) {
+        scale = ` scale(${sx}, ${sy})`;
+      }
+    }
+    node.animate(
+      [
+        { transform: `translateX(${dx}px)${scale}` },
+        { transform: "none" },
+      ],
+      { duration: TIMELINE_SHIFT_MS, easing: TIMELINE_SHIFT_EASING },
+    );
+  }
+  for (const [index, old] of previous) {
+    if (seen.has(index) || !old.side) {
+      continue;
+    }
+    const clone = old.node.cloneNode(true);
+    Object.assign(clone.style, {
+      position: "absolute",
+      left: `${old.rect.left - containerRect.left}px`,
+      top: `${old.rect.top - containerRect.top}px`,
+      width: `${old.rect.width}px`,
+      height: `${old.rect.height}px`,
+      margin: "0",
+      pointerEvents: "none",
+    });
+    container.appendChild(clone);
+    const animation = clone.animate(
+      [
+        { transform: "translateX(0)", opacity: getComputedStyle(clone).opacity },
+        { transform: `translateX(${-shift * pitch}px)`, opacity: 0 },
+      ],
+      { duration: TIMELINE_SHIFT_MS, easing: TIMELINE_SHIFT_EASING },
+    );
+    animation.addEventListener("finish", () => clone.remove());
+  }
 }
 
 let searchTimer = 0;
@@ -805,9 +910,11 @@ function renderPanel() {
 
 function applyAnswer(result, submitted) {
   const wasFrontier = submitted.index === state.frontier;
+  const previousFrontier = state.frontier;
   state.view = result.session;
   syncTimeline({ follow: wasFrontier });
-  renderSession();
+  const shift = state.frontier > previousFrontier ? 1 : 0;
+  renderSession({ shift });
   const message = faceMessage(result.feedback);
   if (message) {
     showStatus(message);

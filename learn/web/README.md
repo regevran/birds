@@ -16,7 +16,8 @@ by configuration, no offline mode, no sample data.
    a development credential: never deploy it. The manual login flow is in
    `../WORKER-API.md#get-a-token`.
 3. Serve: `cmake --build build --target learn-web-serve`; it stages `build/web`
-   and serves `http://localhost:8001`.
+   and serves `http://localhost:8001` with `Cache-Control: no-store`, so a
+   reload always picks up restaged files.
 4. API base: the `meta[name="birds-api"]` tag in `index.html` (default
    `http://localhost:8787`). The local Worker's `ALLOWED_ORIGINS` must include
    `http://localhost:8001` (see `.dev.vars.example`).
@@ -28,11 +29,13 @@ by configuration, no offline mode, no sample data.
 
 ## Scope
 
-Now: session bar and context, the L card, the fixed-lens look-ahead timeline
-(three completed cards, the focused card, three planned cards; collapse to the
-lens icon), search results (empty until typed; the × button or Esc clears
-them), the selected-row panel, and thin functional E/R/C/F answer forms that
-submit the real Worker answer shapes (unstyled, design pass pending).
+Now: session bar and context, the L card, the fixed-centre look-ahead timeline
+(three completed cards, the focused card largest, three planned cards, text
+and box sizes stepping down with distance at 20 · 15 · 11 · 9 px; fixed step
+arrows; collapse to the monocular icon), search results (empty until typed;
+the × button or Esc clears them), the selected-row panel, and thin functional
+E/R/C/F answer forms that submit the real Worker answer shapes (unstyled,
+design pass pending).
 Illustrations load from the Worker's public media route; a persistent footer
 carries the CC BY credit. The timeline chevrons browse completed cards and
 return to the live frontier; history pages in on demand, and the main card

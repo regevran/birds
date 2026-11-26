@@ -68,7 +68,6 @@
 .main-b .lookahead { direction: ltr; }
 .main-b .timeline-name {
   font-family: "Droid Sans Hebrew", "Noto Sans Hebrew", sans-serif;
-  font-size: 13px;
 }
 
 /* Search region: LTR data table at the left, selected bird at the right. */

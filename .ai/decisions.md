@@ -81,10 +81,13 @@ canonical files linked here; working rules are in `README.md`.
   orderings (for example R→C or R→E) are a group-level design question, not
   ad-hoc variants. Card runs stay ephemeral in v1.
 - **UI:** book-like paper styling, Hebrew RTL with Latin/English LTR runs.
-  The look-ahead is a fixed-lens timeline (three history, three future) whose
-  cards show `(type) Hebrew`, never Latin; completed cards stay dimmed. The
-  lens toggles collapse; stepping arrows and card completion slide the row
-  under the stationary lens, and the main card follows the lens.
+  The look-ahead is a fixed-centre timeline (three history, three future)
+  whose cards show `(type) Hebrew`, never Latin; completed cards are dimmed
+  and the text and boxes grow toward the focused centre. The centre slot has a
+  fixed 210 px width so the step arrows stay put; the arrows are pinned to the
+  connector line and cards paint above them. The centre card toggles collapse,
+  and stepping or completing animates the row sliding and sizing one place
+  under the fixed centre. The main card follows the focus.
 - **Browser media:** the bird illustration is always visible, F included, so
   picture→Latin is a second accepted route to the name. A reader speaks
   visible names from pre-generated clips (Latin required; English and Hebrew

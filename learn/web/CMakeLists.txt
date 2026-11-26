@@ -68,9 +68,10 @@ add_custom_target(learn-web-token
     VERBATIM)
 
 add_custom_target(learn-web-serve
-    COMMAND "${Python3_EXECUTABLE}" -m http.server ${WEB_PORT}
-        --directory "${WEB_OUT}"
+    COMMAND "${Python3_EXECUTABLE}"
+        "${BIRDS_ROOT}/learn/tools/serve_web.py"
+        --directory "${WEB_OUT}" --port ${WEB_PORT}
     DEPENDS learn-web-build
-    COMMENT "Serving the browser client on http://localhost:${WEB_PORT}"
+    COMMENT "Serving the browser client on http://localhost:${WEB_PORT} (no-store)"
     USES_TERMINAL
     VERBATIM)

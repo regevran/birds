@@ -69,12 +69,24 @@ Related: `learn-reference.md`, `learn/CLI-USAGE.md`, `decisions.md`.
   monocular, three planned cards right. Each side card is a type-coloured
   rectangle with `(L) Hebrew`; never Latin, English, family or ids. Completed
   cards are dimmed wherever they sit, including to the right when browsing
-  history. The monocular holds the focused card and is the collapse control:
-  expanded shows the timeline, collapsed leaves only a lens icon. Step
-  chevrons beside the monocular move the focus through history and up to the
-  live frontier; the cards themselves are not clickable. History pages in as
-  needed; completion slides the row one place under the stationary lens. The
-  main card follows the lens.
+  history; only the text and border dim, the box stays opaque so the
+  connector line behind it never reads as a strike-through. The focused card
+  is the largest; both its text and its box step down with distance from the
+  centre (about 20 · 15 · 11 · 9 px), so the row reads as a lens over the
+  strip. The centre card is the collapse control: clicking it collapses the
+  timeline to a monocular icon. The centre slot has a fixed 210 px width, so
+  the step arrows never move; a few of the longest Hebrew names ellipsize in
+  the centre. Step chevrons sit at fixed positions either side of the slot and
+  are pinned to the connector line; the cards paint above them, with the
+  focused card topmost, so a card passing the centre covers the arrow. The
+  chevrons move the focus through history and up to the live frontier; the
+  cards themselves are not clickable. History pages in as
+  needed; completion slides the row one place under the fixed centre. The
+  shift is animated (about a third of a second): every visible card slides to
+  its next slot, the card leaving the window slides out and fades, and the
+  size change between slots is part of the same motion, so the strip reads as
+  sliding and growing/shrinking under the focus. Reduced-motion users get the
+  jump without the slide. The main card follows the lens.
 
 ## Progress
 
