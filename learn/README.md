@@ -7,7 +7,8 @@ through the Worker in `cloudflare/`. The design is in
 `../.ai/learn-reference.md`; the storage/Worker design is in
 `../.ai/learn-cloudflare.md`; the endpoint reference is in
 [`WORKER-API.md`](WORKER-API.md); command-line explanations are in
-[`CLI-USAGE.md`](CLI-USAGE.md); work items are in `../TODO.md`.
+[`CLI-USAGE.md`](CLI-USAGE.md); the user manual is
+[`USER-MANUAL.md`](USER-MANUAL.md); work items are in `../TODO.md`.
 
 ## Layout
 
@@ -41,9 +42,11 @@ score; R asks for the Latin name; C asks for a typed Latin name with a
 scaffold; F asks for a typed Latin name with no scaffold. Search matches names
 and taxonomy plus the meanings of a bird's etymology parts; results show the
 matching element and text and list the matching element entries. Search, card
-views and grading require a stored login and a reachable Worker. The V card,
-hints and the web UI are still to come. There are 117 Python tests (three live
-Worker tests skip unless configured) and 101 Worker tests.
+views and grading require a stored login and a reachable Worker. The browser
+client has the L card, search, the look-ahead timeline, history/redo and thin
+E/R/C/F forms; the card-face design pass, the session drawer and the reader
+are next. V cards and hints are deferred. There are 117 Python tests (three
+live Worker tests skip unless configured) and 105 Worker tests.
 
 ## Progress Worker
 

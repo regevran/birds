@@ -1,155 +1,90 @@
 # Progress Worker
 
-Status: implemented and deployed at
-`https://birds-progress.regevran.workers.dev`. The deployed Worker predates the
-v2 users.json format and the tests-scope removal, so it must not receive the
-new `users.json` until it is redeployed. Node tests and local live login pass.
-The Worker has `/fs` (scoped files) and `/app` (trainer); the Python CLI uses
-it fully. Endpoint contract and examples live only in `learn/WORKER-API.md`;
-trainer behaviour is in `learn-reference.md`.
+Status: implemented locally; 105 Node tests. The deployed Worker is old: it
+predates the v2 `users.json` and the tests-scope removal. Do not upload the new
+`users.json` until a v2 Worker is deployed. The Worker provides `/fs` (scoped
+files) and `/app` (trainer); the CLI uses it fully. Endpoints:
+`learn/WORKER-API.md`; trainer behaviour: `learn-reference.md`.
 
 ## Shape
 
 ```text
-GitHub Pages (planned)                Cloudflare
-  static client                       Worker ── R2 binding ──> private bucket
-        │                                │                    birds-progress/
-        └──── HTTPS + bearer token ──────┘
+GitHub Pages (planned)              Cloudflare
+  static client                     Worker ── R2 binding ──> private bucket
+        │                               │                   birds-progress/
+        └──── HTTPS + bearer token ─────┘
 ```
 
-The Worker owns card chains, grading, scheduling, handle resolution and
-card-run eligibility. Clients render JSON views and never duplicate logic.
-`/app/cards` is stateless; session routes persist through R2.
+The Worker owns card views, grading, scheduling, handle resolution and card-run
+eligibility. Clients render JSON and never duplicate logic.
 
-## Bucket layout
+## Bucket
 
 ```text
-birds-progress/
-  users.json                          provisioned accounts, never served
-  users/<username>/profile.json       profile, settings, global counter
-  users/<username>/sessions/<id>.json session state
-  media/illustrations/v1/<species>.webp  public generated illustrations
+users.json
+users/<username>/profile.json
+users/<username>/sessions/<id>.json
+media/illustrations/v1/<species>.webp
 ```
 
-Logical client paths are relative (`profile.json`, `sessions/<id>.json`) and
-every token maps them under `users/<username>/`; there is one scope, `profile`.
-The client never names a user in a path. The bucket is private, has no
-`r2.dev` URL and is read/written only by the Worker. The one public read path
-is `GET /media/illustrations/<version>/<species_id>.webp`: it serves only
-generated image keys, never profile or session data. Images are not committed;
-`learn/web/illustrations.json` pins the CC BY 4.0 source, and the
-`learn-web-illustrations` / `-upload-local` / `-upload-remote` targets generate
-and place them. Credit and modification notes: `learn/web/ATTRIBUTION.md`.
+Client paths are relative; every token maps them under `users/<username>/`.
+There is one scope, `profile`. The bucket is private. The only public read path
+is `GET /media/illustrations/<version>/<species>.webp`, serving generated
+images only. Images are not committed; the source is pinned in
+`learn/web/illustrations.json`, generated and uploaded by the
+`learn-web-illustrations*` targets. Credit: `learn/web/ATTRIBUTION.md`.
 
 ## Documents
 
-`profile.json`:
+`profile.json`: schema and app version, id/name, timestamps, `settings`
+(`active_cap` default 7, `lookahead_target`, `out_of_scope_reviews`,
+`show_bridge`), `global_counter`. No mastery table.
 
-- `schema_version`, `app_version`, `profile_id`, `name`, timestamps.
-- `settings`: `active_cap` (default 7), `lookahead_target` (50),
-  `out_of_scope_reviews`, `show_bridge`.
-- `global_counter` — one per consumed card (or wrong redo) across all
-  sessions. There is no mastery/passed table and no review levels.
-
-`sessions/<id>.json`:
-
-- Identity: `session_id`, `profile_id`, `name`, timestamps, `data_version`.
-- `skill` (`he_to_latin`), `status` (`active` / `completed`).
-- `filter`: `families`, `orders`, `genera`, `statuses`, `search`.
-- `created_from`: the Worker-formatted search and criteria at creation, e.g.
-  `search "acrocephalus-agricola" · status: accidental`; empty for `default`
-  (returned as `null`).
-- `settings` (including `active_cap`), `seed`, `initial_pool_size` (birds).
-- `pending`: ordered per-bird groups `{species_id, cards: [specs]}` for work
-  not yet in the queue; a group moves whole into the queue when the bird is
-  pulled. `queue`: materialised cards (`uid`, `species_id`, `type`, `attempt`,
-  `seed`, `hint_level`, `retry`, `revealed`); `queue[0]` is the frontier.
-- `history`: completed cards in timeline order, each
-  `{card, result, at}`; `session_card_count` is its length.
-- Schema version 2 only. There is no compatibility path for version-1
-  documents; they are not supported.
-
-`queue` is the source of truth for the future; pending is disjoint from it.
-Card specs are materialised (new uid/seed) when pulled, so cards returned by
-invalidation are unseen in the new timeline.
+`session.json`: identity, `skill`, `status`, `filter` (families, orders,
+genera, statuses, search), `created_from`, settings, seed, initial pool,
+`pending` (ordered per-bird groups), `queue` (frontier `queue[0]`) and
+`history` (`{card, result, at}`). Schema v2 only; no migration.
 
 ## Accounts and tokens
 
-- Accounts are added with `python3 learn/tools/provision_user.py <username>`.
-  No signup, password change or OAuth yet.
-- `users.json` is generated (v2):
-  `{version: 2, iterations: 1000, users: {name: {salt, hash}}}`. PBKDF2-HMAC-
-  SHA256 is implied, `iterations` applies to the document (a per-entry value is
-  accepted for imported accounts), and no user carries an `algorithm` or
-  `scope` field. 1,000 iterations is a speed bump, not a vault; the private
-  bucket and unique passwords are the main controls.
-- The file is a staging input only: the Worker reads the R2 copy. The single
-  writer is the provisioning script; the bridge to R2 is
-  `learn-worker-users-upload` (local emulation) or `learn-worker-users-deploy`
-  (remote, after deploying the Worker). Hand-editing either copy caused the
-  earlier split brain, so it is not supported.
-- Login and bearer details: `learn/WORKER-API.md#get-a-token`. Tokens are
-  HMAC-SHA256 payloads `{u, s, exp}`; rotating `AUTH_SECRET` invalidates all.
-
-## Design constraints
-
-- Card views never contain an explicit correct answer; L intentionally shows
-  the full name. Look-ahead exposes only Hebrew, type and review flags.
-- Session summaries carry `session_card_count`, `percent_completed`,
-  `pending_size`, `history_size`, `created_from` and `active_cap`.
-- Session selection and naming rules are in `learn-reference.md`.
+- `python3 learn/tools/provision_user.py <username>`; no signup, password
+  change or OAuth.
+- `users.json` v2: `{version: 2, iterations: 1000, users: {name: {salt,
+  hash}}}`; PBKDF2-HMAC-SHA256 is implied. Generated; the Worker reads R2.
+  Upload with `learn-worker-users-upload` (local) or `-deploy` (remote). Never
+  hand-edit either copy.
+- Tokens are HMAC-SHA256 `{u, s, exp}`; rotating `AUTH_SECRET` invalidates all.
+  Login details: `learn/WORKER-API.md#get-a-token`.
 
 ## Concurrency
 
-The R2 ETag is the revision, sent as `X-Revision` and accepted in `If-Match`;
-conditional puts prevent silent overwrites. Two clients on one session see
-each other's progress. The answer route classifies the submitted uid: the
-frontier is live, a history card is a redo, an unseen non-frontier card is
-`409 not_current`, an unknown uid is `409 stale_card`; a stale write returns
-`412`. The client reloads and continues.
+The R2 ETag is the revision (`X-Revision`, `If-Match`). Two clients on one
+session see each other's progress. Answer uid classification: frontier live,
+history redo, unseen non-frontier `409 not_current`, unknown `409 stale_card`.
+A stale write is `412`; the client reloads.
 
-## Clients
+## Clients and tests
 
-- Python: `learn/src/trainer/foundation/cloud.py` provides `login`,
-  `CloudFiles` (read/write/list/delete) and `CloudApp` (`/app` calls);
-  `CloudError` carries status and Worker error code. Credentials live in
-  `~/.birds_trainer.json` (0600, `BIRDS_TRAINER_CREDENTIALS` overrides). The
-  selected session lives in `~/.birds_trainer_state.json` (0600, keyed by
-  `server|username`, `BIRDS_TRAINER_STATE` overrides).
-- CLI commands and behaviour: `learn/CLI-USAGE.md`.
-- Browser client (`learn/web`): static HTML/CSS/JS served on
-  `http://localhost:8001` against the local Worker, using the same `/app`
-  contract and keeping the selected session and token in browser storage. The
-  L face, look-ahead timeline (history/future with a fixed lens), search and
-  panel are implemented, as are thin E/R/C/F answer forms and history/redo
-  navigation; the card-face design pass is pending.
-
-## Testing
-
-- `cmake --build build --target learn-worker-test` runs Node's built-in test
-  runner in `learn/cloudflare`, covering core, login/file API, dataset,
-  grading, views, scheduler, stateless cards/search and `/app`. Counts are in
-  `repository.md`.
-- Tests use an in-memory binding implementing only the R2 methods the Worker
-  calls. The PBKDF2 vector is shared with the Python tests.
-- Live Python tests run against a local `wrangler dev` with a local account
-  and write under a random `probe/` prefix in that account's own space; they
-  skip without `BIRDS_TEST_*`.
+- Python: `foundation/cloud.py` (`login`, `CloudFiles`, `CloudApp`);
+  credentials `~/.birds_trainer.json`; selected session
+  `~/.birds_trainer_state.json`.
+- Browser: `learn/web`, same `/app`; L, search, timeline, history/redo and
+  thin E/R/C/F forms.
+- Node tests: `learn-worker-test` (105) with an in-memory R2 binding. Python:
+  117 tests; live Worker tests use local `wrangler dev` and skip without
+  `BIRDS_TEST_*`.
 
 ## Deployment
 
 1. Private bucket `birds-progress`.
-2. Provision an account and upload `users.json` with
-   `learn-worker-users-deploy` (the upload target without `deploy` writes to
-   local emulation). Do this only after deploying a Worker that understands
-   the current file format.
-3. `npx wrangler secret put AUTH_SECRET` from `learn/cloudflare/`.
-4. `cmake --build build --target learn-worker-deploy`.
+2. Set `AUTH_SECRET` (`npx wrangler secret put AUTH_SECRET` in
+   `learn/cloudflare/`).
+3. Deploy the Worker (`learn-worker-deploy`).
+4. Provision, then upload the v2 `users.json` (`learn-worker-users-deploy`).
 
-The static trainer will be linked from the portfolio; no custom domain is
+The static client will be linked from the portfolio; no custom domain is
 needed.
 
 ## Deferred
 
-- Login throttling if the public endpoint is scanned.
-- Event log/analytics (R2 cannot append in place; D1 would be a new design).
+Login throttling; event log/analytics.
